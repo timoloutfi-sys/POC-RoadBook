@@ -68,10 +68,45 @@ describe('plan : course', () => {
     expect(Math.abs(q.H - p.H * 1.15) / (p.H * 1.15)).toBeLessThan(0.03)
     expect(q.IF).toBeLessThan(p.IF)
   })
-  it('des blocs ajoutés ne font pas exploser la fatigue', () => {
-    const q = run({ mode: 'course', minutes: { 3: 30 } })
-    expect(q.IF).toBeLessThan(p.IF * 1.04)
-    expect(q.zt[3]).toBeGreaterThan(p.zt[3])
+  it('pas de blocs en course : le temps par zone est une conséquence', () => {
+    expect(p.adjustable).toEqual([])
+  })
+  it('l’intensité demandée est respectée : plus haut, plus vite', () => {
+    const lo = run({ mode: 'course', intensity: 70 }), hi = run({ mode: 'course', intensity: 85 })
+    expect(Math.abs(lo.IF - 0.7)).toBeLessThan(0.02)
+    expect(Math.abs(hi.IF - 0.85)).toBeLessThan(0.02)
+    expect(hi.H).toBeLessThan(lo.H)
+  })
+  it('la répartition en zones varie progressivement avec l’intensité (pas de bascule brutale)', () => {
+    const a = run({ mode: 'course', intensity: 76 }), b = run({ mode: 'course', intensity: 77 })
+    for (let z = 0; z < 7; z++) expect(Math.abs(a.zt[z] - b.zt[z])).toBeLessThan(a.H * 3600 * 0.35)
+  })
+})
+
+describe('plan : cibles imposées et manuel', () => {
+  const imp = { id: 'i1', kind: 'zone' as const, name: 'Col au calme', a: 60, b: 80, min: 50, max: 58, msg: '', avant: 1 }
+  it('une cible imposée est conservée telle quelle, en tout mode', () => {
+    for (const mode of ['tranquille', 'entrainement', 'course', 'manuel'] as const) {
+      const p = run({ mode, imposed: [imp] })
+      const s = p.sections.find(x => x.locked)
+      expect(s).toBeDefined()
+      expect([s!.a, s!.b, s!.min, s!.max]).toEqual([60, 80, 50, 58])
+      const i = Math.round(70000 / 50)
+      expect(p.ratio[i]).toBeCloseTo(0.54, 2)
+    }
+  })
+  it('en course, l’imposé est compensé : même fatigue, arrivée qui bouge', () => {
+    const free = run({ mode: 'course' }), held = run({ mode: 'course', imposed: [imp] })
+    expect(Math.abs(held.IF - free.IF)).toBeLessThan(0.03)
+    expect(held.H).toBeGreaterThan(free.H)
+  })
+  it('le mode manuel suit les cibles données et rien d’autre', () => {
+    const easy = run({ mode: 'manuel', manual: { plat: [60, 66], montee: [65, 72], descente: [0, 50], gUp: 3.5, gDown: -3 } })
+    const hard = run({ mode: 'manuel', manual: { plat: [78, 84], montee: [85, 95], descente: [0, 50], gUp: 3.5, gDown: -3 } })
+    expect(hard.H).toBeLessThan(easy.H)
+    expect(easy.adjustable).toEqual([])
+    expect(easy.sections.filter(s => !s.locked && s.kind !== 'montee')).toHaveLength(0)
+    expect(easy.base.plat).toEqual([60, 66])
   })
 })
 

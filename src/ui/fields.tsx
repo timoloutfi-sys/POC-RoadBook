@@ -31,3 +31,17 @@ export function Num({ value, onChange, min, max, step, placeholder }: {
       onChange={e => { setTxt(e.target.value); onChange(parse(e.target.value)) }} />
   )
 }
+
+/** Réglage par − et + autour d'une valeur affichée. */
+export function Stepper({ label, value, hint, onMinus, onPlus, disableMinus, disablePlus }: {
+  label: string; value: string; hint?: string; onMinus: () => void; onPlus: () => void; disableMinus?: boolean; disablePlus?: boolean
+}) {
+  return (
+    <div className="stepper">
+      <span className="grow"><b>{label}</b>{hint && <small>{hint}</small>}</span>
+      <button type="button" className="iconbtn" aria-label={`Moins : ${label}`} disabled={disableMinus} onClick={onMinus}>−</button>
+      <span className="sv">{value}</span>
+      <button type="button" className="iconbtn" aria-label={`Plus : ${label}`} disabled={disablePlus} onClick={onPlus}>+</button>
+    </div>
+  )
+}

@@ -18,9 +18,13 @@ export interface Target {
   section: Section | null
 }
 
+/** Section qui fixe la cible au km donné : une cible imposée l'emporte, les repères sans cible sont ignorés. */
 export const sectionAt = (sections: Section[], km: number) => {
   let z: Section | null = null
-  for (const s of sections) if (km >= s.a && km <= s.b) z = s
+  for (const s of sections) {
+    if (s.mark || km < s.a || km > s.b) continue
+    if (!z || s.locked || !z.locked) z = s
+  }
   return z
 }
 

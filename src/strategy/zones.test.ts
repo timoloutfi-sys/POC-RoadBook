@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildRoute } from '../route/route'
 import { effectiveFtp, effectiveLthr } from './rider'
-import { hrBand, targetAt } from './target'
+import { hrBand, sectionAt, targetAt } from './target'
 import { defaultBase } from './types'
 import { hrRatioForPowerRatio, powerZoneOf } from './zones'
 
@@ -59,5 +59,19 @@ describe('cible', () => {
     expect(t.power).toEqual({ min: 190, max: 200 })
     expect(t.hr).toBeNull()
     expect(t.zone).toBe(3)
+  })
+})
+
+describe('priorité des sections', () => {
+  const sec = (id: string, a: number, b: number, over: object = {}) => ({ id, kind: 'zone' as const, name: id, a, b, min: 70, max: 80, msg: '', avant: 0, ...over })
+  it('une cible imposée l’emporte sur une section générée qui commence plus tard', () => {
+    const s = [sec('imp', 10, 30, { locked: true }), sec('gen', 20, 25, { gen: true })]
+    expect(sectionAt(s, 22)?.id).toBe('imp')
+  })
+  it('sans imposé, la dernière section qui commence l’emporte', () => {
+    expect(sectionAt([sec('a', 10, 30), sec('b', 20, 25)], 22)?.id).toBe('b')
+  })
+  it('un repère n’impose aucune cible', () => {
+    expect(sectionAt([sec('m', 10, 30, { mark: true })], 20)).toBeNull()
   })
 })

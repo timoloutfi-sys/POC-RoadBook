@@ -26,6 +26,10 @@ export interface Section {
   /** Montée détectée automatiquement. */
   auto?: boolean
   gen?: boolean
+  /** Repère sans cible : sert à annoncer et à nommer un tronçon, la cible vient du plan. */
+  mark?: boolean
+  /** Cible imposée par le coureur : prioritaire sur le plan et conservée par l'algorithme. */
+  locked?: boolean
 }
 
 /** Cibles de base en % FTP selon la pente, hors sections. */

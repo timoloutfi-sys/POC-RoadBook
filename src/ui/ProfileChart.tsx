@@ -172,7 +172,7 @@ export function ProfileChart({ route, sections, points = [], onLongPress, onMove
         {eTicks.map(e => <g key={e}><line x1={PL} x2={W - PR} y1={Y(e)} y2={Y(e)} stroke="var(--line)" strokeWidth={1} /><text x={PL - 6} y={Y(e) + 4} textAnchor="end" fontSize={12} fill="var(--muted)">{nf0(e)} m</text></g>)}
         {kTicks.map(k => <g key={k}><line x1={X(k)} x2={X(k)} y1={H - PB} y2={H - PB + 4} stroke="var(--muted)" /><text x={X(k)} y={H - 6} textAnchor={X(k) < PL + 16 ? 'start' : 'middle'} fontSize={12} fill="var(--muted)">{kStep < 1 ? nf1(k) : nf0(k)} km</text></g>)}
         <g clipPath="url(#plot)">
-          {sections.filter(s => s.b > a && s.a < b).map(s => <rect key={s.id} x={X(s.a)} width={Math.max(3, X(s.b) - X(s.a))} y={PT} height={H - PT - PB} fill={s.kind === 'montee' ? 'rgba(255,107,90,.2)' : 'rgba(77,163,255,.2)'} />)}
+          {sections.filter(s => s.b > a && s.a < b && (s.mark || s.locked || s.kind === 'montee')).map(s => <rect key={s.id} x={X(s.a)} width={Math.max(3, X(s.b) - X(s.a))} y={PT} height={H - PT - PB} fill={s.locked ? 'rgba(242,194,0,.28)' : s.kind === 'montee' ? 'rgba(255,107,90,.2)' : 'rgba(77,163,255,.2)'} />)}
           <path d={area} fill="rgba(242,194,0,.16)" />
           <path d={path} fill="none" stroke="var(--accent-fg)" strokeWidth={2.5} strokeLinejoin="round" />
         </g>

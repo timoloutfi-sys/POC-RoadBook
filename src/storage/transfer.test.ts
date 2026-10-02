@@ -17,7 +17,9 @@ describe('export et import du plan', () => {
     expect(cfg.rider.ftp).toBe(260)
     expect(cfg.base.gUp).toBe(4)
     expect(cfg.base.plat).toEqual([65, 72])
-    expect(cfg.sections).toHaveLength(1)
+    expect(cfg.sections).toHaveLength(0)
+    expect(cfg.plan?.imposed).toHaveLength(1)
+    expect(cfg.plan?.imposed[0].locked).toBe(true)
     expect(route).toBeNull()
   })
   it('refuse un texte qui n’est pas un plan', () => {

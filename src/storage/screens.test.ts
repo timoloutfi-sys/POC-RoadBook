@@ -46,6 +46,26 @@ describe('écrans modulaires', () => {
   })
 })
 
+describe('migration des sections', () => {
+  const sec = (over: object) => ({ id: 's', kind: 'zone' as const, name: 'X', a: 1, b: 2, min: 70, max: 80, msg: '', avant: 1, ...over })
+  it('une section manuelle avec cible devient une cible imposée', () => {
+    const m = migrateConfig({ ...defaultConfig(), sections: [sec({})] } as never)
+    expect(m.sections).toHaveLength(0)
+    expect(m.plan?.imposed.map(s => s.id)).toEqual(['s'])
+    expect(m.plan?.imposed[0].locked).toBe(true)
+  })
+  it('une montée détectée devient un simple repère, un repère reste tel quel', () => {
+    const m = migrateConfig({ ...defaultConfig(), sections: [sec({ id: 'a', auto: true }), sec({ id: 'm', mark: true })] } as never)
+    expect(m.sections.every(s => s.mark)).toBe(true)
+    expect(m.plan).toBeNull()
+  })
+  it('les sections générées par un plan restent à leur place', () => {
+    const m = migrateConfig({ ...defaultConfig(), sections: [sec({ gen: true })] } as never)
+    expect(m.sections).toHaveLength(1)
+    expect(m.plan).toBeNull()
+  })
+})
+
 describe('migration', () => {
   it('l’ancienne disposition devient l’écran « Principal », puissance → effort', () => {
     const old = { ...defaultConfig(), layout: mkLayout('clm').map(i => (i.k === 'effort' ? { ...i, k: 'power' as never } : i)), screens: undefined as never }

@@ -10,7 +10,7 @@ import { sunTimes } from './sun'
 import type { BaseRules, RoutePoint, Section } from './types'
 import { POWER_ZONES, powerZoneOf, type Unit } from './zones'
 
-export type PlanMode = 'tranquille' | 'entrainement' | 'course'
+export type PlanMode = 'tranquille' | 'entrainement' | 'course' | 'manuel'
 /** Zones sur lesquelles on place des blocs : Z3 (2), Z4 (3), Z5 (4). */
 export type BlockZone = 2 | 3 | 4
 export const BLOCK_ZONES: BlockZone[] = [2, 3, 4]
@@ -19,6 +19,12 @@ export interface PlanCfg {
   mode: PlanMode
   /** Course : temps de roulage visé en heures, sinon l'outil propose une intensité tenable. */
   targetHours: number | null
+  /** Course : intensité visée (% de FTP, en puissance normalisée) ; null = tenable pour la durée. */
+  intensity: number | null
+  /** Manuel : cibles en % de FTP sur le plat, en montée et en descente. */
+  manual: BaseRules
+  /** Cibles imposées par le coureur (km à km) : l'algorithme les garde et adapte le reste. */
+  imposed: Section[]
   /** Minutes demandées par zone ; absent = valeur par défaut du mode. */
   minutes: Partial<Record<BlockZone, number>>
   /** Départ, au format datetime-local. */
@@ -38,7 +44,7 @@ export interface PlanCfg {
 export const defaultPlanCfg = (): PlanCfg => {
   const d = new Date(); d.setHours(8, 0, 0, 0)
   const p = (n: number) => String(n).padStart(2, '0')
-  return { mode: 'entrainement', targetHours: null, minutes: {}, start: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T08:00`, stops: null, water: 1.5, carbs: null, windKmh: 0, windFrom: 270, tempC: 15 }
+  return { mode: 'entrainement', targetHours: null, intensity: null, manual: { plat: [65, 72], montee: [75, 90], descente: [0, 60], gUp: 3.5, gDown: -3 }, imposed: [], minutes: {}, start: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T08:00`, stops: null, water: 1.5, carbs: null, windKmh: 0, windFrom: 270, tempC: 15 }
 }
 
 /** Blocs d'effort : allure moyenne, bande, durée d'un bloc, récupération minimale (s), pas des boutons, plafonds. */
@@ -56,7 +62,7 @@ export interface PlanInput {
   cfg: PlanCfg
 }
 
-export interface ProgramRow { label: string; a: number; b: number; t: number; minPct: number; maxPct: number; zone: number; note: string }
+export interface ProgramRow { id?: string; locked?: boolean; label: string; a: number; b: number; t: number; minPct: number; maxPct: number; zone: number; note: string }
 
 export interface PlanResult {
   /** Roulage en heures, durée avec arrêts, arrivée, vitesse moyenne (km/h). */
@@ -87,6 +93,9 @@ export interface PlanResult {
   defaults: Record<BlockZone, number>
   limits: Record<BlockZone, number>
   adjustable: BlockZone[]
+  /** Intensité obtenue (NP / FTP) et intensité tenable proposée pour cette durée. */
+  intensity: number
+  intensityAuto: number
   sections: Section[]
   points: RoutePoint[]
   periodic: Periodic[]
@@ -116,7 +125,7 @@ export function computePlan(inp: PlanInput): PlanResult {
   const wind = headwind(route, cfg.windKmh ?? 0, cfg.windFrom ?? 270)
   const vcap = cornerCaps(route)
   const sv = (x: number, g: number, i: number) => speedFor(body, x * F * alt[i], g / 100, { rho: rho[i], wind: wind[i] })
-  const adjustable = BLOCK_ZONES.filter(z => (mode !== 'tranquille') && !(unit === 'hr' && z === 4))
+  const adjustable = BLOCK_ZONES.filter(z => mode === 'entrainement' && !(unit === 'hr' && z === 4))
 
   // Temps réel : simulation avec inertie, virages, freinage, roue libre, air et vent locaux,
   // puissance réduite en altitude, et ralentissements de route ouverte.
@@ -166,6 +175,11 @@ export function computePlan(inp: PlanInput): PlanResult {
 
   // --- 1. Allure de base ---------------------------------------------------------------------
   const baseRatio = (npTarget: number | null): Float32Array => {
+    if (mode === 'manuel') {
+      const m = cfg.manual, mid = (b: [number, number]) => (b[0] + b[1]) / 200, r = new Float32Array(n)
+      for (let i = 0; i < n; i++) r[i] = gs[i] <= m.gDown ? mid(m.descente) : gs[i] >= m.gUp ? mid(m.montee) : mid(m.plat)
+      return r
+    }
     if (mode !== 'course') {
       const r = new Float32Array(n)
       for (let i = 0; i < n; i++) r[i] = gs[i] <= -3 ? 0.45 : gs[i] >= 3.5 ? 0.72 : 0.685
@@ -181,13 +195,21 @@ export function computePlan(inp: PlanInput): PlanResult {
     let res = timing(ratio)
     const T0 = res.t
     // Départ progressif et retour au calme (sauf course : la 1re heure est déjà plafonnée plus bas).
-    if (T0 > 2400 && mode !== 'course') {
+    if (T0 > 2400 && (mode === 'tranquille' || mode === 'entrainement')) {
       for (let i = 0; i < n; i++) { if (res.cumT[i] < 900) { ratio[i] = 0.6; tag[i] = -2 } else if (res.cumT[i] > T0 - 600) { ratio[i] = 0.55; tag[i] = -3 } }
       res = timing(ratio)
     }
     if (mode === 'course' && T0 > 2 * 3600 && npTarget != null) {
       const cap = Math.max(npTarget, 0.5)
       for (let i = 0; i < n; i++) if (res.cumT[i] < 3600) ratio[i] = Math.min(ratio[i], cap)
+      res = timing(ratio)
+    }
+    // Cibles imposées : le coureur a le dernier mot, ces tronçons ne bougent plus.
+    if (cfg.imposed.length) {
+      for (const s of cfg.imposed) {
+        const i0 = clamp(Math.round((s.a * 1000) / STEP), 0, n - 1), i1 = clamp(Math.round((s.b * 1000) / STEP), 0, n - 1), x = (s.min + s.max) / 200
+        for (let i = i0; i <= i1; i++) { ratio[i] = x; tag[i] = -5 }
+      }
       res = timing(ratio)
     }
     const T = res.t
@@ -241,7 +263,11 @@ export function computePlan(inp: PlanInput): PlanResult {
   const noWanted: Record<BlockZone, number> = { 2: 0, 3: 0, 4: 0 }
   let H0 = 0, npTarget: number | null = null
   if (mode === 'course') {
-    if (!cfg.targetHours) {
+    if (cfg.intensity) {
+      const np = cfg.intensity / 100
+      for (let k = 0; k < 3; k++) { const h = timing(courseRatio(np, Hguess)).t / 3600; const done = Math.abs(h - Hguess) < 0.03; Hguess = h; if (done) break }
+      npTarget = np
+    } else if (!cfg.targetHours) {
       // Point fixe : l'intensité tenable dépend de la durée, qui dépend de l'intensité.
       for (let k = 0; k < 5; k++) {
         const h = timing(courseRatio(ifForDuration(Hguess), Hguess)).t / 3600
@@ -259,14 +285,14 @@ export function computePlan(inp: PlanInput): PlanResult {
   const limits = { 2: blockLimit(2, H1), 3: blockLimit(3, H1), 4: blockLimit(4, H1) } as Record<BlockZone, number>
   const wanted = { 2: cfg.minutes[2] ?? defaults[2], 3: cfg.minutes[3] ?? defaults[3], 4: cfg.minutes[4] ?? defaults[4] } as Record<BlockZone, number>
   const warnings: string[] = []
-  if (mode === 'course' && cfg.targetHours && Math.abs(H1 - cfg.targetHours) / cfg.targetHours > 0.03) warnings.push(`Temps visé non tenable : ${hrs(H1)} au ${H1 > cfg.targetHours ? 'mieux' : 'plus lent'}.`)
+  if (mode === 'course' && !cfg.intensity && cfg.targetHours && Math.abs(H1 - cfg.targetHours) / cfg.targetHours > 0.03) warnings.push(`Temps visé non tenable : ${hrs(H1)} au ${H1 > cfg.targetHours ? 'mieux' : 'plus lent'}.`)
   for (const z of adjustable) if (wanted[z] > limits[z]) { warnings.push(`${wanted[z]} min en Z${z + 1} sur ${hrs(H1)}, c'est plus que ce qui se tient : ${limits[z]} min au plus.`); wanted[z] = limits[z] }
 
   // En course, les blocs ajoutés consomment le budget de fatigue : on ménage le reste pour garder la même intensité.
   let out = build(npTarget, wanted)
-  if (mode === 'course' && npTarget != null && adjustable.some(z => wanted[z] > 0)) {
+  if (mode === 'course' && npTarget != null && cfg.imposed.length) {
     let np = npTarget
-    for (let k = 0; k < 3 && out.res.np > npTarget * 1.01; k++) { np = Math.max(0.5, np * (npTarget / out.res.np)); out = build(np, wanted) }
+    for (let k = 0; k < 4 && Math.abs(out.res.np - npTarget) > npTarget * 0.01; k++) { np = clamp(np * (npTarget / out.res.np), 0.45, 1.1); out = build(np, wanted) }
   }
   const { ratio, tag, blocks, placed, res } = out
   warnings.push(...out.warnings)
@@ -292,7 +318,7 @@ export function computePlan(inp: PlanInput): PlanResult {
     let t = 0
     for (let i = i0 + 1; i <= i1; i++) t += res.dt[i]
     sections.push({ id: uid(), gen: true, kind: 'zone', name: label, a: +a.toFixed(1), b: +b.toFixed(1), min: pc(band[0]), max: pc(band[1]), msg: '', avant: 0, ...over })
-    program.push({ label, a, b, t, minPct: pc(band[0]), maxPct: pc(band[1]), zone: powerZoneOf((band[0] + band[1]) / 2), note })
+    program.push({ id: over.id, locked: over.locked, label, a, b, t, minPct: pc(band[0]), maxPct: pc(band[1]), zone: powerZoneOf((band[0] + band[1]) / 2), note })
   }
   // Départ progressif et retour au calme.
   const runs = (id: number) => { const r: [number, number][] = []; let s = -1; for (let i = 0; i < n; i++) { if (tag[i] === id && s < 0) s = i; if ((tag[i] !== id || i === n - 1) && s >= 0) { r.push([s, i]); s = -1 } } return r }
@@ -305,13 +331,14 @@ export function computePlan(inp: PlanInput): PlanResult {
   }
   for (const [i0, i1] of runs(-3)) mk('Retour au calme', i0, i1, [0.45, 0.62], '')
 
-  let base: BaseRules = { plat: [65, 72], montee: [65, 75], descente: [0, 60], gUp: 3.5, gDown: -3 }
+  let base: BaseRules = mode === 'manuel' ? cfg.manual : { plat: [65, 72], montee: [65, 75], descente: [0, 60], gUp: 3.5, gDown: -3 }
   if (mode === 'course') {
     // Montées : une section chacune, à l'allure moyenne optimisée ; ailleurs, on regroupe les échantillons
     // voisins de même effort, au moins 2 min chacun.
     const inClimb = new Uint8Array(n)
     let ups = 0
     for (const c of climbs) {
+      if (cfg.imposed.some(x => x.a < c.b && x.b > c.a)) { for (let i = c.i0; i <= c.i1; i++) inClimb[i] = 1; continue }
       let sum = 0, cn = 0
       for (let i = c.i0; i <= c.i1; i++) { inClimb[i] = 1; if (tag[i] < 0) { sum += ratio[i]; cn++ } }
       const mean = cn ? sum / cn : ratio[c.i0]
@@ -322,7 +349,7 @@ export function computePlan(inp: PlanInput): PlanResult {
     const rs: Run[] = []
     let cur: Run | null = null
     for (let i = 1; i < n; i++) {
-      if (tag[i] >= 0 || inClimb[i]) { cur = null; continue }
+      if (tag[i] >= 0 || tag[i] === -5 || inClimb[i]) { cur = null; continue }
       const down = gs[i] <= -3
       if (!cur || cur.down !== down) { cur = { i0: i - 1, i1: i, sum: ratio[i], t: res.dt[i], down }; rs.push(cur) }
       else { cur.i1 = i; cur.sum += ratio[i]; cur.t += res.dt[i] }
@@ -342,7 +369,13 @@ export function computePlan(inp: PlanInput): PlanResult {
     const flat = avgRatio(g => Math.abs(g) < 1.5) ?? IF
     base = { plat: [pc(flat - 0.03), pc(flat + 0.03)], montee: [70, 90], descente: [0, 60], gUp: 3.5, gDown: -3 }
   } else if (climbs.length) {
-    climbs.forEach((c, k) => { if (!sections.some(s => s.a < c.b && s.b > c.a)) sections.push({ id: uid(), gen: true, kind: 'montee', name: `Montée ${k + 1} (${nf1(c.len / 1000)} km à ${nf1(c.avg)} %)`, a: +c.a.toFixed(1), b: +c.b.toFixed(1), min: 65, max: 75, msg: carbs > 0 ? 'Mange maintenant, avant la montée' : '', avant: 1 }) })
+    climbs.forEach((c, k) => { if (!sections.some(s => s.a < c.b && s.b > c.a)) sections.push({ id: uid(), gen: true, kind: 'montee', name: `Montée ${k + 1} (${nf1(c.len / 1000)} km à ${nf1(c.avg)} %)`, a: +c.a.toFixed(1), b: +c.b.toFixed(1), min: base.montee[0], max: base.montee[1], msg: carbs > 0 ? 'Mange maintenant, avant la montée' : '', avant: 1 }) })
+  }
+  // Cibles imposées : ajoutées telles quelles, prioritaires sur tout ce qui est généré.
+  for (const imp of cfg.imposed) {
+    const a = Math.round((imp.a * 1000) / STEP), b = Math.round((imp.b * 1000) / STEP)
+    mk(imp.name || 'Cible imposée', a, b, [imp.min / 100, imp.max / 100], 'imposée', { id: imp.id, kind: imp.kind, msg: imp.msg, avant: imp.avant, locked: true })
+    sections[sections.length - 1].a = imp.a; sections[sections.length - 1].b = imp.b
   }
   sections.sort((x, y) => x.a - y.a)
   program.sort((x, y) => x.a - y.a)
@@ -352,6 +385,7 @@ export function computePlan(inp: PlanInput): PlanResult {
   why.push(`${nf1(L)} km, ${nf0(route.dplus)} m de D+ (${nf1(dm)} m/km) : ${dm < 6 ? 'roulant' : dm < 12 ? 'vallonné' : dm < 20 ? 'accidenté' : 'montagneux'}, ${climbs.length ? `${climbs.length} montée${climbs.length > 1 ? 's' : ''}` : 'sans vraie montée'}.`)
   if (mode === 'tranquille') why.push(`Endurance : ${Wdisp(0.65)}–${Wdisp(0.72)} sur le plat, jusqu'à ${Wdisp(0.75)} en montée, descentes en roue libre.`)
   if (mode === 'entrainement') why.push(`Base en endurance (${Wdisp(0.65)}–${Wdisp(0.72)}), efforts placés sur les montées régulières.`)
+  if (mode === 'manuel') why.push('Tes cibles, sans calcul de stratégie : le temps et l\'arrivée sont estimés avec le modèle physique.')
   if (mode === 'course') {
     why.push(`Intensité tenable sur ${hrs(H)} : ${pc(IF)} % de ta FTP en puissance normalisée (${Wdisp(IF)}).`)
     const up = avgRatio(g => g > 4), down = avgRatio(g => g < -3)
@@ -413,7 +447,7 @@ export function computePlan(inp: PlanInput): PlanResult {
     range, arriveRange: okStart ? [arriveAt(range[0]), arriveAt(range[1])] : null,
     pavgW: (res.kj * 1000) / res.t, npW: res.np * F, kcal: res.kj, carbsTotal: Math.round(carbs * H), carbsPerHour: carbs, waterTotal: Math.round(wph * H * 10) / 10,
     placed: { 2: Math.round(placed[2] / 60), 3: Math.round(placed[3] / 60), 4: Math.round(placed[4] / 60) },
-    defaults, limits, adjustable, sections, points, periodic, base, program, why, warnings,
+    defaults, limits, adjustable, intensity: IF, intensityAuto: ifForDuration(H), sections, points, periodic, base, program, why, warnings,
   }
 }
 

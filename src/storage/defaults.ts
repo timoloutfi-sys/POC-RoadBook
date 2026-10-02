@@ -1,7 +1,7 @@
 import type { AlertRule, Periodic } from '../alerts/types'
 import { uid } from '../core/format'
 import { defaultRider, type Rider } from '../strategy/rider'
-import type { PlanCfg } from '../strategy/plan'
+import { defaultPlanCfg, type PlanCfg } from '../strategy/plan'
 import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
 
 export type WidgetKind = 'effort' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time' | 'clock'
@@ -75,6 +75,16 @@ export const defaultConfig = (): Config => {
 export function migrateConfig(c: Config & { layout?: WidgetItem[] }): Config {
   const base = defaultConfig()
   const out: Config = { ...base, ...c, rider: { ...base.rider, ...c.rider }, base: { ...base.base, ...c.base } }
+  // Les cibles se règlent dans le Plan : l'ancienne section manuelle avec cible devient une cible imposée,
+  // les montées détectées deviennent de simples repères.
+  const old = out.sections.filter(s => !s.gen && !s.auto && !s.mark && !s.locked)
+  if (old.length) {
+    const cur = out.plan ?? { ...defaultPlanCfg(), mode: 'tranquille' as const }
+    out.plan = { ...cur, imposed: [...(cur.imposed ?? []), ...old.map(s => ({ ...s, locked: true, gen: false }))] }
+    out.sections = out.sections.filter(s => !old.includes(s))
+  }
+  out.sections = out.sections.map(s => (s.auto ? { ...s, mark: true } : s))
+  if (out.plan) out.plan = { ...defaultPlanCfg(), ...out.plan }
   if (!out.screens?.length || c.screens === undefined) {
     const items = c.layout?.length ? c.layout : mkLayout('ultra')
     out.screens = [{ id: uid(), name: 'Principal', items }]
