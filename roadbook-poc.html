@@ -1,0 +1,1565 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Road book – POC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E8ECF0; --surface:#FFFFFF; --ink:#15202B; --muted:#56636F; --line:#C9D2DA;
+  --accent:#F2C200; --accent-ink:#1C1600;
+  --climb:#D9541E; --zone:#2F6FB3; --crit:#C8102E;
+  --dev:#06080A; --dev-cell:#0F1317; --dev-line:#232A31; --dev-ink:#F3F5F7; --dev-muted:#8C96A0;
+  --ok:#3DDC84; --hi:#FF5A36; --lo:#4DA3FF; --y:#FFD21F;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  font-family:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0E141A;--surface:#17202A;--ink:#E5EBF0;--muted:#94A2AF;--line:#2C3844}
+}
+:root[data-theme="dark"]{--bg:#0E141A;--surface:#17202A;--ink:#E5EBF0;--muted:#94A2AF;--line:#2C3844}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;align-items:baseline;gap:12px;padding:14px 16px 4px;max-width:980px;margin:0 auto}
+.brand{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:28px;letter-spacing:.01em;line-height:1}
+.brand span{display:inline-block;background:var(--accent);color:var(--accent-ink);padding:0 6px;margin-right:6px;border-radius:3px}
+.top .sub{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs-in{display:flex;gap:2px;overflow-x:auto;max-width:980px;margin:0 auto;padding:0 10px;scrollbar-width:none}
+.tabs button{border:0;background:none;padding:12px 10px 10px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+
+main{max-width:980px;margin:0 auto;padding:16px}
+.tab{display:none}.tab.on{display:block}
+.intro{color:var(--muted);margin:0 0 14px;max-width:62ch}
+h3{font-size:15px;margin:22px 0 8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:600;font-size:15px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn.ghost{background:none}
+.empty{padding:28px 16px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center;margin-top:14px}
+
+.facts{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0 10px}
+.facts div{font-size:13px;color:var(--muted)}
+.facts b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:24px;color:var(--ink);font-weight:600;line-height:1.1}
+.trace{width:100%;height:200px;display:block;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.profwrap{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-top:8px;padding:6px 0}
+#prof{width:100%;height:170px;display:block;cursor:crosshair}
+.modehint{min-height:1.4em;margin:8px 0 0;font-size:14px;font-weight:600;color:var(--climb)}
+.tools{margin-top:14px}
+
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.list li .t{flex:1;min-width:0}
+.list li .t small{display:block;color:var(--muted);font-size:13px}
+.list .k{font-family:'Barlow Condensed',sans-serif;font-weight:600;min-width:62px;font-variant-numeric:tabular-nums}
+.list .none{color:var(--muted);font-size:14px}
+.sw{width:12px;height:12px;border-radius:2px;flex:none}
+
+.form{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:14px;margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.form h4{grid-column:1/-1;margin:0;font-size:16px}
+.form label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);gap:3px}
+.form label.wide{grid-column:1/-1}
+.form input,.form select{border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:7px 8px;font-size:15px;color:var(--ink);width:100%}
+.form .row{grid-column:1/-1}
+.form .help{grid-column:1/-1;font-size:13px;color:var(--muted);margin:0}
+
+.rules{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;max-width:560px}
+.rules .h{font-size:12px;color:var(--muted)}
+.rules input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:6px 8px}
+.rules .w{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.inline{display:flex;gap:6px;align-items:center;font-size:14px}
+.inline input{width:74px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:6px 8px}
+
+.alert{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.alert .t{flex:1;min-width:0}
+.alert .when{font-size:14px;color:var(--muted)}
+.alert .then{font-weight:600}
+.alert.off{opacity:.5}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:6px;vertical-align:1px}
+.p-critique{background:var(--crit);color:#fff}.p-action{background:var(--accent);color:var(--accent-ink)}.p-info{background:var(--zone);color:#fff}
+.tog{appearance:none;width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;cursor:pointer;flex:none;margin-top:2px}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.tog:checked{background:var(--ok)}.tog:checked::after{left:19px}
+.per{display:grid;grid-template-columns:auto 70px 1fr 110px auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.per input,.per select{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:6px 7px;width:100%;min-width:0}
+
+/* Écran embarqué */
+.devwrap{max-width:780px}
+.dev{position:relative;width:100%;aspect-ratio:2.2/1;background:var(--dev);border:7px solid #1C2228;border-radius:16px;container-type:size;overflow:hidden;color:var(--dev-ink);font-family:'Barlow Condensed',sans-serif;box-shadow:0 1px 0 #39424b inset,0 10px 24px -14px #000}
+.dev.edit{background-image:linear-gradient(to right,#ffffff14 1px,transparent 1px),linear-gradient(to bottom,#ffffff14 1px,transparent 1px);background-size:calc(100%/6) calc(100%/3);background-position:-1px -1px}
+.dev-in{position:absolute;inset:0}
+.dev-ban{position:absolute;left:0;right:0;top:0;z-index:3}
+.wg{position:absolute;padding:2px}
+.wi{height:100%;container-type:size;background:var(--dev-cell);border-radius:5px;padding:3px 7px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.lab{font-family:'Barlow',sans-serif;font-weight:500;font-size:clamp(8px,15cqh,12px);color:var(--dev-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+.val{color:var(--valc);font-weight:600;font-size:min(50cqh,30cqw);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.s-M .val,.s-L .val{font-size:min(44cqh,26cqw)}
+.val small{font-size:.38em;margin-left:.12em;color:var(--dev-muted);font-weight:500}
+.val.ok{color:var(--ok)}.val.hi{color:var(--hi)}.val.lo{color:var(--lo)}.val.y{color:var(--y)}
+.sub{font-family:'Barlow',sans-serif;font-size:clamp(9px,13cqh,15px);line-height:1.2;color:var(--dev-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub.m{color:var(--dev-muted)}
+.band{position:relative;height:clamp(5px,7cqh,10px);background:#242B32;border-radius:3px;margin-top:5px}
+.bz{position:absolute;top:0;bottom:0;background:#FFD21F40;border:1px solid var(--y);border-radius:2px}
+.bm{position:absolute;top:-3px;bottom:-3px;width:3px;margin-left:-1.5px;background:#fff;border-radius:1px}
+.mini{flex:1;width:100%;min-height:0;display:block;margin-top:2px}
+.spark{width:100%;flex:1;min-height:0;margin-top:3px}
+.nx{display:flex;justify-content:space-between;gap:6px}
+.nx span:last-child{color:var(--y);font-variant-numeric:tabular-nums;flex:none}
+.dev.edit .wg{touch-action:none;cursor:grab}
+.dev.edit .wi{outline:1px dashed #FFD21F70;outline-offset:-1px}
+.dev.edit .wg.drag .wi{outline:2px solid var(--y)}
+.wg-del{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:var(--crit);color:#fff;font-size:15px;line-height:22px;padding:0;cursor:pointer;font-family:Barlow,sans-serif}
+.wg-rs{position:absolute;right:2px;bottom:2px;width:20px;height:20px;background:linear-gradient(135deg,transparent 55%,var(--y) 55%);border-radius:0 0 5px 0;cursor:nwse-resize}
+.banner{position:absolute;left:0;right:0;top:0;padding:1.6cqh 2cqw;font-family:'Barlow',sans-serif;font-weight:700;font-size:clamp(12px,8cqh,28px);line-height:1.15;z-index:3;animation:pop .2s ease-out}
+.b-critique{background:var(--crit);color:#fff}.b-action{background:var(--y);color:#151000}.b-info{background:#2F6FB3;color:#fff}
+@keyframes pop{from{transform:translateY(-100%)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.banner{animation:none}.tog::after{transition:none}}
+
+.palette{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.simctl{margin:14px 0 6px}
+.simctl label{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.simctl input[type=range]{width:140px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0}
+.stats div{font-size:13px;color:var(--muted)}
+.stats b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:22px;color:var(--ink);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.log{list-style:none;padding:0;margin:0;max-height:300px;overflow:auto;border-top:1px solid var(--line)}
+.log li{padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;gap:8px;align-items:baseline}
+.log li b{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;min-width:66px;font-weight:600}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:6px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:20}
+#toast.on{opacity:1}
+@media (max-width:560px){
+  .form{grid-template-columns:1fr}
+  .per{grid-template-columns:auto 60px 1fr auto}
+  .per select{grid-column:2/4}
+  .rules{grid-template-columns:auto 1fr 1fr}
+  .rules .w{grid-column:2/4;margin-top:-4px;font-size:14px;color:var(--muted)}
+  .rules .h.wh{display:none}
+}
+
+/* Alertes de seuil : bords et widget */
+@property --ec{syntax:'<color>';inherits:false;initial-value:rgba(255,190,70,0)}
+@property --ew{syntax:'<length>';inherits:false;initial-value:0px}
+@property --eg{syntax:'<length>';inherits:false;initial-value:0px}
+@property --valc{syntax:'<color>';inherits:true;initial-value:#F3F5F7}
+@property --wbg{syntax:'<color>';inherits:false;initial-value:rgba(255,190,70,0)}
+@property --wbd{syntax:'<color>';inherits:false;initial-value:rgba(255,190,70,0)}
+.dev-edge{position:absolute;inset:0;pointer-events:none;z-index:2;border-radius:inherit;box-shadow:inset 0 0 0 var(--ew) var(--ec),inset 0 0 var(--eg) var(--ec);transition:--ec 1.4s ease,--ew 1.4s ease,--eg 1.4s ease}
+.dev-edge.crit{animation:breathe 3s ease-in-out infinite alternate}
+@keyframes breathe{from{opacity:1}to{opacity:.6}}
+.wi{box-shadow:inset 0 0 0 1.5px var(--wbd),inset 0 0 0 100vmax var(--wbg);transition:--valc 1.2s ease,--wbg 1.4s ease,--wbd 1.4s ease}
+@media (prefers-reduced-motion:reduce){.dev-edge.crit{animation:none}}
+/* Stratégie automatique */
+.autobox{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 14px;margin-top:14px;max-width:none}
+.autobox summary{font-weight:700;font-size:16px}
+.autobox .lead{color:var(--muted);font-size:14px;margin:6px 0 0;max-width:62ch}
+.autobox .form{border:0;border-radius:0;padding:0;margin:12px 0;background:none}
+.autobox h4{margin:18px 0 6px;font-size:15px}
+.why{padding-left:18px;margin:6px 0 10px;font-size:15px;max-width:68ch}
+.why li{margin-bottom:6px}
+.tblw{overflow-x:auto}
+.tbl{border-collapse:collapse;width:100%;min-width:440px;font-size:14px}
+.tbl th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);padding:5px 6px}
+.tbl td{padding:6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.coach p{max-width:68ch}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.autobox details.opts{margin-top:2px;max-width:none}
+.opts summary{font-size:14px;font-weight:600;color:var(--muted)}
+.zr{display:grid;grid-template-columns:minmax(130px,180px) 1fr 110px;grid-template-areas:"l b v" "s s s";gap:3px 10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.zl{grid-area:l;font-size:14px;line-height:1.2}.zl b{font-family:'Barlow Condensed',sans-serif;font-size:17px;margin-right:4px}.zl small{display:block;color:var(--muted);font-size:12px}
+.zb{grid-area:b;height:14px;background:var(--bg);border-radius:3px;overflow:hidden}.zb i{display:block;height:100%;width:0;border-radius:3px;transition:width .25s ease}
+.zv{grid-area:v;font-size:14px;text-align:right;font-variant-numeric:tabular-nums}.zv small{display:block;color:var(--muted);font-size:11px}
+.zr .zs{grid-area:s;width:100%;margin:2px 0 0;accent-color:var(--ink)}
+.zadj{margin:8px 0 4px}.zadj label{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;flex-wrap:wrap}.zadj input{flex:1;min-width:160px;max-width:340px}
+#autoProf{width:100%;height:110px;display:block;margin-top:12px;background:var(--bg);border-radius:6px}
+.prog{list-style:none;padding:0;margin:0}
+.prog li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.prog .dot{width:10px;height:10px;border-radius:2px;flex:none;align-self:center}
+.prog .k{font-family:'Barlow Condensed',sans-serif;font-weight:600;min-width:86px;font-variant-numeric:tabular-nums}
+.prog .t{flex:1;min-width:0}.prog small{display:block;color:var(--muted);font-size:12px}
+.warn{color:var(--climb);font-weight:600;font-size:14px;margin:8px 0 0}
+@media (max-width:560px){.zr{grid-template-columns:1fr auto;grid-template-areas:"l v" "b b" "s s"}}
+/* Vue de course */
+#ride{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+#ride[hidden]{display:none}
+.ride-dev{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px}
+#devRide{width:min(100%,calc((100vh - 60px)*2.2));width:min(100%,calc((100dvh - 60px)*2.2));border-width:3px;border-radius:10px}
+.ride-bar{height:50px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px;color:#8C96A0;font-size:13px}
+#rideStatus{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ride-bar button{background:#1C2228;color:#F3F5F7;border:1px solid #39424B;border-radius:8px;padding:9px 16px;font-weight:700;font-size:15px;cursor:pointer}
+.ride-bar #ackBtn{background:#FFD21F;color:#151000;border-color:#FFD21F}
+.ride-bar #exitRide.arm{background:#C8102E;border-color:#C8102E}
+.rotate{display:none}
+@media (orientation:portrait){#ride .rotate{display:flex;position:absolute;left:0;right:0;bottom:64px;justify-content:center;color:#FFD21F;font-weight:700;font-size:15px}}
+.checks{list-style:none;padding:0;margin:0 0 6px;max-width:640px}
+.checks li{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.checks .ic{width:20px;flex:none;text-align:center;font-weight:700}
+.checks .ok .ic{color:#1E9E5A}.checks .ko .ic{color:var(--crit)}.checks .wa .ic{color:var(--climb)}
+.checks small,.sensor small{display:block;color:var(--muted);font-size:13px}
+.sensor{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);max-width:640px}
+.sensor .t{flex:1;min-width:0}
+.sensor b{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;min-width:48px;text-align:right}
+.tips{max-width:640px;padding-left:18px;margin:0;color:var(--muted);font-size:14px}
+.tips li{margin-bottom:6px}
+details{margin-top:22px;max-width:640px}
+details summary{cursor:pointer;font-weight:600}
+textarea.xfer{width:100%;height:110px;margin:10px 0;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px;font:12px ui-monospace,Menlo,monospace;color:var(--ink)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span>RB</span>Road book</div>
+  <div class="sub" id="routeName">Aucun parcours</div>
+</header>
+<nav class="tabs"><div class="tabs-in" role="tablist">
+  <button data-tab="parcours" class="on">Parcours</button>
+  <button data-tab="strat">Stratégie</button>
+  <button data-tab="alertes">Alertes</button>
+  <button data-tab="ecran">Écran</button>
+  <button data-tab="sim">Simulation</button>
+  <button data-tab="rouler">Rouler</button>
+</div></nav>
+
+<main>
+<!-- PARCOURS -->
+<section class="tab on" id="t-parcours">
+  <p class="intro">Importe le GPX de ta course. Le tracé reste tel quel : tu poses seulement ta stratégie par-dessus, avec des points et des zones.</p>
+  <div class="row">
+    <label class="btn primary">Importer un GPX<input type="file" id="gpxIn" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden></label>
+    <button class="btn" id="demoBtn">Charger la boucle démo</button>
+  </div>
+  <div id="routeEmpty" class="empty">Aucun parcours chargé. Importe un GPX ou charge la boucle démo pour essayer.</div>
+  <div id="routeBlock" hidden>
+    <div class="facts" id="facts"></div>
+    <svg class="trace" id="trace" role="img" aria-label="Tracé du parcours"></svg>
+    <details class="autobox" id="autoBox" open>
+      <summary>Stratégie automatique</summary>
+      <div id="autoUI"></div>
+    </details>
+    <div class="row tools">
+      <button class="btn" data-mode="point">Ajouter un point</button>
+      <button class="btn" data-mode="zone">Ajouter une zone</button>
+      <button class="btn" id="detectBtn">Détecter les montées</button>
+    </div>
+    <p class="modehint" id="modeHint"></p>
+    <div class="profwrap"><canvas id="prof" aria-label="Profil altimétrique"></canvas></div>
+    <div id="formHost"></div>
+    <h3>Points</h3><ul class="list" id="pointList"></ul>
+    <h3>Zones</h3><ul class="list" id="zoneList"></ul>
+  </div>
+</section>
+
+<!-- STRATÉGIE -->
+<section class="tab" id="t-strat">
+  <p class="intro">Les règles de base s'appliquent partout selon la pente. Une zone posée sur le parcours les remplace sur son tronçon. Les cibles sont en % de la FTP : le plan reste valable quand ta forme progresse.</p>
+  <h3>Coureur</h3>
+  <div class="row">
+    <label class="inline">FTP <input type="number" data-path="ftp" min="80" max="600"> W</label>
+    <label class="inline">Masse totale <input type="number" data-path="mass" min="40" max="200" step="0.5"> kg</label>
+    <label class="inline">CdA <input type="number" data-path="cda" min="0.15" max="0.6" step="0.01"></label>
+  </div>
+  <h3>Règles de base</h3>
+  <div class="rules">
+    <span class="h"></span><span class="h">Min % FTP</span><span class="h">Max % FTP</span><span class="h wh">Soit</span>
+    <span>Plat</span><input type="number" data-path="global.plat.0"><input type="number" data-path="global.plat.1"><span class="w" data-w="plat"></span>
+    <span>Montée</span><input type="number" data-path="global.montee.0"><input type="number" data-path="global.montee.1"><span class="w" data-w="montee"></span>
+    <span>Descente</span><input type="number" data-path="global.descente.0"><input type="number" data-path="global.descente.1"><span class="w" data-w="descente"></span>
+  </div>
+  <h3>Seuils de pente</h3>
+  <div class="row">
+    <label class="inline">Montée dès <input type="number" data-path="global.gUp" step="0.5"> %</label>
+    <label class="inline">Descente dès <input type="number" data-path="global.gDown" step="0.5"> %</label>
+  </div>
+</section>
+
+<!-- ALERTES -->
+<section class="tab" id="t-alertes">
+  <p class="intro">Chaque alerte suit la même logique : quand une condition dure assez longtemps, l'écran affiche une action. Les alertes de seuil (puissance, FC, cadence, vitesse) ne s'affichent pas en bandeau : les bords de l'écran et le widget concerné passent de l'orange au rouge quand tu es au-dessus, du bleu clair au bleu soutenu quand tu es en dessous, plus intensément selon l'écart. Les bandeaux sont réservés aux autres infos. Le délai de répétition et le plafond horaire limitent les vibrations et le journal. Les annonces du parcours et les rappels que tu as planifiés passent toujours.</p>
+  <div class="row"><button class="btn primary" id="newAlert">Nouvelle alerte</button>
+    <label class="inline">Au plus <input type="number" data-path="maxPerHour" min="1" max="60"> alertes de seuil par heure (hors critiques)</label></div>
+  <div id="alertForm"></div>
+  <div id="alertList"></div>
+  <h3>Rappels réguliers</h3>
+  <div id="perList"></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="newPer">Ajouter un rappel</button></div>
+</section>
+
+<!-- ÉCRAN -->
+<section class="tab" id="t-ecran">
+  <p class="intro">Glisse un widget pour le déplacer, tire son coin jaune pour l'agrandir. Chaque widget change d'affichage selon la place qu'il a.</p>
+  <div class="row">
+    <span style="font-size:14px;color:var(--muted)">Partir d'un modèle :</span>
+    <button class="btn sm" data-tpl="ultra">Ultra</button>
+    <button class="btn sm" data-tpl="clm">Contre-la-montre</button>
+    <button class="btn sm" data-tpl="tri">Triathlon</button>
+  </div>
+  <div class="palette" id="palette"></div>
+  <div class="devwrap"><div class="dev edit" id="devEdit"></div></div>
+</section>
+
+<!-- SIMULATION -->
+<section class="tab" id="t-sim">
+  <p class="intro">Un coureur virtuel roule ton parcours avec ta config. Tu vois l'écran et chaque alerte au moment où elle tomberait. Pousse le curseur vers « s'emballe » pour provoquer des erreurs.</p>
+  <div id="simEmpty" class="empty" hidden>Charge un parcours dans l'onglet Parcours pour lancer la simulation.</div>
+  <div id="simBlock">
+    <div class="devwrap"><div class="dev" id="devSim"></div></div>
+    <div class="row simctl">
+      <button class="btn primary" id="playBtn">Lancer</button>
+      <button class="btn" id="resetBtn">Recommencer</button>
+      <select class="btn" id="speedSel" aria-label="Vitesse de simulation">
+        <option value="10">× 10</option><option value="60" selected>× 60</option><option value="300">× 300</option><option value="1000">× 1000</option>
+      </select>
+      <label>Discipliné <input type="range" id="behav" min="0" max="1" step="0.05" value="0.3"> S'emballe</label>
+      <label class="inline">Aller au km <input type="number" id="jumpKm" min="0" step="1"><button class="btn sm" id="jumpBtn">Aller</button></label>
+    </div>
+    <div class="stats" id="stats"></div>
+    <h3>Journal des alertes</h3>
+    <ul class="log" id="log"></ul>
+  </div>
+</section>
+
+<!-- ROULER -->
+<section class="tab" id="t-rouler">
+  <p class="intro">Ton téléphone devient l'écran de stratégie : fixé en paysage sur le cintre, connecté à tes capteurs en Bluetooth, il suit ta position sur le parcours et déclenche tes alertes. Ton GPS reste dédié à la navigation.</p>
+  <ul class="checks" id="rideCheck"></ul>
+  <h3>Capteurs</h3>
+  <div class="row">
+    <button class="btn" data-bt="power">+ Capteur de puissance</button>
+    <button class="btn" data-bt="hr">+ Ceinture cardio</button>
+    <button class="btn" data-bt="cad">+ Capteur de cadence</button>
+    <button class="btn" data-bt="spd">+ Capteur de vitesse</button>
+  </div>
+  <div id="sensorList"></div>
+  <div class="row" style="margin-top:10px"><label class="inline">Circonférence de roue <input type="number" data-path="wheel" min="1500" max="2500" step="1"> mm</label></div>
+  <p class="intro" style="margin-top:6px;font-size:14px">2146 mm correspond à un pneu 700 × 30 mm. Pour plus de précision, mesure un tour de roue au sol, en charge.</p>
+  <h3>Rouler</h3>
+  <div class="row">
+    <button class="btn primary" id="startRide">Démarrer la sortie</button>
+    <button class="btn" id="newRide" hidden>Nouvelle sortie</button>
+    <button class="btn" id="testRide">Tester en plein écran</button>
+  </div>
+  <p class="intro" style="margin-top:10px;font-size:14px">Le test rejoue la simulation dans la vue de course, pour juger la lisibilité chez toi. En course, « ✓ Fait » valide le dernier rappel (manger, boire) et relance son minuteur. « Quitter » demande une seconde touche pour éviter les fausses manips.</p>
+  <h3>Sur le terrain</h3>
+  <ul class="tips">
+    <li>Garde ton Bryton en ANT+ et connecte le téléphone en Bluetooth : la plupart des capteurs récents acceptent les deux en même temps.</li>
+    <li>Écran allumé, GPS et Bluetooth vident un téléphone en quelques heures : branche une batterie externe sur les sorties longues.</li>
+    <li>Le capteur de vitesse donne une vitesse plus juste que le GPS et prend le relais pour la distance quand le GPS décroche (tunnel, forêt dense).</li>
+    <li>Le temps de roulage ne compte que quand tu avances : feux et arrêts ne déclenchent pas d'alertes.</li>
+    <li>Si le Bluetooth ou la position sont refusés ici, ouvre le fichier depuis un hébergement HTTPS (par exemple Netlify Drop), dans Chrome sur Android ou Bluefy sur iPhone. Transfère ensuite ton plan avec le bloc ci-dessous.</li>
+  </ul>
+  <details>
+    <summary>Transférer le plan vers une autre page</summary>
+    <textarea class="xfer" id="xferTa" placeholder="Colle ici un plan exporté, ou génère celui-ci pour le copier."></textarea>
+    <div class="row"><button class="btn" id="xferOut">Générer le plan</button><button class="btn" id="xferIn">Charger le plan collé</button></div>
+  </details>
+</section>
+</main>
+<div id="ride" hidden>
+  <div class="ride-dev"><div class="dev" id="devRide"></div></div>
+  <div class="rotate">Tourne le téléphone en paysage</div>
+  <div class="ride-bar">
+    <span id="rideStatus"></span>
+    <button id="ackBtn">✓ Fait</button>
+    <button id="exitRide">Quitter</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+const KEY='roadbook-poc-v1', STEP=50, COLS=6, ROWS=3;
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const nf1=x=>(+x).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf0=x=>Math.round(+x).toLocaleString('fr-FR');
+const hms=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');};
+const mmss=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+
+const PT={eau:{i:'💧',n:"Point d'eau",prio:'action'},ravito:{i:'🥪',n:'Ravito / commerce',prio:'action'},danger:{i:'⚠️',n:'Danger',prio:'critique'},note:{i:'📝',n:'Note',prio:'info'}};
+const PRIO={critique:'Critique',action:'Action',info:'Info'};
+const METRIC={power:{n:'la puissance (moy. 10 s)',u:'W',l:'Puissance'},hr:{n:'la FC',u:'bpm',l:'FC'},cad:{n:'la cadence',u:'rpm',l:'Cadence'},speed:{n:'la vitesse',u:'km/h',l:'Vitesse'}};
+const WDEF={power:'Puissance',target:'Cible',hr:'FC',cad:'Cadence',speed:'Vitesse',next:'Prochain événement',profile:'Profil à venir',fuel:'Rappel',dist:'Distance',time:'Temps'};
+const TPL={
+  ultra:[['power',0,0,2,2],['target',2,0,2,1],['next',4,0,2,1],['profile',2,1,4,1],['hr',0,2,1,1],['cad',1,2,1,1],['speed',2,2,1,1],['fuel',3,2,1,1],['dist',4,2,2,1]],
+  clm:[['power',0,0,3,2],['speed',3,0,3,1],['cad',3,1,1,1],['hr',4,1,2,1],['profile',0,2,4,1],['time',4,2,2,1]],
+  tri:[['power',0,0,2,2],['target',2,0,2,1],['hr',4,0,2,1],['fuel',2,1,2,1],['cad',4,1,2,1],['next',0,2,3,1],['time',3,2,3,1]]
+};
+const mkLayout=k=>TPL[k].map(([w,x,y,ww,h])=>({id:uid(),k:w,x,y,w:ww,h}));
+function defaults(){return{
+  ftp:240,mass:82,cda:0.30,crr:0.0045,wheel:2146,
+  global:{plat:[65,72],montee:[75,90],descente:[0,60],gUp:3.5,gDown:-3},
+  zones:[],points:[],
+  alerts:[
+    {id:uid(),on:true,name:'Trop fort',metric:'power',op:'>',ref:'max',val:250,dur:30,cool:3,prio:'action',msg:'Trop fort : reviens sous {max} W'},
+    {id:uid(),on:true,name:'Sous la cible',metric:'power',op:'<',ref:'min',val:150,dur:90,cool:5,prio:'info',msg:'Sous la cible : vise {min}–{max} W'},
+    {id:uid(),on:true,name:'Cadence basse',metric:'cad',op:'<',ref:'val',val:78,dur:45,cool:5,prio:'info',msg:'Cadence basse ({val} rpm) : mouline'},
+    {id:uid(),on:true,name:'FC haute',metric:'hr',op:'>',ref:'val',val:172,dur:60,cool:5,prio:'critique',msg:'FC au seuil : lève le pied'}
+  ],
+  periodic:[
+    {id:uid(),on:true,every:20,msg:'Mange : 30 g de glucides',prio:'action'},
+    {id:uid(),on:true,every:15,msg:'Bois quelques gorgées',prio:'info'}
+  ],
+  maxPerHour:10,
+  layout:mkLayout('ultra')
+};}
+
+let S, R=null;
+let mode=null, zoneStart=null, curTab='parcours';
+
+/* ---------- Stockage ---------- */
+function load(){
+  let d=null;
+  try{d=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){d=null;}
+  S=defaults();
+  if(d&&d.cfg){Object.assign(S,d.cfg);S.global=Object.assign(defaults().global,d.cfg.global||{});}
+  if(d&&d.route){try{R=buildRoute(d.route.name,d.route.pts.map(p=>({lat:p[0],lon:p[1],ele:p[2]})));}catch(e){R=null;}}
+  return !!d;
+}
+let saveT;
+function serial(){
+  return{cfg:S,route:R?{name:R.name,pts:Array.from({length:R.n},(_,i)=>[+R.lat[i].toFixed(5),+R.lon[i].toFixed(5),+R.e0[i].toFixed(1)])}:null};
+}
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(serial()));}catch(e){}},400);
+}
+
+/* ---------- Parcours ---------- */
+function hav(a,b,c,d){const Rr=6371000,t=Math.PI/180;const x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*Rr*Math.asin(Math.min(1,Math.sqrt(x)));}
+function buildRoute(name,pts){
+  if(!pts||pts.length<2)throw new Error('Tracé vide.');
+  const cum=new Float64Array(pts.length);
+  for(let i=1;i<pts.length;i++)cum[i]=cum[i-1]+hav(pts[i-1].lat,pts[i-1].lon,pts[i].lat,pts[i].lon);
+  const tot=cum[pts.length-1];
+  if(tot<STEP*4)throw new Error('Tracé trop court.');
+  const n=Math.floor(tot/STEP)+1;
+  const lat=new Float64Array(n),lon=new Float64Array(n),e0=new Float32Array(n);
+  let j=0;
+  for(let k=0;k<n;k++){
+    const d=k*STEP;
+    while(j<pts.length-2&&cum[j+1]<d)j++;
+    const seg=cum[j+1]-cum[j],f=seg>0?clamp((d-cum[j])/seg,0,1):0,a=pts[j],b=pts[j+1];
+    lat[k]=a.lat+(b.lat-a.lat)*f;lon[k]=a.lon+(b.lon-a.lon)*f;e0[k]=a.ele+(b.ele-a.ele)*f;
+  }
+  const ele=new Float32Array(n),W=4;
+  for(let k=0;k<n;k++){let s=0,c=0;for(let q=Math.max(0,k-W);q<=Math.min(n-1,k+W);q++){s+=e0[q];c++;}ele[k]=s/c;}
+  const grade=new Float32Array(n);
+  for(let k=0;k<n;k++){const a=Math.max(0,k-2),b=Math.min(n-1,k+2);grade[k]=b>a?(ele[b]-ele[a])/((b-a)*STEP)*100:0;}
+  let dplus=0;for(let k=1;k<n;k++)if(ele[k]>ele[k-1])dplus+=ele[k]-ele[k-1];
+  return{name,n,total:(n-1)*STEP,lat,lon,e0,ele,grade,dplus};
+}
+function parseGPX(text){
+  const doc=new DOMParser().parseFromString(text,'application/xml');
+  if(doc.getElementsByTagName('parsererror').length)throw new Error("Ce fichier n'est pas un GPX lisible.");
+  let nodes=[...doc.getElementsByTagName('trkpt')];
+  if(!nodes.length)nodes=[...doc.getElementsByTagName('rtept')];
+  if(nodes.length<2)throw new Error('Aucun tracé trouvé dans ce GPX (ni trkpt ni rtept).');
+  const pts=nodes.map(nd=>{const e=nd.getElementsByTagName('ele')[0];return{lat:parseFloat(nd.getAttribute('lat')),lon:parseFloat(nd.getAttribute('lon')),ele:e?parseFloat(e.textContent)||0:0};}).filter(p=>isFinite(p.lat)&&isFinite(p.lon));
+  const nm=doc.getElementsByTagName('name')[0];
+  return{name:(nm&&nm.textContent.trim())||'Parcours importé',pts,noEle:pts.every(p=>!p.ele)};
+}
+function demoRaw(){
+  const pts=[],N=3000,c={lat:49.19,lon:2.47};
+  const bump=(t,m,w,h)=>h*Math.exp(-(((t-m)/w)**2));
+  for(let i=0;i<=N;i++){
+    const t=i/N,a=t*2*Math.PI;
+    const r=0.19*(1+0.22*Math.sin(3*a)+0.08*Math.sin(7*a+1));
+    const ele=70+22*Math.sin(5*a)+10*Math.sin(13*a+2)+bump(t,0.18,0.008,110)+bump(t,0.47,0.014,170)+bump(t,0.78,0.006,80)+bump(t,0.62,0.004,45);
+    pts.push({lat:c.lat+r*Math.sin(a),lon:c.lon+r*1.5*Math.cos(a)-0.285,ele});
+  }
+  return pts;
+}
+function loadDemo(){
+  R=buildRoute('Boucle démo autour de Chantilly',demoRaw());
+  S.zones=[];S.points=[];
+  const L=R.total/1000;
+  S.points=[
+    {id:uid(),type:'eau',km:+(L*0.24).toFixed(1),text:'Fontaine du cimetière, remplir les 2 bidons',avant:2},
+    {id:uid(),type:'danger',km:+(L*0.205).toFixed(1),text:'Descente, virage serré en bas',avant:1},
+    {id:uid(),type:'ravito',km:+(L*0.55).toFixed(1),text:'Station 24 h/24 : tout remplir',avant:3},
+    {id:uid(),type:'note',km:+(L*0.9).toFixed(1),text:'Plaine exposée : prolongateurs',avant:1}
+  ];
+  S.zones.push({id:uid(),kind:'zone',name:'Plaine au vent',a:+(L*0.86).toFixed(1),b:+(L*0.95).toFixed(1),min:70,max:76,msg:'Vent de face : pousse un peu, reste aéro',avant:1});
+  detectClimbs(true);
+  resetSim();save();renderAll();
+}
+function gradeAt(d){if(!R)return 0;const i=clamp(Math.round(d/STEP),0,R.n-1);let s=0,c=0;for(let q=Math.max(0,i-3);q<=Math.min(R.n-1,i+3);q++){s+=R.grade[q];c++;}return s/c;}
+function zoneAt(km){let z=null;for(const zz of S.zones)if(km>=zz.a&&km<=zz.b)z=zz;return z;}
+function targetAt(d){
+  const km=d/1000,z=zoneAt(km),F=S.ftp;
+  if(z)return{min:Math.round(z.min*F/100),max:Math.round(z.max*F/100),label:z.name,kind:z.kind,zone:z};
+  const g=gradeAt(d),G=S.global;
+  const k=g>=G.gUp?'montee':g<=G.gDown?'descente':'plat';
+  return{min:Math.round(G[k][0]*F/100),max:Math.round(G[k][1]*F/100),label:{plat:'Plat',montee:'Montée',descente:'Descente'}[k],kind:k};
+}
+function findClimbs(){
+  const g=R.grade,n=R.n,runs=[];let s0=-1;
+  for(let k=0;k<n;k++){const up=g[k]>=2;if(up&&s0<0)s0=k;if((!up||k===n-1)&&s0>=0){runs.push([s0,k]);s0=-1;}}
+  const m=[];for(const r of runs){const L=m[m.length-1];if(L&&r[0]-L[1]<=6)L[1]=r[1];else m.push([r[0],r[1]]);}
+  const out=[];
+  for(const[a,b]of m){const len=(b-a)*STEP;if(len<800)continue;const gain=R.ele[b]-R.ele[a],avg=gain/len*100;if(avg<3)continue;out.push({i0:a,i1:b,a:a*STEP/1000,b:b*STEP/1000,len,avg,gain});}
+  return out;
+}
+function detectClimbs(silent){
+  if(!R)return;
+  S.zones=S.zones.filter(z=>!z.auto);
+  const cl=findClimbs();
+  cl.forEach((c,k)=>S.zones.push({id:uid(),auto:true,kind:'montee',name:`Montée ${k+1} (${nf1(c.len/1000)} km à ${nf1(c.avg)} %)`,a:+c.a.toFixed(1),b:+c.b.toFixed(1),min:S.global.montee[0],max:S.global.montee[1],msg:'Mange maintenant, avant la montée',avant:1}));
+  S.zones.sort((x,y)=>x.a-y.a);
+  const c=cl.length;
+  if(!silent){save();renderParcours();toast(c?`${c} montée${c>1?'s':''} détectée${c>1?'s':''}. Ajuste les cibles si besoin.`:'Aucune montée de plus de 800 m à 3 % trouvée.');}
+}
+function upcoming(km,n){
+  const L=[];
+  for(const p of S.points)if(p.km>km)L.push({i:PT[p.type].i,name:p.text||PT[p.type].n,km:p.km});
+  for(const z of S.zones)if(z.a>km)L.push({i:z.kind==='montee'?'⛰️':'🧭',name:z.name,km:z.a});
+  return L.sort((a,b)=>a.km-b.km).slice(0,n);
+}
+
+/* ---------- Dessin du profil ---------- */
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function drawProf(cv,kA,kB,o){
+  const r=cv.getBoundingClientRect(),W=Math.max(20,r.width),H=Math.max(20,r.height),dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+  if(!R)return null;
+  const es=o.emoji?(o.emojiSize||clamp(Math.round(H*0.3),10,18)):0;
+  const pl=o.pl||0,pr=o.pr||0,pt=o.emojiPad?es+5:(o.pt||4),pb=o.pb||2;
+  const i0=clamp(Math.floor(kA*1000/STEP),0,R.n-1),i1=clamp(Math.ceil(kB*1000/STEP),0,R.n-1);
+  if(i1<=i0)return null;
+  let lo=Infinity,hi=-Infinity;for(let i=i0;i<=i1;i++){lo=Math.min(lo,R.ele[i]);hi=Math.max(hi,R.ele[i]);}
+  if(hi-lo<o.minSpan){const m=(hi+lo)/2;lo=m-o.minSpan/2;hi=m+o.minSpan/2;}
+  const X=km=>pl+(km-kA)/(kB-kA)*(W-pl-pr),Y=e=>pt+(1-(e-lo)/(hi-lo))*(H-pt-pb);
+  for(const z of S.zones){
+    if(z.b<kA||z.a>kB)continue;
+    c.fillStyle=z.kind==='montee'?o.cClimb:o.cZone;
+    const xa=X(Math.max(z.a,kA)),xb=X(Math.min(z.b,kB));c.fillRect(xa,0,Math.max(1,xb-xa),H);
+  }
+  c.beginPath();c.moveTo(X(i0*STEP/1000),H-pb);
+  const stride=Math.max(1,Math.floor((i1-i0)/(W*1.5)));
+  for(let i=i0;i<=i1;i+=stride)c.lineTo(X(i*STEP/1000),Y(R.ele[i]));
+  c.lineTo(X(i1*STEP/1000),Y(R.ele[i1]));c.lineTo(X(i1*STEP/1000),H-pb);c.closePath();
+  c.fillStyle=o.cFill;c.fill();
+  c.beginPath();for(let i=i0;i<=i1;i+=stride){const x=X(i*STEP/1000),y=Y(R.ele[i]);i===i0?c.moveTo(x,y):c.lineTo(x,y);}c.strokeStyle=o.cLine;c.lineWidth=1.5;c.stroke();
+  let lastX=-1e9;
+  for(const p of S.points.filter(p=>p.km>=kA&&p.km<=kB).sort((a,b)=>a.km-b.km)){
+    const x=X(p.km);c.strokeStyle=o.cPoint;c.lineWidth=1.5;c.beginPath();c.moveTo(x,o.emoji?es+3:0);c.lineTo(x,H-pb);c.stroke();
+    if(o.emoji){
+      const ix=clamp(Math.max(x,lastX+es+2),es/2+1,W-es/2-1);
+      c.font=`${es}px sans-serif`;c.textAlign='center';c.textBaseline='top';c.fillText(PT[p.type].i,ix,1);
+      if(Math.abs(ix-x)>1){c.lineWidth=1;c.beginPath();c.moveTo(ix,es+1);c.lineTo(x,es+3);c.stroke();}
+      lastX=ix;
+    }
+  }
+  return{X,Y,W,H,lo,hi,pl,pr,pb};
+}
+const PL=36,PR=10;
+function drawMain(){
+  const cv=$('#prof');if(!R||!cv.offsetParent)return;
+  const L=R.total/1000;
+  const m=drawProf(cv,0,L,{pl:PL,pr:PR,pt:20,pb:18,minSpan:60,emoji:true,emojiSize:13,cClimb:'rgba(217,84,30,.18)',cZone:'rgba(47,111,179,.16)',cFill:'rgba(120,135,150,.25)',cLine:cssv('--ink'),cPoint:cssv('--muted')});
+  if(!m)return;
+  const c=cv.getContext('2d');c.fillStyle=cssv('--muted');c.font='11px Barlow, sans-serif';
+  c.textAlign='right';c.textBaseline='middle';c.fillText(Math.round(m.hi)+' m',PL-4,m.Y(m.hi));c.fillText(Math.round(m.lo)+' m',PL-4,m.Y(m.lo));
+  const stepKm=[5,10,20,25,50,100].find(s=>L/s<=8)||100;
+  c.textAlign='center';c.textBaseline='bottom';
+  for(let k=0;k<=L;k+=stepKm)c.fillText(k+' km',m.X(k),m.H);
+  if(zoneStart!=null){c.strokeStyle=cssv('--climb');c.lineWidth=2;c.setLineDash([4,3]);c.beginPath();c.moveTo(m.X(zoneStart),0);c.lineTo(m.X(zoneStart),m.H-m.pb);c.stroke();c.setLineDash([]);}
+}
+function drawTrace(){
+  const sv=$('#trace');if(!R)return;
+  let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;const cl=Math.cos(R.lat[0]*Math.PI/180);
+  const P=i=>[R.lon[i]*cl,-R.lat[i]];
+  for(let i=0;i<R.n;i++){const[x,y]=P(i);a=Math.min(a,x);b=Math.max(b,x);c=Math.min(c,y);d=Math.max(d,y);}
+  const pad=Math.max(b-a,d-c)*0.06;sv.setAttribute('viewBox',`${a-pad} ${c-pad} ${b-a+2*pad} ${d-c+2*pad}`);sv.setAttribute('preserveAspectRatio','xMidYMid meet');
+  const sw=Math.max(b-a,d-c)/220;
+  const st=Math.max(1,Math.floor(R.n/1500));
+  const line=(i0,i1)=>{let s='';for(let i=i0;i<=i1;i+=st){const[x,y]=P(i);s+=x.toFixed(5)+','+y.toFixed(5)+' ';}const[x,y]=P(i1);return s+x.toFixed(5)+','+y.toFixed(5);};
+  let h=`<polyline points="${line(0,R.n-1)}" fill="none" stroke="${cssv('--ink')}" stroke-width="${sw*1.6}" stroke-linejoin="round"/>`;
+  for(const z of S.zones){const i0=clamp(Math.round(z.a*1000/STEP),0,R.n-1),i1=clamp(Math.round(z.b*1000/STEP),0,R.n-1);if(i1>i0)h+=`<polyline points="${line(i0,i1)}" fill="none" stroke="${z.kind==='montee'?cssv('--climb'):cssv('--zone')}" stroke-width="${sw*5}" stroke-linecap="round" opacity=".85"/>`;}
+  for(const p of S.points){const i=clamp(Math.round(p.km*1000/STEP),0,R.n-1);const[x,y]=P(i);h+=`<circle cx="${x}" cy="${y}" r="${sw*5}" fill="${p.type==='danger'?cssv('--crit'):cssv('--accent')}" stroke="${cssv('--ink')}" stroke-width="${sw}"/>`;}
+  const[x0,y0]=P(0);h+=`<circle cx="${x0}" cy="${y0}" r="${sw*6}" fill="${cssv('--ink')}"/>`;
+  sv.innerHTML=h;
+}
+
+/* ---------- Rendu Parcours ---------- */
+function renderParcours(){
+  $('#routeName').textContent=R?R.name:'Aucun parcours';
+  $('#routeEmpty').hidden=!!R;$('#routeBlock').hidden=!R;
+  if(!R)return;
+  const climbs=S.zones.filter(z=>z.kind==='montee').length;
+  $('#facts').innerHTML=`<div><b>${nf1(R.total/1000)} km</b>distance</div><div><b>${nf0(R.dplus)} m</b>D+ (lissé)</div><div><b>${S.points.length}</b>points</div><div><b>${S.zones.length}</b>zones, dont ${climbs} montée${climbs>1?'s':''}</div>`;
+  if(!$('#autoUI').childElementCount)renderAutoUI();
+  drawTrace();drawMain();updateModeHint();
+  const pts=[...S.points].sort((a,b)=>a.km-b.km);
+  $('#pointList').innerHTML=pts.length?pts.map(p=>`<li><span class="k">km ${nf1(p.km)}</span><span class="t">${PT[p.type].i} ${esc(p.text||PT[p.type].n)}<small>${PT[p.type].n}, annoncé ${nf1(p.avant)} km avant</small></span><button class="btn sm ghost" data-ep="${p.id}">Modifier</button><button class="btn sm ghost" data-dp="${p.id}">Supprimer</button></li>`).join(''):'<li class="none">Aucun point. Touche « Ajouter un point », puis le profil.</li>';
+  $('#zoneList').innerHTML=S.zones.length?S.zones.map(z=>`<li><span class="sw" style="background:${z.kind==='montee'?'var(--climb)':'var(--zone)'}"></span><span class="k">${nf1(z.a)}–${nf1(z.b)}</span><span class="t">${esc(z.name)}<small>${z.min}–${z.max} % FTP, soit ${Math.round(z.min*S.ftp/100)}–${Math.round(z.max*S.ftp/100)} W${z.msg?' · '+esc(z.msg):''}</small></span><button class="btn sm ghost" data-ez="${z.id}">Modifier</button><button class="btn sm ghost" data-dz="${z.id}">Supprimer</button></li>`).join(''):'<li class="none">Aucune zone. Pose-en une ou lance la détection des montées.</li>';
+}
+function updateModeHint(){
+  $$('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+  $('#modeHint').textContent=mode==='point'?'Touche le profil à l’endroit du point.':mode==='zone'?(zoneStart==null?'Touche le début de la zone sur le profil.':`Début au km ${nf1(zoneStart)}. Touche maintenant la fin.`):'';
+}
+function closeForm(){$('#formHost').innerHTML='';}
+function openPointForm(p){
+  const isNew=!S.points.some(x=>x.id===p.id);
+  $('#formHost').innerHTML=`<div class="form" id="pf">
+    <h4>${isNew?'Nouveau point':'Modifier le point'}</h4>
+    <label>Type<select name="type">${Object.entries(PT).map(([k,v])=>`<option value="${k}"${k===p.type?' selected':''}>${v.i} ${v.n}</option>`).join('')}</select></label>
+    <label>Km<input name="km" type="number" step="0.1" min="0" value="${p.km}"></label>
+    <label class="wide">Message affiché<input name="text" maxlength="80" value="${esc(p.text)}" placeholder="Ex. station 24 h/24, remplir les 2 bidons"></label>
+    <label>Annoncer (km avant)<input name="avant" type="number" step="0.5" min="0" value="${p.avant}"></label>
+    <p class="help">Un danger s'affiche en alerte critique, un point d'eau ou un ravito en action, une note en info.</p>
+    <div class="row"><button class="btn primary" data-act="save">Enregistrer le point</button><button class="btn" data-act="cancel">Annuler</button></div></div>`;
+  const f=$('#pf');f.scrollIntoView({block:'nearest',behavior:'smooth'});
+  f.addEventListener('click',e=>{
+    const act=e.target.dataset.act;if(!act)return;
+    if(act==='save'){
+      const v=n=>f.querySelector(`[name=${n}]`).value;
+      const np={id:p.id||uid(),type:v('type'),km:clamp(+v('km')||0,0,R.total/1000),text:v('text').trim(),avant:Math.max(0,+v('avant')||0)};
+      S.points=S.points.filter(x=>x.id!==np.id);S.points.push(np);save();toast('Point enregistré.');
+    }
+    closeForm();renderParcours();
+  });
+}
+function openZoneForm(z){
+  const isNew=!S.zones.some(x=>x.id===z.id);
+  $('#formHost').innerHTML=`<div class="form" id="zf">
+    <h4>${isNew?'Nouvelle zone':'Modifier la zone'}</h4>
+    <label class="wide">Nom<input name="name" maxlength="60" value="${esc(z.name)}" placeholder="Ex. vallée exposée au vent"></label>
+    <label>Type<select name="kind"><option value="zone"${z.kind!=='montee'?' selected':''}>Tronçon</option><option value="montee"${z.kind==='montee'?' selected':''}>Montée</option></select></label>
+    <label>Annoncer (km avant)<input name="avant" type="number" step="0.5" min="0" value="${z.avant??1}"></label>
+    <label>Du km<input name="a" type="number" step="0.1" value="${z.a}"></label>
+    <label>Au km<input name="b" type="number" step="0.1" value="${z.b}"></label>
+    <label>Cible min (% FTP)<input name="min" type="number" value="${z.min}"></label>
+    <label>Cible max (% FTP)<input name="max" type="number" value="${z.max}"></label>
+    <p class="help" id="zw"></p>
+    <label class="wide">Consigne à l'annonce<input name="msg" maxlength="80" value="${esc(z.msg)}" placeholder="Ex. mange maintenant, reste assis"></label>
+    <div class="row"><button class="btn primary" data-act="save">Enregistrer la zone</button><button class="btn" data-act="cancel">Annuler</button></div></div>`;
+  const f=$('#zf');f.scrollIntoView({block:'nearest',behavior:'smooth'});
+  const v=n=>f.querySelector(`[name=${n}]`).value;
+  const upd=()=>{$('#zw').textContent=`Sur ce tronçon, la cible devient ${Math.round((+v('min')||0)*S.ftp/100)}–${Math.round((+v('max')||0)*S.ftp/100)} W et remplace les règles de base.`;};
+  upd();f.addEventListener('input',upd);
+  f.addEventListener('click',e=>{
+    const act=e.target.dataset.act;if(!act)return;
+    if(act==='save'){
+      let a=+v('a')||0,b=+v('b')||0;if(b<a)[a,b]=[b,a];
+      const L=R.total/1000;
+      let mn=+v('min')||0,mx=+v('max')||0;if(mx<mn)[mn,mx]=[mx,mn];
+      const nz={id:z.id||uid(),auto:false,kind:v('kind'),name:v('name').trim()||(v('kind')==='montee'?'Montée':'Tronçon'),a:clamp(a,0,L),b:clamp(b,0,L),min:mn,max:mx,msg:v('msg').trim(),avant:Math.max(0,+v('avant')||0)};
+      S.zones=S.zones.filter(x=>x.id!==nz.id);S.zones.push(nz);S.zones.sort((x,y)=>x.a-y.a);save();toast('Zone enregistrée.');
+    }
+    closeForm();renderParcours();
+  });
+}
+
+/* ---------- Stratégie ---------- */
+function getPath(p){return p.split('.').reduce((o,k)=>o[k],S);}
+function setPath(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=v;}
+function renderStrat(){
+  $$('[data-path]').forEach(i=>{if(document.activeElement!==i)i.value=getPath(i.dataset.path);});
+  $$('[data-w]').forEach(s=>{const b=S.global[s.dataset.w];s.textContent=`${Math.round(b[0]*S.ftp/100)}–${Math.round(b[1]*S.ftp/100)} W`;});
+}
+
+/* ---------- Alertes ---------- */
+function alertWhen(a){
+  const m=METRIC[a.metric],op=a.op==='>'?'au-dessus':'en dessous';
+  const ref=a.ref==='max'?'de la cible max':a.ref==='min'?'de la cible min':`de ${a.val} ${m.u}`;
+  return `Quand ${m.n} est ${op} ${ref} pendant ${a.dur} s`;
+}
+function renderAlerts(){
+  $('#alertList').innerHTML=S.alerts.map(a=>`<div class="alert${a.on?'':' off'}">
+    <input type="checkbox" class="tog" data-ta="${a.id}" ${a.on?'checked':''} aria-label="Activer ${esc(a.name)}">
+    <div class="t"><div class="when">${esc(alertWhen(a))}</div>
+    <div class="then"><span class="pill p-${a.prio}">${PRIO[a.prio]}</span>${esc(a.msg)}</div>
+    <div class="when">${esc(a.name)} : bords et widget en couleur, vibration au plus toutes les ${a.cool} min</div></div>
+    <button class="btn sm ghost" data-ea="${a.id}">Modifier</button></div>`).join('')||'<p class="intro">Aucune alerte. Crée la première.</p>';
+  $('#perList').innerHTML=S.periodic.map(p=>`<div class="per" data-pid="${p.id}">
+    <input type="checkbox" class="tog" data-f="on" ${p.on?'checked':''} aria-label="Activer le rappel">
+    <input type="number" min="1" data-f="every" value="${p.every}" aria-label="Toutes les (min)">
+    <input data-f="msg" value="${esc(p.msg)}" maxlength="60" aria-label="Message">
+    <select data-f="prio" aria-label="Priorité">${Object.entries(PRIO).map(([k,v])=>`<option value="${k}"${k===p.prio?' selected':''}>${v}</option>`).join('')}</select>
+    <button class="btn sm ghost" data-dper="${p.id}" aria-label="Supprimer le rappel">×</button></div>`).join('')+'<p class="intro" style="margin-top:6px;font-size:14px">Chiffre = intervalle en minutes de roulage.</p>';
+}
+function openAlertForm(a){
+  const isNew=!S.alerts.some(x=>x.id===a.id);
+  const host=$('#alertForm');
+  host.innerHTML=`<div class="form" id="af">
+    <h4>${isNew?'Nouvelle alerte':'Modifier l’alerte'}</h4>
+    <label class="wide">Nom<input name="name" maxlength="40" value="${esc(a.name)}"></label>
+    <label>Quand<select name="metric">${Object.entries(METRIC).map(([k,v])=>`<option value="${k}"${k===a.metric?' selected':''}>${v.l}</option>`).join('')}</select></label>
+    <label>Est<select name="op"><option value=">"${a.op==='>'?' selected':''}>au-dessus de</option><option value="<"${a.op==='<'?' selected':''}>en dessous de</option></select></label>
+    <label>Référence<select name="ref"></select></label>
+    <label>Valeur<input name="val" type="number" value="${a.val}"></label>
+    <label>Pendant (s)<input name="dur" type="number" min="1" value="${a.dur}"></label>
+    <label>Répéter au plus toutes les (min)<input name="cool" type="number" min="0" value="${a.cool}"></label>
+    <label>Priorité<select name="prio">${Object.entries(PRIO).map(([k,v])=>`<option value="${k}"${k===a.prio?' selected':''}>${v}</option>`).join('')}</select></label>
+    <label class="wide">Alors afficher<input name="msg" maxlength="70" value="${esc(a.msg)}"></label>
+    <p class="help">Dans le message, {min} et {max} donnent la cible du moment, {val} la valeur mesurée.</p>
+    <div class="row"><button class="btn primary" data-act="save">Enregistrer l’alerte</button><button class="btn" data-act="cancel">Annuler</button>${isNew?'':'<button class="btn ghost" data-act="del">Supprimer</button>'}</div></div>`;
+  const f=$('#af'),q=n=>f.querySelector(`[name=${n}]`);
+  const refOpts=()=>{const pw=q('metric').value==='power';const cur=pw?a.ref:'val';
+    q('ref').innerHTML=(pw?`<option value="max"${cur==='max'?' selected':''}>Cible max</option><option value="min"${cur==='min'?' selected':''}>Cible min</option>`:'')+`<option value="val"${cur==='val'?' selected':''}>Valeur fixe</option>`;
+    q('val').disabled=q('ref').value!=='val';};
+  refOpts();
+  f.addEventListener('change',e=>{if(e.target.name==='metric')refOpts();if(e.target.name==='ref')q('val').disabled=q('ref').value!=='val';});
+  f.scrollIntoView({block:'nearest',behavior:'smooth'});
+  f.addEventListener('click',e=>{
+    const act=e.target.dataset.act;if(!act)return;
+    if(act==='save'){
+      const na={id:a.id||uid(),on:a.on!==false,name:q('name').value.trim()||'Alerte',metric:q('metric').value,op:q('op').value,ref:q('ref').value,val:+q('val').value||0,dur:Math.max(1,+q('dur').value||1),cool:Math.max(0,+q('cool').value||0),prio:q('prio').value,msg:q('msg').value.trim()||'Alerte'};
+      const i=S.alerts.findIndex(x=>x.id===na.id);if(i>=0)S.alerts[i]=na;else S.alerts.push(na);toast('Alerte enregistrée.');
+    }
+    if(act==='del'){S.alerts=S.alerts.filter(x=>x.id!==a.id);toast('Alerte supprimée.');}
+    save();host.innerHTML='';renderAlerts();
+  });
+}
+
+/* ---------- Widgets ---------- */
+function sizeOf(it){return(it.w>=3&&it.h>=2)||it.w*it.h>=6?'L':(it.w>=2||it.h>=2)?'M':'S';}
+function spark(arr,col){
+  if(!arr||arr.length<2)return'';
+  let lo=Math.min(...arr),hi=Math.max(...arr);if(hi-lo<10){const m=(hi+lo)/2;lo=m-5;hi=m+5;}
+  const pts=arr.map((v,i)=>`${(i/(arr.length-1)*100).toFixed(1)},${(28-(v-lo)/(hi-lo)*26).toFixed(1)}`).join(' ');
+  return `<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function widget(k,sz,d){
+  const tg=d.tg;
+  switch(k){
+    case'power':{
+      if(d.p==null||!isFinite(d.p))return `<div class="lab">Puissance</div><div class="val">--</div>${sz!=='S'?'<div class="sub m">Pas de capteur</div>':''}`;
+      const st=d.p>tg.max?'hi':d.p<tg.min?'lo':'ok';
+      let h=`<div class="lab">Puissance</div><div class="val${st==='ok'?' ok':''}">${nf0(d.p)}<small>W</small></div>`;
+      if(sz!=='S'){const lo=Math.max(0,tg.min*0.6),hi=Math.max(tg.max*1.35,lo+60),pc=x=>clamp((x-lo)/(hi-lo)*100,0,100);
+        h+=`<div class="band"><span class="bz" style="left:${pc(tg.min)}%;width:${Math.max(1,pc(tg.max)-pc(tg.min))}%"></span><span class="bm" style="left:${pc(d.p)}%"></span></div>`;
+        if(sz==='L')h+=`<div class="sub m" style="margin-top:4px">${st==='ok'?'Dans la cible':st==='hi'?'Au-dessus de '+tg.max+' W':'Sous '+tg.min+' W'}</div>`;}
+      return h;}
+    case'target':return `<div class="lab">Cible</div><div class="val y">${tg.min}–${tg.max}<small>W</small></div>${sz!=='S'?`<div class="sub">${esc(tg.label)}</div>`:''}${sz==='L'?`<div class="sub m">${Math.round(tg.min/S.ftp*100)}–${Math.round(tg.max/S.ftp*100)} % FTP</div>`:''}`;
+    case'hr':return `<div class="lab">FC</div><div class="val">${d.hr==null?'--':nf0(d.hr)}<small>bpm</small></div>${sz!=='S'?spark(d.hrHist,'#FF5A36'):''}`;
+    case'cad':return `<div class="lab">Cadence</div><div class="val">${d.cad==null?'--':nf0(d.cad)}<small>rpm</small></div>`;
+    case'speed':return `<div class="lab">Vitesse</div><div class="val">${nf1(d.v)}<small>km/h</small></div>`;
+    case'dist':return `<div class="lab">Distance</div><div class="val">${nf1(d.km)}<small>km</small></div>${sz!=='S'?`<div class="sub m">Reste ${nf1(Math.max(0,d.total-d.km))} km</div>`:''}`;
+    case'time':return `<div class="lab">Temps de roulage</div><div class="val">${hms(d.t)}</div>`;
+    case'fuel':{
+      if(!d.fuel)return `<div class="lab">Rappel</div><div class="sub m">Aucun rappel actif</div>`;
+      return `<div class="lab">Prochain rappel</div><div class="val y">${mmss(d.fuel.s)}</div>${sz!=='S'?`<div class="sub">${esc(d.fuel.msg)}</div>`:''}`;}
+    case'next':{
+      const L=d.next;if(!L.length)return `<div class="lab">Prochain</div><div class="sub m">Rien d’annoncé</div>`;
+      const dist=e=>nf1(e.km-d.km)+' km';
+      if(sz==='S')return `<div class="lab">Prochain</div><div class="val" style="font-size:min(36cqh,22cqw)">${L[0].i} ${dist(L[0])}</div>`;
+      const eta=e=>{const v=Math.max(15,d.vAvg||28);const m=Math.round((e.km-d.km)/v*60);return m<60?m+' min':Math.floor(m/60)+' h '+String(m%60).padStart(2,'0');};
+      const rows=sz==='L'?L:L.slice(0,1);
+      return `<div class="lab">Prochain événement</div>`+rows.map((e,i)=>`<div class="sub nx"${i===0&&sz==='M'?' style="font-size:clamp(10px,17cqh,18px)"':''}><span>${e.i} ${esc(e.name)}</span><span>${dist(e)}</span></div>`).join('')+(sz==='M'?`<div class="sub m">dans ${eta(L[0])}</div>`:'');}
+    case'profile':return `<div class="lab">Profil, ${sz==='S'?5:sz==='M'?15:25} km à venir</div><canvas class="mini" data-range="${sz==='S'?5:sz==='M'?15:25}"></canvas>`;
+  }
+  return'';
+}
+const SEV_SCALE={power:0.25,hr:0.06,cad:0.15,speed:0.2};
+const REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function sevColor(k,a=1,dir='hi'){return dir==='lo'?`rgba(${Math.round(135-70*k)},${Math.round(200-75*k)},${Math.round(255-15*k)},${a})`:`rgba(${Math.round(255-15*k)},${Math.round(190-115*k)},${Math.round(70-10*k)},${a})`;}
+function renderDev(el,d,editable){
+  if(!el._in){el.innerHTML='<div class="dev-in"></div><div class="dev-edge"></div><div class="dev-ban"></div>';el._in=el.children[0];el._edge=el.children[1];el._ban=el.children[2];el._bk=null;el._sig=null;el._edir='hi';}
+  const sig=S.layout.map(it=>[it.id,it.k,it.x,it.y,it.w,it.h].join(',')).join(';')+'|'+editable;
+  if(sig!==el._sig){
+    el._sig=sig;
+    el._in.innerHTML=S.layout.map(it=>`<div class="wg s-${sizeOf(it)}" data-id="${it.id}" style="left:${it.x/COLS*100}%;top:${it.y/ROWS*100}%;width:${it.w/COLS*100}%;height:${it.h/ROWS*100}%"><div class="wi"></div>${editable?`<button class="wg-del" data-del="${it.id}" aria-label="Retirer ${WDEF[it.k]}">×</button><span class="wg-rs"></span>`:''}</div>`).join('');
+  }
+  const sev=d.sev||{};
+  for(const wg of el._in.children){
+    const it=S.layout.find(x=>x.id===wg.dataset.id);if(!it)continue;
+    const wi=wg.firstElementChild,sv=sev[it.k];
+    wi.innerHTML=widget(it.k,sizeOf(it),d);
+    if(sv){wi._dir=sv.dir;wi.style.setProperty('--valc',sevColor(sv.k,1,sv.dir));wi.style.setProperty('--wbg',sevColor(sv.k,(0.06+0.14*sv.k).toFixed(3),sv.dir));wi.style.setProperty('--wbd',sevColor(sv.k,(0.4+0.4*sv.k).toFixed(3),sv.dir));}
+    else{const dr=wi._dir||'hi';wi.style.setProperty('--valc','#F3F5F7');wi.style.setProperty('--wbg',sevColor(0,0,dr));wi.style.setProperty('--wbd',sevColor(0,0,dr));}
+  }
+  let mk=0,crit=false,mdir=el._edir;
+  for(const m in sev){const x=sev[m];if(x.k>mk||(x.k===mk&&x.dir==='hi')){mk=x.k;mdir=x.dir;}crit=crit||x.crit;}
+  el._edir=mdir;
+  const es=el._edge.style;
+  es.setProperty('--ec',sevColor(mk,mk>0?(0.5+0.35*mk).toFixed(3):0,mdir));
+  es.setProperty('--ew',(mk>0?1.5+5*mk:0).toFixed(2)+'px');
+  es.setProperty('--eg',(mk>0?6+20*mk:0).toFixed(1)+'px');
+  el._edge.classList.toggle('crit',crit&&mk>0);
+  const b=d.banner,bk=b?b.prio+'|'+b.msg+'|'+b.until:null;
+  if(bk!==el._bk){el._bk=bk;el._ban.innerHTML=b?`<div class="banner b-${b.prio}">${esc(b.msg)}</div>`:'';}
+  $$('canvas.mini',el).forEach(cv=>{
+    if(!R){return;}
+    const rg=+cv.dataset.range,a=clamp(d.km,0,R.total/1000),b=Math.min(R.total/1000,a+rg);
+    const m=drawProf(cv,a,Math.max(b,a+0.5),{pt:3,pb:1,minSpan:40,emoji:true,emojiPad:true,cClimb:'rgba(255,90,54,.25)',cZone:'rgba(77,163,255,.22)',cFill:'rgba(255,210,31,.16)',cLine:'#FFD21F',cPoint:'#F3F5F7'});
+    if(m){const c=cv.getContext('2d');c.fillStyle='#F3F5F7';c.beginPath();c.arc(m.X(a)+3,m.Y(R.ele[clamp(Math.round(a*1000/STEP),0,R.n-1)]),3,0,7);c.fill();}
+  });
+}
+function previewData(){
+  let km=10,total=140,tg={min:156,max:173,label:'Plat'};
+  if(R){total=R.total/1000;const z=S.zones.find(z=>z.kind==='montee');km=z?Math.max(0,z.a-0.6):total*0.3;tg=targetAt(km*1000);}
+  return{p:Math.round((tg.min+tg.max)/2+6),hr:148,cad:86,v:29.4,vAvg:28,tg,km,total,t:km/28*3600,next:R?upcoming(km,3):[{i:'💧',name:"Point d'eau",km:km+6.2}],fuel:fuelIn({t:420,perLast:{}}),hrHist:[140,142,141,144,146,145,147,148,147,148],banner:null};
+}
+
+/* ---------- Éditeur d'écran ---------- */
+let drag=null;
+function renderEditor(){
+  $('#palette').innerHTML=Object.entries(WDEF).map(([k,v])=>`<button class="btn sm" data-add="${k}">+ ${v}</button>`).join('');
+  renderDev($('#devEdit'),previewData(),true);
+}
+function overlaps(a,id){return S.layout.some(b=>b.id!==id&&a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h);}
+function addWidget(k){
+  for(const[w,h]of[[2,1],[1,1]])for(let y=0;y<=ROWS-h;y++)for(let x=0;x<=COLS-w;x++){
+    const c={x,y,w,h};if(!overlaps(c,null)){S.layout.push({id:uid(),k,...c});save();renderEditor();return;}
+  }
+  toast('Plus de place : retire ou réduis un widget.');
+}
+function bindEditor(){
+  const dev=$('#devEdit');
+  dev.addEventListener('pointerdown',e=>{
+    if(e.target.closest('[data-del]'))return;
+    const wEl=e.target.closest('.wg');if(!wEl)return;
+    const it=S.layout.find(x=>x.id===wEl.dataset.id);if(!it)return;
+    const r=dev.getBoundingClientRect();
+    drag={id:it.id,mode:e.target.closest('.wg-rs')?'resize':'move',sx:e.clientX,sy:e.clientY,o:{...it},cw:r.width/COLS,ch:r.height/ROWS};
+    wEl.classList.add('drag');e.preventDefault();
+  });
+  window.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const it=S.layout.find(x=>x.id===drag.id);if(!it)return;
+    const dx=Math.round((e.clientX-drag.sx)/drag.cw),dy=Math.round((e.clientY-drag.sy)/drag.ch),o=drag.o;
+    const c=drag.mode==='move'?{x:clamp(o.x+dx,0,COLS-o.w),y:clamp(o.y+dy,0,ROWS-o.h),w:o.w,h:o.h}:{x:o.x,y:o.y,w:clamp(o.w+dx,1,COLS-o.x),h:clamp(o.h+dy,1,ROWS-o.y)};
+    if((c.x!==it.x||c.y!==it.y||c.w!==it.w||c.h!==it.h)&&!overlaps(c,it.id)){Object.assign(it,c);renderDev(dev,previewData(),true);const el=dev.querySelector(`[data-id="${it.id}"]`);if(el)el.classList.add('drag');}
+  });
+  const end=()=>{if(!drag)return;drag=null;save();renderEditor();};
+  window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+  dev.addEventListener('click',e=>{const d=e.target.closest('[data-del]');if(d){S.layout=S.layout.filter(x=>x.id!==d.dataset.del);save();renderEditor();}});
+  $('#palette').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b)addWidget(b.dataset.add);});
+  $$('[data-tpl]').forEach(b=>b.addEventListener('click',()=>{S.layout=mkLayout(b.dataset.tpl);save();renderEditor();toast('Modèle appliqué.');}));
+}
+
+/* ---------- Simulation ---------- */
+let sim, timer=null;
+function resetSim(){
+  sim=Object.assign(newRun(),{v:7,p:150,hr:105,cad:88,buf:[],surge:0,outT:0,done:false});
+  stopSim();
+}
+function stopSim(){if(timer){clearInterval(timer);timer=null;}const b=$('#playBtn');if(b)b.textContent=sim&&sim.t>0&&!sim.done?'Reprendre':'Lancer';}
+function fuelIn(st){const p=S.periodic.find(x=>x.on&&x.every>0);if(!p)return null;const l=(st.perLast&&st.perLast[p.id])||0;return{s:Math.max(0,p.every*60-(st.t-l)),msg:p.msg};}
+function solveV(P,g){
+  const M=S.mass,eta=0.96,rho=1.2,A=S.cda,cr=S.crr;
+  const f=v=>M*9.81*(g+cr)*v+0.5*rho*A*v*v*v-P*eta;
+  if(f(20)<0)return 20;
+  let lo=0.3,hi=20;if(f(lo)>0)return lo;
+  for(let i=0;i<40;i++){const m=(lo+hi)/2;f(m)>0?hi=m:lo=m;}
+  return(lo+hi)/2;
+}
+function fmtMsg(s,tg,v){return s.replace(/\{min\}/g,tg.min).replace(/\{max\}/g,tg.max).replace(/\{val\}/g,Math.round(v));}
+function emit(st,prio,msg,capped,quiet){
+  const now=st.t;st.hour=st.hour.filter(x=>now-x<3600);
+  if(capped&&prio!=='critique'){if(st.hour.length>=S.maxPerHour){st.filtered++;return;}st.hour.push(now);}
+  st.emitted++;
+  st.log.unshift({km:st.d/1000,t:now,prio,msg});if(st.log.length>300)st.log.pop();
+  if(!quiet)st.banner={prio,msg,until:performance.now()+(prio==='critique'?4000:2800)};
+  if(st===live.st)signal(prio);
+}
+function smoothSev(st,raw){
+  const D=st.sevD||(st.sevD={});
+  for(const m of ['power','hr','cad','speed']){
+    const t=raw[m],c=D[m];
+    if(t){if(c&&c.dir===t.dir){c.k+=(t.k-c.k)*0.25;c.crit=t.crit;}else D[m]={k:t.k*0.4,dir:t.dir,crit:t.crit};}
+    else if(c){c.k*=0.7;c.crit=false;if(c.k<0.06)delete D[m];}
+  }
+  st.sev={};for(const m in D)st.sev[m]={...D[m]};
+}
+function evalRun(st,tg,vals){
+  const raw={};st.held=st.held||{};
+  for(const a of S.alerts){
+    if(!a.on)continue;
+    const v=vals[a.metric];
+    if(v==null||!isFinite(v)){st.cnt[a.id]=0;st.held[a.id]=0;continue;}
+    const ref=a.ref==='max'&&a.metric==='power'?tg.max:a.ref==='min'&&a.metric==='power'?tg.min:a.val;
+    const ok=a.op==='>'?v>ref:v<ref;
+    st.cnt[a.id]=ok?(st.cnt[a.id]||0)+1:0;
+    st.held[a.id]=ok?(st.held[a.id]||0)+1:0;
+    if(ok&&st.held[a.id]>=Math.min(a.dur,5)){
+      const ex=(a.op==='>'?v-ref:ref-v)/Math.max(1,Math.abs(ref));
+      const k=clamp(ex/(SEV_SCALE[a.metric]||0.2),0.15,1),cur=raw[a.metric],dir=a.op==='>'?'hi':'lo';
+      raw[a.metric]=cur&&cur.k>=k?{...cur,crit:cur.crit||a.prio==='critique'}:{k,dir,crit:(cur&&cur.crit)||a.prio==='critique'};
+    }
+    if(st.cnt[a.id]>=a.dur&&st.t-(st.last[a.id]??-1e9)>=a.cool*60){st.last[a.id]=st.t;st.cnt[a.id]=0;emit(st,a.prio,fmtMsg(a.msg,tg,v),true,true);}
+  }
+  smoothSev(st,raw);
+  const km=st.d/1000;
+  for(const p of S.points){if(st.firedP.has(p.id))continue;if(km>=p.km-p.avant&&km<=p.km+0.2){st.firedP.add(p.id);const dd=p.km-km;emit(st,PT[p.type].prio,`${PT[p.type].i} ${p.text||PT[p.type].n} ${dd>0.15?'dans '+nf1(dd)+' km':'ici'}`);}else if(km>p.km+0.2)st.firedP.add(p.id);}
+  for(const z of S.zones){if(st.firedZ.has(z.id))continue;if(km>=z.a-(z.avant||0)&&km<z.a){st.firedZ.add(z.id);emit(st,'action',`${z.name} dans ${nf1(z.a-km)} km${z.msg?'. '+z.msg:''}`);}else if(km>=z.a)st.firedZ.add(z.id);}
+  const zc=zoneAt(km),zid=zc?zc.id:null;
+  if(zid!==st.zoneId){st.zoneId=zid;if(zc)emit(st,'info',`${zc.name} : cible ${Math.round(zc.min*S.ftp/100)}–${Math.round(zc.max*S.ftp/100)} W`);}
+  for(const p of S.periodic){if(!p.on||!(p.every>0))continue;const l=st.perLast[p.id]??0;if(st.t-l>=p.every*60){st.perLast[p.id]=st.t;st.lastPerId=p.id;emit(st,p.prio,p.msg);}}
+}
+function simStep(){
+  const L=R.total;
+  if(sim.done)return;
+  if(sim.d>=L){sim.done=true;emit(sim,'info','Arrivée. Temps de roulage '+hms(sim.t));stopSim();$('#playBtn').textContent='Lancer';return;}
+  const tg=targetAt(sim.d),b=+$('#behav').value,g=gradeAt(sim.d)/100;
+  let intent=(tg.min+tg.max)/2*(0.97+0.12*b);
+  if(tg.kind==='montee')intent*=1+0.12*b;
+  if(sim.surge>0){sim.surge--;intent*=1.2+0.25*b;}else if(Math.random()<0.0015+0.006*b)sim.surge=15+Math.floor(Math.random()*45);
+  intent*=1-0.02*(sim.t/3600)*(1-b*0.5);
+  const noise=(Math.random()-0.5)*0.14*intent;
+  sim.p=Math.max(0,sim.p+(intent+noise-sim.p)*0.3);
+  const vt=solveV(sim.p,g);sim.v+=(vt-sim.v)*0.08;
+  sim.d+=sim.v;sim.t++;
+  const hrT=92+(sim.p/S.ftp)*82+Math.min(9,sim.t/3600*1.6);sim.hr+=(hrT-sim.hr)*0.03;
+  sim.cad=clamp(89-Math.max(0,g*100)*(1.6+2.2*b)+(Math.random()-0.5)*4,50,110);
+  sim.buf.push(sim.p);if(sim.buf.length>10)sim.buf.shift();
+  const p10=sim.buf.reduce((a,c)=>a+c,0)/sim.buf.length;
+  if(sim.t%5===0){sim.hrHist.push(sim.hr);if(sim.hrHist.length>120)sim.hrHist.shift();}
+  if(p10>tg.max||p10<tg.min)sim.outT++;
+  evalRun(sim,tg,{power:p10,hr:sim.hr,cad:sim.cad,speed:sim.v*3.6});
+}
+function simData(){
+  const p10=sim.buf.length?sim.buf.reduce((a,c)=>a+c,0)/sim.buf.length:sim.p;
+  const km=sim.d/1000,tg=targetAt(sim.d);
+  return{p:p10,hr:sim.hr,cad:sim.cad,v:sim.v*3.6,vAvg:sim.t>60?sim.d/sim.t*3.6:28,tg,km,total:R.total/1000,t:sim.t,next:upcoming(km,3),fuel:fuelIn(sim),hrHist:sim.hrHist,sev:sim.sev,banner:sim.banner&&performance.now()<sim.banner.until?sim.banner:null};
+}
+let lastLogLen=-1;
+function renderSim(){
+  $('#simEmpty').hidden=!!R;$('#simBlock').hidden=!R;if(!R)return;
+  renderDev($('#devSim'),simData(),false);
+  const pct=sim.t?Math.round(sim.outT/sim.t*100):0;
+  $('#stats').innerHTML=`<div><b>${nf1(sim.d/1000)} / ${nf1(R.total/1000)}</b>km</div><div><b>${hms(sim.t)}</b>temps de roulage</div><div><b>${sim.emitted}</b>alertes affichées</div><div><b>${sim.filtered}</b>bloquées (plafond horaire)</div><div><b>${pct} %</b>du temps hors cible</div>`;
+  if(sim.log.length!==lastLogLen||sim.emitted===0){lastLogLen=sim.log.length;
+    $('#log').innerHTML=sim.log.length?sim.log.slice(0,80).map(l=>`<li><b>km ${nf1(l.km)}</b><span class="pill p-${l.prio}">${PRIO[l.prio]}</span><span>${esc(l.msg)}</span></li>`).join(''):'<li style="color:var(--muted)">Lance la simulation pour voir les alertes tomber.</li>';}
+}
+function playSim(){
+  if(!R)return;
+  if(timer){stopSim();renderSim();return;}
+  if(sim.done)resetSim();
+  $('#playBtn').textContent='Pause';
+  timer=setInterval(()=>{const n=Math.max(1,Math.round(+$('#speedSel').value/10));for(let i=0;i<n&&!sim.done;i++)simStep();renderSim();},100);
+}
+
+/* ---------- Stratégie automatique ---------- */
+const ZN=[
+  {n:'Z1',l:'Récupération',lo:0,hi:0.55,c:'#9AA5B1'},{n:'Z2',l:'Endurance',lo:0.55,hi:0.75,c:'#3B82F6'},
+  {n:'Z3',l:'Tempo',lo:0.75,hi:0.90,c:'#22A55B'},{n:'Z4',l:'Seuil',lo:0.90,hi:1.05,c:'#E0B000'},
+  {n:'Z5',l:'VO2max',lo:1.05,hi:1.20,c:'#F97316'},{n:'Z6',l:'Anaérobie',lo:1.20,hi:1.50,c:'#E11D48'},
+  {n:'Z7',l:'Neuromusculaire',lo:1.50,hi:9,c:'#7C3AED'}];
+const zoneOf=r=>{for(let k=0;k<6;k++)if(r<ZN[k].hi)return k;return 6;};
+const BLOCK={2:{band:[0.80,0.88],mid:0.84,len:1200,rec:300,name:'tempo',step:5,maxf:0.6,cap:600},3:{band:[0.95,1.02],mid:0.985,len:720,rec:360,name:'seuil',step:2,maxf:0.35,cap:120},4:{band:[1.08,1.18],mid:1.13,len:240,rec:240,name:'VO2max',step:1,maxf:0.15,cap:40}};
+const MODES={
+  endurance:{n:'Endurance',d:'Sortie régulière en zone 2, montées comprises. Ajoute du tempo, du seuil ou du VO2max avec les curseurs : les blocs se placent seuls sur le parcours.'},
+  seuil:{n:'Seuil',d:'Des blocs au seuil placés sur le meilleur terrain (montées régulières et portions sans descente), avec récupération entre les blocs. Règle la durée totale avec le curseur Z4.'},
+  afond:{n:'À fond',d:'Le plus vite possible : allure tenable sur la durée, montées appuyées, descentes pour récupérer. Le curseur d’intensité ajuste tout le plan.'}};
+let lastPlan=null,SAMPLE=null,autoRaf=0;
+const pad2=n=>String(n).padStart(2,'0');
+const localDT=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const hhmm=d=>d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+const dayHM=d=>d.toLocaleString('fr-FR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const hrs=h=>{const m=Math.round(h*60);return `${Math.floor(m/60)} h ${pad2(m%60)}`;};
+const fdur=sec=>sec>=3600?hrs(sec/3600):`${Math.round(sec/60)} min`;
+function autoDefaults(){const d=new Date();d.setHours(8,0,0,0);return{mode:'endurance',start:localDT(d),stops:'',water:1.5,carbs:'',z:{2:0,3:0,4:0},adj:0};}
+function ifA(h){return clamp(0.97-0.12*Math.log(Math.max(h,1)),0.5,0.97);}
+function sunTimes(date,lat,lng){
+  const rad=Math.PI/180,dayMs=864e5,J1970=2440588,J2000=2451545,e=rad*23.4397;
+  const fromJ=j=>new Date((j+0.5-J1970)*dayMs);
+  const lw=rad*-lng,phi=rad*lat,d=date.valueOf()/dayMs-0.5+J1970-J2000;
+  const n=Math.round(d-0.0009-lw/(2*Math.PI)),ds=0.0009+lw/(2*Math.PI)+n;
+  const M=rad*(357.5291+0.98560028*ds);
+  const L=M+rad*(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M))+rad*102.9372+Math.PI;
+  const dec=Math.asin(Math.sin(e)*Math.sin(L));
+  const Jnoon=J2000+ds+0.0053*Math.sin(M)-0.0069*Math.sin(2*L);
+  const cw=(Math.sin(-0.833*rad)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));
+  if(cw<-1||cw>1)return{rise:null,set:null};
+  const a=0.0009+(Math.acos(cw)+lw)/(2*Math.PI)+n;
+  const Jset=J2000+a+0.0053*Math.sin(M)-0.0069*Math.sin(2*L);
+  return{rise:fromJ(Jnoon-(Jset-Jnoon)),set:fromJ(Jset)};
+}
+function gsArr(){if(R._gs)return R._gs;const g=new Float32Array(R.n);for(let i=0;i<R.n;i++)g[i]=gradeAt(i*STEP);return R._gs=g;}
+function computePlan(cfg){
+  const n=R.n,L=R.total/1000,F=cfg.ftp,gs=gsArr(),afond=cfg.mode==='afond';
+  const sv=(P,g)=>{const f=v=>cfg.mass*9.81*(g+S.crr)*v+0.6*cfg.cda*v*v*v-P*0.96;if(f(16.7)<0)return 16.7;let lo=0.5,hi=16.7;if(f(lo)>0)return lo;for(let i=0;i<34;i++){const m=(lo+hi)/2;f(m)>0?hi=m:lo=m;}return(lo+hi)/2;};
+  const ratio=new Float32Array(n),tag=new Int16Array(n).fill(-1);
+  const timing=()=>{const dt=new Float32Array(n),cumT=new Float64Array(n);let t=0,kj=0,p4=0;for(let i=1;i<n;i++){const P=ratio[i]*F,d=STEP/sv(P,gs[i]/100);dt[i]=d;t+=d;kj+=P*d/1000;p4+=P**4*d;cumT[i]=t;}return{dt,cumT,t,kj,np:(p4/t)**0.25};};
+  let res,r=0,aF=0,capF=0;const blocks=[],warnings=[],placed={2:0,3:0,4:0};
+  const afRatio=g=>g<=-3?r*0.45:g>=2?Math.min(r*(1+aF*Math.min(g,8)/8*(g>=3.5?1:0.5)),Math.max(r,capF)):r;
+  if(afond){
+    let h=4;
+    for(let k=0;k<8;k++){
+      aF=h<1.5?0.10:h<6?0.20:0.15;capF=h<1.5?1.05:h<6?0.95:0.85;
+      r=clamp(ifA(h)+cfg.adj/100,0.45,1.05);
+      for(let i=0;i<n;i++)ratio[i]=afRatio(gs[i]);
+      res=timing();const nh=res.t/3600;if(Math.abs(nh-h)<0.02)break;h=nh;
+    }
+  }else{
+    for(let i=0;i<n;i++)ratio[i]=gs[i]<=-3?0.45:gs[i]>=3.5?0.72:0.685;
+    res=timing();const T=res.t;
+    if(T>2400)for(let i=0;i<n;i++){if(res.cumT[i]<900){ratio[i]=0.60;tag[i]=-2;}else if(res.cumT[i]>T-600){ratio[i]=0.55;tag[i]=-3;}}
+    res=timing();
+    const gp=new Float64Array(n+1);for(let i=0;i<n;i++)gp[i+1]=gp[i]+gs[i];
+    const want=[4,3,2].filter(z=>cfg.z[z]>0),nbOf=z=>Math.max(1,Math.ceil(cfg.z[z]*60/BLOCK[z].len));
+    const totalB=want.reduce((a,z)=>a+nbOf(z),0);
+    for(const z of want){
+      const B=BLOCK[z],nb=nbOf(z),bd=cfg.z[z]*60/nb;
+      const P=new Float64Array(n+1);for(let i=0;i<n;i++)P[i+1]=P[i]+STEP/sv(B.mid*F,gs[i]/100);
+      let k=0;
+      for(;k<nb;k++){
+        const bad=new Int32Array(n+1);for(let i=0;i<n;i++)bad[i+1]=bad[i]+((tag[i]!==-1||gs[i]<=-2.5)?1:0);
+        let best=null;
+        for(let i=0;i<n;i+=4){
+          if(tag[i]!==-1||gs[i]<=-2||res.cumT[i]<(T>2400?1200:300))continue;
+          const target=P[i]+bd;if(P[n]<target)break;
+          let lo=i+1,hi=n;while(lo<hi){const m=(lo+hi)>>1;if(P[m]>=target)hi=m;else lo=m+1;}
+          const j=lo;if(bad[j]-bad[i]>0)continue;
+          const avg=(gp[j]-gp[i])/(j-i),tc=res.cumT[i];
+          let gap=Infinity;for(const b of blocks)gap=Math.min(gap,Math.abs(tc-b.t0));
+          const score=(z>=3?Math.min(Math.max(avg,0),8)*0.5:-Math.abs(avg)*0.3)+Math.min(gap/(T/(totalB+1)),1)*2;
+          if(!best||score>best.score)best={i,j,score,tt:P[j]-P[i],avg};
+        }
+        if(!best)break;
+        const id=blocks.length;
+        for(let q=best.i;q<best.j;q++){ratio[q]=B.mid;tag[q]=id;}
+        let tr=0,q=best.j;while(q<n&&tr<B.rec&&tag[q]===-1){tag[q]=-4;tr+=res.dt[q];q++;}
+        tr=0;q=best.i-1;while(q>=0&&tr<120&&tag[q]===-1){tag[q]=-4;tr+=res.dt[q];q--;}
+        blocks.push({id,z,i0:best.i,i1:best.j,dur:best.tt,t0:res.cumT[best.i],avg:best.avg});
+        placed[z]+=best.tt;
+      }
+      if(k<nb)warnings.push(`Pas assez de terrain sans descente pour ${cfg.z[z]} min en ${ZN[z].n} : ${Math.round(placed[z]/60)} min placées. Allonge le parcours ou réduis la durée.`);
+    }
+    res=timing();
+  }
+  const zt=new Array(7).fill(0);for(let i=1;i<n;i++)zt[zoneOf(ratio[i])]+=res.dt[i];
+  const H=res.t/3600,IF=res.np/F,tss=H*IF*IF*100;
+  const stops=cfg.stops===''||cfg.stops==null?(H>12?45:H>6?20:0):Math.max(0,+cfg.stops);
+  const carbs=cfg.carbs===''||cfg.carbs==null?(H<1.25?0:afond?(H>2.5?90:70):(blocks.length?75:60)):clamp(+cfg.carbs,0,150);
+  const stopsS=stops*60,start=new Date(cfg.start),okStart=!isNaN(start.valueOf());
+  const pc=x=>Math.round(x*100),W=x=>Math.round(x*F);
+  const kmAtT=tt=>{let lo=0,hi=n-1;while(lo<hi){const m=(lo+hi)>>1;if(res.cumT[m]<tt)lo=m+1;else hi=m;}return lo*STEP/1000;};
+  const eta=i=>new Date(start.valueOf()+(res.cumT[i]*(1+stopsS/res.t))*1000);
+  const kmAtDate=dt=>kmAtT((dt-start)/1000/(1+stopsS/res.t));
+  const climbs=findClimbs(),dm=R.dplus/L,cat=dm<6?'roulant':dm<12?'vallonné':dm<20?'accidenté':'montagneux';
+  const lead=`${nf1(L)} km et ${nf0(R.dplus)} m de D+ (${nf1(dm)} m par km) : parcours ${cat}, ${climbs.length?climbs.length+' montée'+(climbs.length>1?'s':''):'sans vraie montée'}. Environ ${hrs(H)} de roulage dans ce mode.`;
+  const sections=[],why=[],zones=[],points=[];let global;
+  if(!afond){
+    const keyOf=i=>tag[i]>=0?'b'+tag[i]:tag[i]===-2?'w':tag[i]===-3?'c':'bg';
+    let cur=null;
+    for(let i=1;i<n;i++){const k=keyOf(i);if(!cur||cur.key!==k){cur={key:k,i0:i-1,i1:i,t:0};sections.push(cur);}cur.i1=i;cur.t+=res.dt[i];}
+    const tot={},cnt={};blocks.forEach(b=>tot[b.z]=(tot[b.z]||0)+1);
+    sections.forEach(x=>{
+      x.a=x.i0*STEP/1000;x.b=x.i1*STEP/1000;
+      if(x.key==='w'){x.label='Échauffement';x.band=[0.50,0.68];x.z=1;x.note='monte progressivement';}
+      else if(x.key==='c'){x.label='Retour au calme';x.band=[0.45,0.62];x.z=0;}
+      else if(x.key==='bg'){x.label='Endurance';x.band=[0.65,0.72];x.z=1;x.note=`montées jusqu'à ${W(0.75)} W, descentes en roue libre`;}
+      else{const b=blocks[+x.key.slice(1)];cnt[b.z]=(cnt[b.z]||0)+1;x.block=b;x.label=`Bloc ${BLOCK[b.z].name} ${cnt[b.z]}/${tot[b.z]}`;x.band=BLOCK[b.z].band;x.z=b.z;x.note=b.avg>=2?`en montée, ${nf1(b.avg)} % de moyenne`:'sur le plat';}
+    });
+    global={plat:[65,72],montee:[65,75],descente:[0,60],gUp:3.5,gDown:-3};
+    sections.forEach(x=>{if(x.key==='bg')return;zones.push({id:uid(),gen:true,kind:'zone',name:x.block?`${x.label} (${Math.round(x.t/60)} min)`:x.label,a:+x.a.toFixed(1),b:+x.b.toFixed(1),min:pc(x.band[0]),max:pc(x.band[1]),msg:x.block?`${Math.round(x.t/60)} min à ${W(x.band[0])}–${W(x.band[1])} W`:'',avant:x.block?0.5:0});});
+    why.push(`Base en zone 2 : ${W(0.65)}–${W(0.72)} W sur le plat, jusqu'à ${W(0.75)} W en montée. Les descentes servent à récupérer.`);
+    if(res.t>2400)why.push('15 min d’échauffement progressif avant tout effort, 10 min de retour au calme à la fin.');
+    [4,3,2].forEach(z=>{const bs=blocks.filter(b=>b.z===z);if(!bs.length)return;const up=bs.filter(b=>b.avg>=2).length;
+      why.push(`${bs.length} bloc${bs.length>1?'s':''} de ${BLOCK[z].name} de ${Math.round(bs[0].dur/60)} min à ${W(BLOCK[z].band[0])}–${W(BLOCK[z].band[1])} W, ${up===bs.length?'tous en montée':up?up+' en montée':'sur le plat'} : ${z>=3?'une pente régulière aide à tenir la puissance sans relance':'le plat permet un effort continu'}. ${Math.round(BLOCK[z].rec/60)} min de récupération au minimum après chaque bloc.`);});
+    why.push(`Charge estimée : ${Math.round(tss)} TSS pour une puissance normalisée de ${Math.round(res.np)} W.`);
+  }else{
+    global={plat:[pc(r-0.03),pc(r+0.03)],montee:[pc(afRatio(4.5)-0.03),pc(afRatio(4.5)+0.03)],descente:[0,pc(r*0.8)],gUp:3.5,gDown:-3};
+    why.push(`Sur environ ${hrs(H)}, l'intensité tenable tourne autour de ${pc(ifA(H))} % de ta FTP${cfg.adj?` ; tu l'as ajustée de ${cfg.adj>0?'+':''}${cfg.adj} points`:''}. Base sur le plat : ${W(r)} W.`);
+    if(H>2){const kb=kmAtT(3600);sections.push({label:'Départ maîtrisé',a:0,b:kb,t:3600,band:[r-0.07,r],z:zoneOf(r),note:'laisse partir les plus pressés'});zones.push({id:uid(),gen:true,kind:'zone',name:'Départ maîtrisé',a:0,b:+kb.toFixed(1),min:pc(r-0.07),max:pc(r),msg:'',avant:0});why.push(`Première heure plafonnée à ${W(r)} W : partir trop vite se paie des heures plus tard.`);}
+    climbs.forEach((c,k)=>{const T=afRatio(c.avg);
+      sections.push({label:`Montée ${k+1}`,a:c.a,b:c.b,t:res.cumT[c.i1]-res.cumT[c.i0],band:[T-0.04,T+0.03],z:zoneOf(T),note:`${nf1(c.len/1000)} km à ${nf1(c.avg)} %`});
+      zones.push({id:uid(),gen:true,auto:true,kind:'montee',name:`Montée ${k+1} (${nf1(c.len/1000)} km à ${nf1(c.avg)} %)`,a:+c.a.toFixed(1),b:+c.b.toFixed(1),min:pc(T-0.04),max:pc(T+0.03),msg:carbs>0?'Mange maintenant, avant la montée':'Prépare ta relance',avant:1});});
+    if(climbs.length)why.push(`Montées appuyées jusqu'à ${Math.max(...climbs.map(c=>W(afRatio(c.avg))))} W : c'est là que chaque watt fait gagner le plus de temps. Plafond à ${pc(Math.max(r,capF))} % FTP pour ne pas entamer la suite.`);
+    why.push(`Descentes sous ${W(r*0.8)} W : récupère, mange et bois.`);
+  }
+  const nights=[];
+  if(okStart&&H>3){
+    const end=eta(n-1),lat=R.lat[0],lon=R.lon[0];
+    for(let d=new Date(start.valueOf()-864e5);d<=end;d=new Date(d.valueOf()+864e5)){
+      const d1=new Date(d);d1.setHours(12,0,0,0);const d2=new Date(d1.valueOf()+864e5);
+      const ns=sunTimes(d1,lat,lon).set,ne=sunTimes(d2,lat,lon).rise;if(!ns||!ne)continue;
+      const a=Math.max(ns,start),b=Math.min(ne,end);if(b-a<20*60000)continue;
+      nights.push({set:ns,rise:ne,ka:kmAtDate(new Date(a)),kb:kmAtDate(new Date(b)),startsDark:ns<start,endsDark:ne>end});
+    }
+    nights.forEach((nt,k)=>{
+      if(afond)zones.push({id:uid(),gen:true,kind:'zone',name:nights.length>1?`Nuit ${k+1}`:'Nuit',a:+nt.ka.toFixed(1),b:+nt.kb.toFixed(1),min:pc(r-0.05),max:pc(r+0.01),msg:'Baisse d’un cran, reste lucide',avant:0});
+      if(!nt.startsDark){
+        points.push({id:uid(),gen:true,type:'note',km:+kmAtDate(new Date(nt.set.valueOf()-30*60000)).toFixed(1),text:`Tenue de nuit et éclairage (coucher vers ${hhmm(nt.set)})`,avant:1});
+        if(H>10){const kc=kmAtDate(new Date(nt.set.valueOf()+2*3600000));if(kc<nt.kb)points.push({id:uid(),gen:true,type:'note',km:+kc.toFixed(1),text:'Caféine prévue',avant:0.5});}
+      }
+      if(!nt.endsDark)points.push({id:uid(),gen:true,type:'note',km:+nt.kb.toFixed(1),text:`Lever du soleil vers ${hhmm(nt.rise)}`,avant:0.5});
+    });
+    if(nights.length)why.push(`${nights.length>1?nights.length+' passages de nuit':'Un passage de nuit'} (du km ${nf1(nights[0].ka)} au km ${nf1(nights[0].kb)}${nights.length>1?' pour le premier':''}) : tenue et éclairage rappelés 30 min avant le coucher du soleil${afond?', cible baissée d’environ 3 points':''}${H>10?', caféine planifiée':''}.`);
+  }
+  if(cfg.water>0&&H>1){
+    const auto=cfg.water*1000/600,stepKm=auto*(L/H)*0.85;let c=0;
+    if(stepKm>5)for(let k=stepKm;k<L-10;k+=stepKm){c++;points.push({id:uid(),gen:true,type:'eau',km:+k.toFixed(1),text:`Recharger l'eau avant ici (autonomie ≈ ${nf1(auto)} h) : repère un point`,avant:2});}
+    why.push(c?`Avec ${nf1(cfg.water)} L, ton autonomie est d'environ ${nf1(auto)} h : ${c} recharge${c>1?'s':''} à prévoir, placée${c>1?'s':''} avec 15 % de marge.`:`Avec ${nf1(cfg.water)} L, pas de recharge nécessaire.`);
+  }
+  const periodic=[];
+  if(carbs>0){periodic.push({id:uid(),auto:true,on:true,every:20,msg:`Mange ~${Math.round(carbs/3)} g de glucides`,prio:'action'});why.push(`${carbs} g de glucides par heure, soit ${nf0(carbs*H)} g au total : rappel toutes les 20 min.`);}
+  if(H>1)periodic.push({id:uid(),auto:true,on:true,every:15,msg:'Bois ~150 ml',prio:'info'});
+  zones.sort((x,y)=>x.a-y.a);
+  return{cfg,afond,r,H,total:H+stops/60,stops,carbs,arrive:okStart?eta(n-1):null,vavg:L/H,np:res.np,IF,tss,kj:res.kj,zt,blocks,placed,warnings,sections,ratio,global,zones,points,periodic,climbs,nights,why,lead};
+}
+function readAuto(){
+  const a=S.auto,f=$('#autoUI'),v=n=>{const el=f.querySelector(`[name=${n}]`);return el?el.value:'';};
+  const cfg={mode:a.mode,z:{...a.z},adj:a.adj,ftp:clamp(+v('ftp')||S.ftp,80,600),mass:clamp(+v('mass')||S.mass,40,200),cda:clamp(+v('cda')||S.cda,0.15,0.6),start:v('start'),stops:v('stops'),water:Math.max(0,+v('water')||0),carbs:v('carbs')};
+  Object.assign(a,{start:cfg.start,stops:cfg.stops,water:cfg.water,carbs:cfg.carbs});save();
+  return cfg;
+}
+function sliderMax(k){const B=BLOCK[k],H=lastPlan?lastPlan.H:2;return Math.max(B.step*5,Math.min(B.cap,Math.floor(H*60*B.maxf/B.step)*B.step),S.auto.z[k]||0);}
+function buildZoneRows(){
+  const a=S.auto,F=+(($('#autoUI [name=ftp]')||{}).value)||S.ftp;
+  let h='';
+  if(a.mode==='afond')h+=`<div class="zadj"><label>Intensité <input type="range" class="zs" data-z="adj" min="-10" max="5" step="1" value="${a.adj}" aria-label="Intensité globale"> <span id="adjV">${a.adj>0?'+':''}${a.adj} points</span></label></div>`;
+  h+=ZN.map((z,k)=>{const adj=a.mode!=='afond'&&k>=2&&k<=4;const w=k===0?`moins de ${Math.round(z.hi*F)} W`:k===6?`plus de ${Math.round(z.lo*F)} W`:`${Math.round(z.lo*F)}–${Math.round(z.hi*F)} W`;
+    return `<div class="zr" data-z="${k}"><span class="zl"><b style="color:${z.c}">${z.n}</b>${z.l}<small>${w}</small></span><span class="zb"><i style="background:${z.c}"></i></span><span class="zv"></span>${adj?`<input type="range" class="zs" data-z="${k}" min="0" max="${sliderMax(k)}" step="${BLOCK[k].step}" value="${a.z[k]||0}" aria-label="Minutes en ${z.n}">`:''}</div>`;}).join('');
+  $('#zoneRows').innerHTML=h;
+}
+function renderAutoUI(){
+  S.auto=Object.assign(autoDefaults(),S.auto||{});S.auto.z=Object.assign({2:0,3:0,4:0},S.auto.z||{});
+  const a=S.auto;
+  $('#autoUI').innerHTML=`
+    <p class="lead">Dis ce que tu veux faire sur ce parcours : l'outil analyse le profil et construit ton programme, section par section.</p>
+    <div class="seg" role="group" aria-label="Ce que tu veux faire">${Object.entries(MODES).map(([k,m])=>`<button class="btn${k===a.mode?' on':''}" data-amode="${k}">${m.n}</button>`).join('')}</div>
+    <p class="lead" id="modeDesc">${MODES[a.mode].d}</p>
+    <div class="form">
+      <label>FTP (W)<input name="ftp" type="number" min="80" max="600" value="${S.ftp}"></label>
+      <label>Masse totale vélo compris (kg)<input name="mass" type="number" step="0.5" value="${S.mass}"></label>
+      <label>CdA<input name="cda" type="number" step="0.01" value="${S.cda}"></label>
+    </div>
+    <details class="opts"><summary>Options : départ, arrêts, eau, glucides</summary>
+      <div class="form">
+        <label>Départ<input name="start" type="datetime-local" value="${esc(a.start)}"></label>
+        <label>Arrêts au total (min)<input name="stops" type="number" min="0" placeholder="auto" value="${esc(a.stops)}"></label>
+        <label>Eau emportée (L)<input name="water" type="number" step="0.25" min="0" value="${a.water}"></label>
+        <label>Glucides (g/h)<input name="carbs" type="number" min="0" max="150" placeholder="auto" value="${esc(a.carbs)}"></label>
+      </div>
+    </details>
+    <p class="lead" id="autoLead" style="color:var(--ink)"></p>
+    <div class="facts" id="autoFacts"></div>
+    <h4>Temps par zone</h4>
+    <div id="zoneRows"></div>
+    <canvas id="autoProf" aria-label="Profil coloré par zone"></canvas>
+    <div id="autoWarn"></div>
+    <h4>Programme</h4>
+    <ol class="prog" id="autoProg"></ol>
+    <h4>L'analyse</h4>
+    <ul class="why" id="autoWhy"></ul>
+    <p class="lead">Estimation physique sans vent, à partir de ta FTP, ta masse et ton CdA. Les recharges d'eau sont des rappels de distance : l'outil ne cherche pas encore les fontaines et commerces réels. Appliquer remplace les règles de base et ce qui a été généré avant ; tes points et zones posés à la main restent.</p>
+    <div class="row" style="margin-top:10px"><button class="btn primary" id="autoApply">Appliquer au plan</button><button class="btn" id="autoCoach"${SAMPLE?'':' hidden'}>Analyse du coach (Claude)</button></div>
+    <div id="coachOut" class="coach"></div>`;
+  if(R)recomputeAuto(true);
+}
+function recomputeAuto(rebuild){
+  if(!R||!$('#zoneRows'))return;
+  lastPlan=computePlan(readAuto());
+  if(rebuild)buildZoneRows();
+  updateAuto(lastPlan);
+}
+function scheduleAuto(rebuild){
+  cancelAnimationFrame(autoRaf);
+  autoRaf=requestAnimationFrame(()=>recomputeAuto(rebuild));
+}
+function updateAuto(pl){
+  const F=pl.cfg.ftp,W=x=>Math.round(x*F);
+  $('#autoLead').textContent=pl.lead;
+  $('#autoFacts').innerHTML=`<div><b>${hrs(pl.H)}</b>de roulage</div>${pl.stops?`<div><b>${hrs(pl.total)}</b>avec ${pl.stops} min d'arrêts</div>`:''}${pl.arrive?`<div><b>${dayHM(pl.arrive)}</b>arrivée prévue</div>`:''}<div><b>${nf1(pl.vavg)} km/h</b>moyenne</div><div><b>${Math.round(pl.np)} W</b>normalisée (IF ${nf0(pl.IF*100)} %)</div><div><b>${Math.round(pl.tss)}</b>TSS</div><div><b>${nf0(pl.kj)} kJ</b>dépense</div>`;
+  const tot=pl.zt.reduce((a,b)=>a+b,0),mx=Math.max(...pl.zt,1);
+  $$('#zoneRows .zr').forEach(row=>{
+    const k=+row.dataset.z,t=pl.zt[k],req=pl.cfg.z[k];
+    row.querySelector('.zb i').style.width=(t/mx*100).toFixed(1)+'%';
+    const short=!pl.afond&&req>0&&pl.placed[k]<req*60-30;
+    row.querySelector('.zv').innerHTML=`${fdur(t)}<small>${Math.round(t/tot*100)} %${short?`, ${req} min demandées`:''}</small>`;
+  });
+  $('#autoWarn').innerHTML=pl.warnings.map(w=>`<p class="warn">${esc(w)}</p>`).join('');
+  let prog=pl.sections.map(x=>`<li><span class="dot" style="background:${ZN[x.z].c}"></span><span class="k">km ${nf1(x.a)}–${nf1(x.b)}</span><span class="t"><b>${esc(x.label)}</b> ${W(x.band[0])}–${W(x.band[1])} W<small>${fdur(x.t)}${x.note?', '+esc(x.note):''}</small></span></li>`).join('');
+  if(pl.afond)prog+=`<li><span class="dot" style="background:${ZN[zoneOf(pl.r)].c}"></span><span class="k">ailleurs</span><span class="t"><b>Base</b> ${W(pl.r-0.03)}–${W(pl.r+0.03)} W<small>descentes sous ${W(pl.r*0.8)} W</small></span></li>`;
+  $('#autoProg').innerHTML=prog;
+  $('#autoWhy').innerHTML=pl.why.map(w=>`<li>${esc(w)}</li>`).join('');
+  drawZoneProf(pl);
+}
+function drawZoneProf(pl){
+  const cv=$('#autoProf');if(!cv||!R)return;
+  const rc=cv.getBoundingClientRect(),Wd=Math.max(50,rc.width),Hd=Math.max(40,rc.height),dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(Wd*dpr);cv.height=Math.round(Hd*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,Wd,Hd);
+  let lo=Infinity,hi=-Infinity;for(let i=0;i<R.n;i++){lo=Math.min(lo,R.ele[i]);hi=Math.max(hi,R.ele[i]);}
+  if(hi-lo<60){const m=(hi+lo)/2;lo=m-30;hi=m+30;}
+  const Y=e=>6+(1-(e-lo)/(hi-lo))*(Hd-12);
+  for(let x=0;x<Wd;x++){const i=Math.min(R.n-1,Math.floor(x/Wd*R.n));c.fillStyle=ZN[zoneOf(pl.ratio[i])].c;c.fillRect(x,Y(R.ele[i]),1.2,Hd-Y(R.ele[i]));}
+  c.beginPath();for(let x=0;x<Wd;x++){const i=Math.min(R.n-1,Math.floor(x/Wd*R.n));x?c.lineTo(x,Y(R.ele[i])):c.moveTo(x,Y(R.ele[i]));}
+  c.strokeStyle=cssv('--ink');c.lineWidth=1.2;c.stroke();
+}
+function applyPlan(pl){
+  S.ftp=pl.cfg.ftp;S.mass=pl.cfg.mass;S.cda=pl.cfg.cda;S.global=pl.global;
+  S.zones=S.zones.filter(z=>!z.auto&&!z.gen).concat(pl.zones.map(z=>({...z})));S.zones.sort((x,y)=>x.a-y.a);
+  S.points=S.points.filter(p=>!p.gen).concat(pl.points.map(p=>({...p})));
+  S.periodic=S.periodic.filter(p=>!p.auto&&!/^(Mange|Bois)\b/i.test(p.msg)).concat(pl.periodic.map(p=>({...p})));
+  resetSim();save();renderParcours();renderStrat();renderAlerts();
+  toast('Programme appliqué : il pilote maintenant les cibles, les annonces et la simulation.');
+}
+function coachPrompt(pl){
+  const c=pl.cfg,L=R.total/1000,prof=[],F=c.ftp,W=x=>Math.round(x*F);
+  for(let k=0;k<=L;k+=10){const i=clamp(Math.round(k*1000/STEP),0,R.n-1),j=clamp(Math.round((k+10)*1000/STEP),0,R.n-1);prof.push(`${k}: ${Math.round(R.ele[i])} m, ${j>i?nf1((R.ele[j]-R.ele[i])/((j-i)*STEP)*100):'0'} %`);}
+  const manual=S.points.filter(p=>!p.gen).map(p=>`km ${nf1(p.km)} ${PT[p.type].n} : ${p.text}`).join('\n')||'aucun';
+  const tot=pl.zt.reduce((a,b)=>a+b,0);
+  return `Tu es un entraîneur cycliste expert. Le coureur veut faire ce parcours en mode « ${MODES[c.mode].n} ». Analyse le parcours et le programme calculé ci-dessous, puis réponds UNIQUEMENT avec un objet JSON valide, sans texte ni balises autour, de cette forme :
+{"synthese":"3 à 5 phrases","points_cles":[{"km":nombre,"conseil":"70 caractères maximum"}],"risques":["une phrase"],"ajustements":["une phrase concrète et chiffrée"]}
+Donne 3 à 8 points clés placés sur le parcours, 2 à 4 risques, 1 à 4 ajustements. Écris en français, tutoie le coureur, sois direct et concret. Ne répète pas le programme sans y ajouter quelque chose.
+
+Coureur : FTP ${F} W, masse totale ${c.mass} kg, CdA ${c.cda}. Départ : ${c.start||'non précisé'}.
+Parcours : ${nf1(L)} km, D+ ${nf0(R.dplus)} m. ${pl.lead}
+Profil tous les 10 km (km : altitude, pente moyenne des 10 km suivants) :
+${prof.join('\n')}
+Montées détectées :
+${pl.climbs.map((m,k)=>`${k+1}. km ${nf1(m.a)}-${nf1(m.b)}, ${nf1(m.len/1000)} km à ${nf1(m.avg)} %`).join('\n')||'aucune'}
+Programme :
+${pl.sections.map(x=>`km ${nf1(x.a)}-${nf1(x.b)} ${x.label} ${W(x.band[0])}-${W(x.band[1])} W, ${fdur(x.t)}${x.note?', '+x.note:''}`).join('\n')}
+Temps par zone : ${ZN.map((z,k)=>`${z.n} ${Math.round(pl.zt[k]/tot*100)} %`).join(', ')}.
+Analyse calculée :
+${pl.why.join('\n')}
+Points posés par le coureur :
+${manual}`;
+}
+async function runCoach(){
+  if(!SAMPLE||!lastPlan)return;
+  const out=$('#coachOut'),btn=$('#autoCoach');btn.disabled=true;
+  out.innerHTML='<p class="lead">Le coach analyse ton parcours… (de quelques secondes à une minute)</p>';
+  try{renderCoach(await SAMPLE.json(coachPrompt(lastPlan),{modelTier:'default'}));}
+  catch(e){
+    const code=e&&e.code;
+    out.innerHTML=`<p class="lead">${code==='not_granted'?'Analyse non autorisée : le programme calculé reste utilisable.':code==='rate_limited'?'Trop de demandes pour le moment, réessaie dans quelques minutes.':'L’analyse n’a pas abouti. Le programme calculé reste utilisable.'}</p>`;
+    if(code==='not_granted')btn.hidden=true;
+  }finally{btn.disabled=false;}
+}
+function renderCoach(res){
+  const L=R.total/1000,arr=x=>Array.isArray(x)?x.filter(y=>typeof y==='string'&&y.trim()).slice(0,6):[];
+  const pk=(Array.isArray(res&&res.points_cles)?res.points_cles:[]).filter(x=>x&&isFinite(+x.km)&&x.conseil).slice(0,10).map(x=>({km:+clamp(+x.km,0,L).toFixed(1),c:String(x.conseil).slice(0,90)})).sort((a,b)=>a.km-b.km);
+  window._coachPts=pk;
+  $('#coachOut').innerHTML=`
+    <h4>Analyse du coach</h4>
+    <p>${esc(res&&res.synthese||'')}</p>
+    ${pk.length?`<h4>Points clés</h4><ul class="list">${pk.map(p=>`<li><span class="k">km ${nf1(p.km)}</span><span class="t">${esc(p.c)}</span></li>`).join('')}</ul><div class="row" style="margin-top:8px"><button class="btn" id="coachAdd">Ajouter ces points au parcours</button></div>`:''}
+    ${arr(res&&res.risques).length?`<h4>Risques</h4><ul class="why">${arr(res.risques).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+    ${arr(res&&res.ajustements).length?`<h4>Ajustements proposés</h4><ul class="why">${arr(res.ajustements).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}`;
+}
+
+/* ---------- Rouler : le téléphone comme second écran ---------- */
+const BT={power:{svc:'cycling_power',chr:'cycling_power_measurement',n:'Puissance'},hr:{svc:'heart_rate',chr:'heart_rate_measurement',n:'Cardio'},cad:{svc:'cycling_speed_and_cadence',chr:'csc_measurement',n:'Cadence'},spd:{svc:'cycling_speed_and_cadence',chr:'csc_measurement',n:'Vitesse'}};
+const live={st:null,src:'live',sensors:{},vals:{power:null,hr:null,cad:null,spd:null},ts:{power:0,hr:0,cad:0,spd:0},crank:{},crankSeen:false,wheel:{},wheelSeen:false,pBuf:[],gps:{lat:null,lon:null,speed:0,acc:null,ts:0,tsRaw:0,idx:0,off:false,err:null},watchId:null,timer:null,wake:null,audio:null,exitArm:0,lastSetup:0};
+function newRun(){return{t:0,d:0,movD:0,cnt:{},last:{},hour:[],log:[],firedP:new Set(),firedZ:new Set(),zoneId:null,banner:null,emitted:0,filtered:0,perLast:{},lastPerId:null,hrHist:[],acks:0};}
+function signal(prio){
+  try{if(navigator.vibrate&&prio!=='info')navigator.vibrate(prio==='critique'?[250,120,250]:180);}catch(e){}
+  if(prio==='info'||!live.audio)return;
+  try{const a=live.audio,o=a.createOscillator(),g=a.createGain(),t=a.currentTime,len=prio==='critique'?0.5:0.25;
+    o.frequency.value=prio==='critique'?1320:880;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.3,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+len+0.05);}catch(e){}
+}
+async function connectBT(kind){
+  if(!navigator.bluetooth){toast('Bluetooth indisponible ici : Chrome sur Android, ou Bluefy sur iPhone.');return;}
+  try{
+    const dev=await navigator.bluetooth.requestDevice({filters:[{services:[BT[kind].svc]}]});
+    if(live.sensors[kind]&&live.sensors[kind].dev!==dev)disconnectBT(kind);
+    live.sensors[kind]={dev,name:dev.name||BT[kind].n,state:'connexion…',manual:false};renderRideSetup();
+    dev.addEventListener('gattserverdisconnected',()=>reconnectBT(kind,dev));
+    await attachBT(kind);
+  }catch(e){
+    if(e&&e.name==='NotFoundError')return;
+    const s=live.sensors[kind];if(s)s.state='échec de connexion';
+    toast(e&&e.name==='SecurityError'?'Bluetooth bloqué dans cette page : ouvre-la depuis un hébergement HTTPS.':'Connexion impossible : '+(e&&e.message||e));
+    renderRideSetup();
+  }
+}
+async function attachBT(kind){
+  const s=live.sensors[kind];
+  const srv=await s.dev.gatt.connect(),svc=await srv.getPrimaryService(BT[kind].svc),ch=await svc.getCharacteristic(BT[kind].chr);
+  ch.addEventListener('characteristicvaluechanged',e=>onBTData(kind,e.target.value));
+  await ch.startNotifications();
+  s.state='connecté';renderRideSetup();
+}
+async function reconnectBT(kind,dev){
+  const s=live.sensors[kind];if(!s||s.manual||s.dev!==dev)return;
+  s.state='reconnexion…';renderRideSetup();
+  for(let i=0;i<6;i++){
+    await new Promise(r=>setTimeout(r,1500*(i+1)));
+    if(!live.sensors[kind]||live.sensors[kind].manual)return;
+    try{await attachBT(kind);return;}catch(e){}
+  }
+  s.state='perdu';renderRideSetup();
+  if(live.st&&!$('#ride').hidden)emit(live.st,'critique',`Capteur ${BT[kind].n.toLowerCase()} perdu`);
+}
+function disconnectBT(kind){
+  const s=live.sensors[kind];if(!s)return;
+  s.manual=true;try{s.dev.gatt.connected&&s.dev.gatt.disconnect();}catch(e){}
+  delete live.sensors[kind];live.vals[kind]=null;renderRideSetup();
+}
+function onBTData(kind,dv){
+  const now=performance.now();
+  try{
+    if(kind==='hr'){const f=dv.getUint8(0);live.vals.hr=f&1?dv.getUint16(1,true):dv.getUint8(1);live.ts.hr=now;}
+    else if(kind==='power'){
+      const f=dv.getUint16(0,true);live.vals.power=Math.max(0,dv.getInt16(2,true));live.ts.power=now;
+      let o=4;if(f&0x01)o+=1;if(f&0x04)o+=2;if(f&0x10)o+=6;
+      if(f&0x20&&dv.byteLength>=o+4)onCrank('power',dv.getUint16(o,true),dv.getUint16(o+2,true),now);
+    }else if(kind==='cad'||kind==='spd'){
+      const f=dv.getUint8(0);let o=1;
+      if(f&1&&dv.byteLength>=7){onWheel(kind,dv.getUint32(1,true),dv.getUint16(5,true),now);o+=6;}
+      if(f&2&&dv.byteLength>=o+4)onCrank('cad',dv.getUint16(o,true),dv.getUint16(o+2,true),now);
+    }
+  }catch(e){}
+  if(curTab==='rouler'&&$('#ride').hidden&&now-live.lastSetup>1000){live.lastSetup=now;renderRideSetup();}
+}
+function onWheel(src,revs,tm,now){
+  live.wheelSeen=true;
+  const L=live.wheel[src];
+  if(L&&revs!==L.revs){
+    const dr=(revs-L.revs)>>>0,dt=((tm-L.tm+65536)%65536)/1024;
+    if(dt>0&&dr<60){const v=dr*S.wheel/1000/dt;if(v<30){live.vals.spd=v;live.ts.spd=now;}}
+  }
+  if(!L||revs!==L.revs)live.wheel[src]={revs,tm};
+}
+function onCrank(src,revs,tm,now){
+  live.crankSeen=true;
+  const L=live.crank[src];
+  if(L&&revs!==L.revs){
+    const dr=(revs-L.revs+65536)%65536,dt=((tm-L.tm+65536)%65536)/1024;
+    if(dt>0&&dr<20){const c=dr/dt*60;if(c<220){live.vals.cad=c;live.ts.cad=now;}}
+  }
+  if(!L||revs!==L.revs)live.crank[src]={revs,tm};
+}
+function onPos(pos){
+  const c=pos.coords,g=live.gps;let sp=c.speed;
+  if(sp==null||!isFinite(sp)){if(g.lat!=null&&g.tsRaw){const dt=(pos.timestamp-g.tsRaw)/1000;sp=dt>0?hav(g.lat,g.lon,c.latitude,c.longitude)/dt:g.speed;}else sp=0;}
+  g.speed=g.ts?g.speed*0.4+sp*0.6:sp;
+  g.lat=c.latitude;g.lon=c.longitude;g.acc=c.accuracy;g.ts=performance.now();g.tsRaw=pos.timestamp;g.err=null;
+  if(R&&live.st)matchRoute();
+}
+function onPosErr(e){
+  if(e.code===1){live.gps.err='Accès à la position refusé : autorise-le, ou ouvre la page depuis un hébergement HTTPS.';toast(live.gps.err);}
+  renderRideSetup();
+}
+function matchRoute(){
+  const g=live.gps,cl=Math.cos(g.lat*Math.PI/180);
+  const near=(i0,i1)=>{let best=0,bd=Infinity;for(let i=Math.max(0,i0);i<=Math.min(R.n-1,i1);i++){const dx=(R.lon[i]-g.lon)*cl,dy=R.lat[i]-g.lat,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}}return[best,Math.sqrt(bd)*111320];};
+  let[i,dm]=near(g.idx-20,g.idx+400);
+  if(dm>150){const[j,dj]=near(0,R.n-1);if(dj<dm){i=j;dm=dj;}}
+  g.off=dm>150;
+  if(!g.off){g.idx=i;live.st.d=i*STEP;}
+}
+function rideTick(){
+  const st=live.st,g=live.gps,now=performance.now();
+  const conn=k=>!!(live.sensors[k]&&live.sensors[k].state==='connecté');
+  if(now-live.ts.power>4000)live.vals.power=conn('power')?0:null;
+  if(now-live.ts.hr>6000)live.vals.hr=null;
+  if(now-live.ts.cad>3000)live.vals.cad=(conn('cad')||conn('power'))&&live.crankSeen?0:null;
+  if(now-live.ts.spd>3000)live.vals.spd=(conn('spd')||conn('cad'))&&live.wheelSeen?0:null;
+  const gpsFresh=g.ts>0&&now-g.ts<10000,sv=live.vals.spd,speed=sv!=null?sv:(gpsFresh?g.speed:0);
+  if(!gpsFresh&&sv!=null&&R)st.d=Math.min(R.total,st.d+sv);
+  if(live.vals.power!=null){live.pBuf.push(live.vals.power);if(live.pBuf.length>10)live.pBuf.shift();}else live.pBuf=[];
+  const moving=speed>0.8;
+  if(moving){
+    st.t++;st.movD+=speed;
+    if(st.t%5===0&&live.vals.hr!=null){st.hrHist.push(live.vals.hr);if(st.hrHist.length>120)st.hrHist.shift();}
+    const p10=live.pBuf.length?live.pBuf.reduce((a,c)=>a+c,0)/live.pBuf.length:null;
+    evalRun(st,targetAt(st.d),{power:p10,hr:live.vals.hr,cad:live.vals.cad>0?live.vals.cad:null,speed:speed*3.6});
+  }else smoothSev(st,{});
+  renderRide();
+}
+function liveData(){
+  const st=live.st,g=live.gps,km=st.d/1000,fresh=performance.now()-g.ts<10000;
+  const p10=live.pBuf.length?live.pBuf.reduce((a,c)=>a+c,0)/live.pBuf.length:null;
+  return{p:p10,hr:live.vals.hr,cad:live.vals.cad,v:(live.vals.spd!=null?live.vals.spd:fresh?g.speed:0)*3.6,vAvg:st.t>60?st.movD/st.t*3.6:28,tg:targetAt(st.d),km,total:R?R.total/1000:0,t:st.t,next:R?upcoming(km,3):[],fuel:fuelIn(st),hrHist:st.hrHist,sev:st.sev,banner:st.banner&&performance.now()<st.banner.until?st.banner:null};
+}
+function renderRide(){
+  if($('#ride').hidden)return;
+  const isSim=live.src==='sim';
+  renderDev($('#devRide'),isSim?simData():liveData(),false);
+  let s;
+  if(isSim)s=`Test : simulation × ${$('#speedSel').value}, km ${nf1(sim.d/1000)}`;
+  else{
+    const g=live.gps,age=performance.now()-g.ts;
+    const gp=g.err?'GPS refusé':!g.ts?'GPS : recherche…':age>10000?(live.vals.spd!=null?'GPS perdu, distance au capteur':'GPS : signal perdu'):(R&&g.off)?'Hors parcours':`GPS ±${Math.round(g.acc||0)} m`;
+    const se=Object.keys(BT).filter(k=>live.sensors[k]).map(k=>`${BT[k].n} ${live.sensors[k].state==='connecté'?'✓':'…'}`).join(', ')||'aucun capteur';
+    s=`${gp}, ${se}`;
+  }
+  $('#rideStatus').textContent=s;
+}
+async function keepAwake(){try{if('wakeLock' in navigator&&document.visibilityState==='visible')live.wake=await navigator.wakeLock.request('screen');}catch(e){}}
+async function startRide(src){
+  if(src==='sim'&&!R){toast('Charge un parcours pour tester.');return;}
+  live.src=src;$('#ride').hidden=false;live.exitArm=0;
+  const xb=$('#exitRide');xb.textContent='Quitter';xb.classList.remove('arm');
+  try{if(!live.audio){const AC=window.AudioContext||window.webkitAudioContext;if(AC)live.audio=new AC();}else if(live.audio.resume)live.audio.resume();}catch(e){}
+  try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement)await document.documentElement.requestFullscreen({navigationUI:'hide'});}catch(e){}
+  try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}
+  await keepAwake();
+  clearInterval(live.timer);
+  if(src==='live'){
+    if(!live.st)live.st=newRun();
+    if(navigator.geolocation&&live.watchId==null){live.gps.err=null;live.watchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});}
+    live.timer=setInterval(rideTick,1000);
+  }else{
+    if(!timer)playSim();
+    live.timer=setInterval(renderRide,250);
+  }
+  renderRide();
+}
+function exitRide(){
+  clearInterval(live.timer);live.timer=null;
+  if(live.src==='sim')stopSim();
+  if(live.watchId!=null){try{navigator.geolocation.clearWatch(live.watchId);}catch(e){}live.watchId=null;}
+  try{live.wake&&live.wake.release();}catch(e){}live.wake=null;
+  try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+  try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock();}catch(e){}
+  $('#ride').hidden=true;renderRideSetup();
+}
+function renderRideSetup(){
+  const li=(c,ic,t,sm)=>`<li class="${c}"><span class="ic">${ic}</span><span>${t}${sm?`<small>${sm}</small>`:''}</span></li>`;
+  const bt=!!navigator.bluetooth&&window.isSecureContext,geo=!!navigator.geolocation,wl='wakeLock' in navigator;
+  $('#rideCheck').innerHTML=
+    (R?li('ok','✓',`Parcours : ${esc(R.name)}`,`${nf1(R.total/1000)} km, ${S.points.length} points, ${S.zones.length} zones`):li('wa','!','Aucun parcours chargé','Métriques et rappels fonctionnent, pas les annonces liées au parcours.'))+
+    (bt?li('ok','✓','Bluetooth disponible','Capteurs de puissance, cardio et cadence au standard Bluetooth.'):li('ko','✕','Bluetooth indisponible dans ce navigateur','Sur Android : Chrome. Sur iPhone : le navigateur Bluefy, Safari ne le permet pas.'))+
+    (!geo?li('ko','✕','Position indisponible',''):live.gps.err?li('ko','✕','Position refusée',live.gps.err):li('ok','✓','Position GPS disponible','Le suivi démarre avec la sortie.'))+
+    (wl?li('ok','✓','Écran maintenu allumé pendant la sortie',''):li('wa','!','Maintien de l’écran non pris en charge','Désactive la mise en veille du téléphone avant de partir.'));
+  $('#sensorList').innerHTML=Object.keys(BT).map(k=>{const s=live.sensors[k];if(!s)return'';const v=live.vals[k];
+    return `<div class="sensor"><span class="t">${BT[k].n} : ${esc(s.name)}<small>${esc(s.state)}</small></span><b>${v==null?'--':k==='spd'?nf1(v*3.6):Math.round(v)}</b><button class="btn sm ghost" data-unbt="${k}">Déconnecter</button></div>`;}).join('');
+  const resume=!!(live.st&&live.st.t>0);
+  $('#startRide').textContent=resume?'Reprendre la sortie':'Démarrer la sortie';$('#newRide').hidden=!resume;
+}
+
+/* ---------- Divers ---------- */
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600);}
+function renderAll(){renderParcours();renderStrat();renderAlerts();if(curTab==='ecran')renderEditor();if(curTab==='sim')renderSim();if(curTab==='rouler')renderRideSetup();}
+function showTab(t){
+  curTab=t;
+  $$('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $$('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));
+  if(t!=='sim'&&timer){stopSim();}
+  if(t==='parcours')renderParcours();if(t==='strat')renderStrat();if(t==='alertes')renderAlerts();if(t==='ecran')renderEditor();if(t==='sim')renderSim();if(t==='rouler')renderRideSetup();
+  window.scrollTo({top:0});
+}
+
+/* ---------- Événements ---------- */
+$$('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+$('#gpxIn').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const g=parseGPX(await f.text());
+    R=buildRoute(g.name,g.pts);S.zones=[];S.points=[];resetSim();save();lastPlan=null;$('#autoBox').open=true;renderAll();renderAutoUI();
+    toast(g.noEle?'Parcours chargé, mais sans altitude : pas de pentes ni de montées.':`Parcours chargé : ${nf1(R.total/1000)} km. Choisis ce que tu veux faire dans « Stratégie automatique ».`);
+  }catch(err){toast(err.message||'Import impossible.');}
+  e.target.value='';
+});
+$('#demoBtn').addEventListener('click',()=>{loadDemo();toast('Boucle démo chargée avec quelques annotations.');});
+$('#detectBtn').addEventListener('click',()=>detectClimbs(false));
+$$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=mode===b.dataset.mode?null:b.dataset.mode;zoneStart=null;closeForm();updateModeHint();drawMain();}));
+$('#prof').addEventListener('click',e=>{
+  if(!R||!mode)return;
+  const r=e.currentTarget.getBoundingClientRect(),L=R.total/1000;
+  const km=clamp((e.clientX-r.left-PL)/(r.width-PL-PR)*L,0,L);
+  if(mode==='point'){mode=null;openPointForm({id:null,type:'eau',km:+km.toFixed(1),text:'',avant:2});}
+  else if(zoneStart==null){zoneStart=km;}
+  else{const a=Math.min(zoneStart,km),b=Math.max(zoneStart,km);zoneStart=null;mode=null;openZoneForm({id:null,kind:'zone',name:'',a:+a.toFixed(1),b:+b.toFixed(1),min:S.global.plat[0],max:S.global.plat[1],msg:'',avant:1});}
+  updateModeHint();drawMain();
+});
+$('#t-parcours').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.dataset.ep)openPointForm({...S.points.find(p=>p.id===t.dataset.ep)});
+  if(t.dataset.dp){S.points=S.points.filter(p=>p.id!==t.dataset.dp);save();renderParcours();}
+  if(t.dataset.ez)openZoneForm({...S.zones.find(z=>z.id===t.dataset.ez)});
+  if(t.dataset.dz){S.zones=S.zones.filter(z=>z.id!==t.dataset.dz);save();renderParcours();}
+});
+document.addEventListener('input',e=>{
+  const p=e.target.dataset&&e.target.dataset.path;if(!p)return;
+  const v=parseFloat(e.target.value);if(!isFinite(v))return;
+  setPath(p,v);save();renderStrat();
+});
+$('#newAlert').addEventListener('click',()=>openAlertForm({id:null,on:true,name:'Nouvelle alerte',metric:'power',op:'>',ref:'max',val:250,dur:20,cool:5,prio:'action',msg:'Au-dessus de {max} W'}));
+$('#alertList').addEventListener('click',e=>{const t=e.target;if(t.dataset.ea)openAlertForm({...S.alerts.find(a=>a.id===t.dataset.ea)});});
+$('#alertList').addEventListener('change',e=>{const t=e.target;if(t.dataset.ta){const a=S.alerts.find(x=>x.id===t.dataset.ta);a.on=t.checked;save();renderAlerts();}});
+$('#perList').addEventListener('change',e=>{
+  const row=e.target.closest('[data-pid]');if(!row)return;const p=S.periodic.find(x=>x.id===row.dataset.pid);const f=e.target.dataset.f;
+  if(f==='on')p.on=e.target.checked;else if(f==='every')p.every=Math.max(1,+e.target.value||1);else if(f)p[f]=e.target.value;save();
+});
+$('#perList').addEventListener('click',e=>{const id=e.target.dataset.dper;if(id){S.periodic=S.periodic.filter(x=>x.id!==id);save();renderAlerts();}});
+$('#newPer').addEventListener('click',()=>{S.periodic.push({id:uid(),on:true,every:30,msg:'Sel : une pastille',prio:'info'});save();renderAlerts();});
+$('#playBtn').addEventListener('click',playSim);
+$('#resetBtn').addEventListener('click',()=>{resetSim();lastLogLen=-1;renderSim();});
+$('#jumpBtn').addEventListener('click',()=>{
+  if(!R)return;const km=clamp(+$('#jumpKm').value||0,0,R.total/1000);
+  sim.d=km*1000;sim.done=false;sim.firedP=new Set(S.points.filter(p=>p.km-p.avant<km).map(p=>p.id));sim.firedZ=new Set(S.zones.filter(z=>z.a-(z.avant||0)<km).map(z=>z.id));sim.zoneId=(zoneAt(km)||{}).id||null;renderSim();
+});
+let rzT;window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(curTab==='parcours')drawMain();if(curTab==='ecran')renderEditor();if(curTab==='sim')renderSim();},150);});
+try{const mq=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');if(mq&&mq.addEventListener)mq.addEventListener('change',()=>{if(curTab==='parcours'){drawTrace();drawMain();}});}catch(e){}
+
+$$('[data-bt]').forEach(b=>b.addEventListener('click',()=>connectBT(b.dataset.bt)));
+$('#sensorList').addEventListener('click',e=>{const k=e.target.dataset.unbt;if(k)disconnectBT(k);});
+$('#startRide').addEventListener('click',()=>startRide('live'));
+$('#newRide').addEventListener('click',()=>{live.st=null;live.gps.idx=0;renderRideSetup();toast('Nouvelle sortie prête.');});
+$('#testRide').addEventListener('click',()=>startRide('sim'));
+$('#exitRide').addEventListener('click',()=>{
+  const now=performance.now(),b=$('#exitRide');
+  if(now-live.exitArm<3000){exitRide();return;}
+  live.exitArm=now;b.textContent='Toucher encore';b.classList.add('arm');
+  setTimeout(()=>{if(performance.now()-live.exitArm>=2900){b.textContent='Quitter';b.classList.remove('arm');}},3000);
+});
+$('#ackBtn').addEventListener('click',()=>{
+  const st=live.src==='sim'?sim:live.st;if(!st)return;
+  const id=st.lastPerId||((S.periodic.find(x=>x.on)||{}).id);
+  if(id){st.perLast[id]=st.t;st.acks++;st.banner={prio:'info',msg:'Noté, minuteur relancé',until:performance.now()+1500};renderRide();}
+});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!$('#ride').hidden)keepAwake();});
+$('#xferOut').addEventListener('click',()=>{const t=$('#xferTa');t.value=JSON.stringify(serial());t.select();toast('Plan généré : copie le texte, puis colle-le dans l’autre page.');});
+$('#xferIn').addEventListener('click',()=>{
+  try{
+    const d=JSON.parse($('#xferTa').value);if(!d||!d.cfg)throw new Error();
+    S=Object.assign(defaults(),d.cfg);S.global=Object.assign(defaults().global,d.cfg.global||{});
+    R=d.route?buildRoute(d.route.name,d.route.pts.map(p=>({lat:p[0],lon:p[1],ele:p[2]}))):null;
+    resetSim();live.st=null;save();renderAll();toast('Plan chargé.');
+  }catch(e){toast('Texte illisible : colle un plan généré par cette page.');}
+});
+
+$('#autoBox').addEventListener('click',e=>{
+  const mb=e.target.closest('[data-amode]');
+  if(mb){
+    const m=mb.dataset.amode,a=S.auto;a.mode=m;
+    if(m==='endurance')a.z={2:0,3:0,4:0};
+    if(m==='seuil'){const H=lastPlan?lastPlan.H:2;a.z={2:0,3:clamp(Math.round(H*60*0.3/2)*2,8,36),4:0};}
+    $$('#autoUI [data-amode]').forEach(b=>b.classList.toggle('on',b.dataset.amode===m));
+    $('#modeDesc').textContent=MODES[m].d;
+    recomputeAuto(true);return;
+  }
+  if(e.target.id==='autoApply'&&lastPlan)applyPlan(lastPlan);
+  if(e.target.id==='autoCoach')runCoach();
+  if(e.target.id==='coachAdd'&&window._coachPts){
+    S.points=S.points.filter(p=>!p.coach).concat(window._coachPts.map(p=>({id:uid(),gen:true,coach:true,type:'note',km:p.km,text:p.c,avant:1})));
+    save();renderParcours();toast(`${window._coachPts.length} points du coach ajoutés au parcours.`);
+  }
+});
+$('#autoBox').addEventListener('input',e=>{
+  const t=e.target;
+  if(t.classList.contains('zs')){
+    const z=t.dataset.z;
+    if(z==='adj'){S.auto.adj=+t.value;$('#adjV').textContent=`${S.auto.adj>0?'+':''}${S.auto.adj} points`;}
+    else S.auto.z[z]=+t.value;
+    scheduleAuto(false);
+  }else if(t.name)scheduleAuto(true);
+});
+(async()=>{try{if(window.claude&&typeof window.claude.use==='function'){SAMPLE=await window.claude.use('sample');const b=$('#autoCoach');if(b&&SAMPLE)b.hidden=false;}}catch(e){SAMPLE=null;}})();
+
+/* ---------- Démarrage ---------- */
+const existed=load();
+resetSim();
+bindEditor();
+if(!existed){loadDemo();}else{renderAll();}
+</script>
+</body>
+</html>
