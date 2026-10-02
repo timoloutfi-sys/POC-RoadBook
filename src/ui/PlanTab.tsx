@@ -80,9 +80,14 @@ export function PlanTab() {
       {plan && res && (
         <>
           <div className="facts">
-            <div><b>{hrs(res.H)}</b><span>de roulage</span></div>
-            <div><b>{res.arrive ? arrival(res.arrive, plan.start) : '--'}</b><span>arrivée</span></div>
-            <div><b>{nf1(res.vavg)}</b><span>km/h de moyenne</span></div>
+            <div><b>{hrs(res.H)}</b><span>de roulage</span><small>{hrs(res.range[0])} à {hrs(res.range[1])}</small></div>
+            <div><b>{res.arriveRange ? arrival(new Date(res.arriveRange[0].valueOf() / 2 + res.arriveRange[1].valueOf() / 2), plan.start) : '--'}</b><span>arrivée</span>{res.arriveRange && <small>{arrival(res.arriveRange[0], plan.start)} à {arrival(res.arriveRange[1], plan.start)}</small>}</div>
+            <div><b>{nf1(res.vavg)}</b><span>km/h en roulant</span></div>
+          </div>
+          <div className="facts small">
+            <div><b>{res.stops ? hrs(res.stops / 60) : '0'}</b><span>d'arrêts {plan.stops == null ? 'estimés' : ''}</span></div>
+            <div><b>{hrs(res.total)}</b><span>au total</span></div>
+            <div><b>{nf1((route.total / 1000) / res.total)}</b><span>km/h arrêts compris</span></div>
           </div>
           {res.warnings.map(w => <p key={w} className="notice">{w}</p>)}
 
@@ -130,6 +135,19 @@ export function PlanTab() {
             </div>
           </details>
           <details className="fold">
+            <summary>Chiffres</summary>
+            <div>
+              <dl className="kv">
+                <dt>Puissance moyenne</dt><dd>{nf0(res.pavgW)} W</dd>
+                <dt>Puissance normalisée</dt><dd>{nf0(res.npW)} W · IF {nf1(res.IF * 100)} %</dd>
+                <dt>Charge</dt><dd>{nf0(res.tss)} TSS</dd>
+                <dt>Énergie</dt><dd>{nf0(res.kcal)} kcal</dd>
+                <dt>Glucides</dt><dd>{nf0(res.carbsTotal)} g · {res.carbsPerHour} g/h</dd>
+                <dt>Eau</dt><dd>{nf1(res.waterTotal)} L</dd>
+              </dl>
+            </div>
+          </details>
+          <details className="fold">
             <summary>Pourquoi</summary>
             <div><ul className="why">{res.why.map(w => <li key={w}>{w}</li>)}</ul></div>
           </details>
@@ -141,6 +159,13 @@ export function PlanTab() {
                 <Field label="Arrêts (min)"><Num value={plan.stops} min={0} step={5} placeholder="Auto" onChange={v => setPlan({ stops: v })} /></Field>
                 <Field label="Eau emportée (L)"><Num value={plan.water} min={0} step={0.25} onChange={v => setPlan({ water: v ?? 0 })} /></Field>
                 <Field label="Glucides (g/h)"><Num value={plan.carbs} min={0} max={150} step={5} placeholder="Auto" onChange={v => setPlan({ carbs: v })} /></Field>
+                <Field label="Température (°C)"><Num value={plan.tempC ?? 15} min={-10} max={45} step={1} onChange={v => setPlan({ tempC: v ?? 15 })} /></Field>
+                <Field label="Vent (km/h)"><Num value={plan.windKmh ?? 0} min={0} max={80} step={5} onChange={v => setPlan({ windKmh: v ?? 0 })} /></Field>
+                <Field label="Vent venant du">
+                  <select value={plan.windFrom ?? 270} onChange={e => setPlan({ windFrom: +e.target.value })}>
+                    {['Nord', 'Nord-est', 'Est', 'Sud-est', 'Sud', 'Sud-ouest', 'Ouest', 'Nord-ouest'].map((d, k) => <option key={d} value={k * 45}>{d}</option>)}
+                  </select>
+                </Field>
               </div>
             </div>
           </details>

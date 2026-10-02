@@ -5,7 +5,10 @@ import { STEP } from '../route/route'
 export const X_MIN = 0.45
 export const X_MAX = 1.3
 
-export const ifForDuration = (h: number) => Math.min(0.97, Math.max(0.5, 0.97 - 0.12 * Math.log(Math.max(h, 1))))
+export { ifForDuration } from './realism'
+
+/** Conditions par échantillon : densité de l'air, vent de face (m/s), plafond d'allure (fraction de FTP). */
+export interface PacingEnv { rho?: ArrayLike<number>; wind?: ArrayLike<number>; cap?: ArrayLike<number> }
 
 export interface Pacing {
   /** Allure (fraction de FTP) pour chaque échantillon du parcours. */
@@ -25,39 +28,45 @@ export type PacingTarget = { np: number } | { time: number }
  * on pédale fort là où chaque watt fait gagner le plus de temps (montées), on récupère
  * là où il n'en rapporte presque pas (descentes rapides).
  */
-export function optimalPacing(gs: Float32Array, body: Body, ftp: number, target: PacingTarget): Pacing {
-  // Les pentes à 0,5 % près partagent la même allure : l'optimisation se fait par paquets.
-  const counts = new Map<number, number>()
-  const keys = new Int16Array(gs.length)
+export function optimalPacing(gs: Float32Array, body: Body, ftp: number, target: PacingTarget, env: PacingEnv = {}): Pacing {
+  // Les échantillons de même pente (à 0,5 % près), même vent (à 1 m/s), même air et même plafond
+  // partagent la même allure : l'optimisation se fait par paquets.
+  interface Bucket { g: number; w: number; rho: number; cap: number; c: number }
+  const buckets = new Map<string, Bucket>()
+  const keys: string[] = new Array(gs.length)
   for (let i = 0; i < gs.length; i++) {
-    const k = Math.max(-40, Math.min(60, Math.round(gs[i] * 2)))
+    const g = Math.max(-20, Math.min(30, Math.round(gs[i] * 2) / 2)), w = Math.round(env.wind?.[i] ?? 0)
+    const rho = Math.round((env.rho?.[i] ?? 1.225) * 25) / 25, cap = Math.round(Math.min(X_MAX, env.cap?.[i] ?? X_MAX) * 25) / 25
+    const k = `${g}|${w}|${rho}|${cap}`
     keys[i] = k
-    counts.set(k, (counts.get(k) ?? 0) + 1)
+    const b = buckets.get(k)
+    if (b) b.c++
+    else buckets.set(k, { g, w, rho, cap, c: 1 })
   }
-  const tOf = (x: number, g: number) => STEP / speedFor(body, x * ftp, g / 100)
-  const best = (g: number, lam: number) => {
-    let lo = X_MIN, hi = X_MAX
-    const f = (x: number) => tOf(x, g) * (1 + lam * x ** 4)
+  const tOf = (x: number, b: Bucket) => STEP / speedFor(body, x * ftp, b.g / 100, { rho: b.rho, wind: b.w })
+  const best = (bk: Bucket, lam: number) => {
+    let lo = X_MIN, hi = Math.max(X_MIN + 0.01, bk.cap)
+    const f = (x: number) => tOf(x, bk) * (1 + lam * x ** 4)
     const phi = 0.6180339887
     let a = hi - phi * (hi - lo), b = lo + phi * (hi - lo), fa = f(a), fb = f(b)
-    for (let it = 0; it < 22; it++) {
+    for (let it = 0; it < 20; it++) {
       if (fa < fb) { hi = b; b = a; fb = fa; a = hi - phi * (hi - lo); fa = f(a) }
       else { lo = a; a = b; fa = fb; b = lo + phi * (hi - lo); fb = f(b) }
     }
     return (lo + hi) / 2
   }
   const solve = (lam: number) => {
-    const xs = new Map<number, number>()
+    const xs = new Map<string, number>()
     let time = 0, stress = 0
-    for (const [k, c] of counts) {
-      const g = k / 2, x = best(g, lam), t = tOf(x, g)
-      xs.set(k, x); time += c * t; stress += c * x ** 4 * t
+    for (const [k, b] of buckets) {
+      const x = best(b, lam), t = tOf(x, b)
+      xs.set(k, x); time += b.c * t; stress += b.c * x ** 4 * t
     }
     return { xs, time, np: (stress / time) ** 0.25 }
   }
   // Plus λ est grand, plus on ménage ses forces : NP baisse, le temps monte.
   let lo = -3, hi = 5, sol = solve(10 ** ((lo + hi) / 2))
-  for (let it = 0; it < 26; it++) {
+  for (let it = 0; it < 24; it++) {
     const mid = (lo + hi) / 2
     sol = solve(10 ** mid)
     const tooHard = 'np' in target ? sol.np > target.np : sol.time < target.time

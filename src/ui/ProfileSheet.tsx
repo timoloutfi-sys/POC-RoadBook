@@ -1,9 +1,24 @@
 import { useState } from 'react'
+import { cdaFromFlat } from '../physics/physics'
 import { effectiveFtp, effectiveLthr, ftpIsEstimated, type Rider } from '../strategy/rider'
 import { useStore } from '../storage/store'
 import type { RideTheme } from '../storage/defaults'
 import { Field, Num } from './fields'
 import { Sheet } from './Sheet'
+
+const POS = [
+  { n: 'Cocottes (0,32)', v: 0.32 },
+  { n: 'Bas du cintre (0,28)', v: 0.28 },
+  { n: 'Prolongateurs (0,25)', v: 0.25 },
+  { n: 'Ultra avec sacoches (0,35)', v: 0.35 },
+  { n: 'Position relevée (0,38)', v: 0.38 },
+]
+const ROAD = [
+  { n: 'Route lisse, bons pneus', v: 0.004 },
+  { n: 'Route normale', v: 0.005 },
+  { n: 'Route dégradée', v: 0.007 },
+  { n: 'Gravel', v: 0.01 },
+]
 
 /** Profil coureur : demandé au premier lancement, puis accessible par l'icône réglages. */
 export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () => void }) {
@@ -11,6 +26,8 @@ export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () =
   const [r, setR] = useState<Rider>(rider)
   const [theme, setTheme] = useState<RideTheme>(rideTheme)
   const [cap, setCap] = useState<number | null>(maxPerHour)
+  const [calW, setCalW] = useState<number | null>(null)
+  const [calV, setCalV] = useState<number | null>(null)
   const est = ftpIsEstimated(r), ftp = effectiveFtp(r), lthr = effectiveLthr(r)
   const save = () => { set({ rider: r, rideTheme: theme, maxPerHour: Math.max(1, cap ?? 10), onboarded: true }); onClose() }
   const dismiss = () => { set({ onboarded: true }); onClose() }
@@ -29,8 +46,29 @@ export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () =
         {est && <Field label="Vitesse sur le plat (km/h)" hint="Moyenne sur 2 h, sans vent"><Num value={r.flatSpeed} min={15} max={50} step={0.5} onChange={v => setR({ ...r, flatSpeed: v })} /></Field>}
         <Field label="FC au seuil (bpm)" hint={r.lthr ? undefined : lthr ? `Estimée : ${lthr} bpm` : undefined}><Num value={r.lthr} min={100} max={220} placeholder="Facultatif" onChange={v => setR({ ...r, lthr: v })} /></Field>
         <Field label="FC max (bpm)"><Num value={r.hrMax} min={120} max={230} placeholder="Facultatif" onChange={v => setR({ ...r, hrMax: v })} /></Field>
-        <Field label="CdA (m²)"><Num value={r.cda} min={0.15} max={0.6} step={0.01} onChange={v => v && setR({ ...r, cda: v })} /></Field>
+        <Field label="Position">
+          <select value={POS.find(p => Math.abs(p.v - r.cda) < 0.001)?.v ?? ''} onChange={e => e.target.value && setR({ ...r, cda: +e.target.value })}>
+            <option value="">CdA {r.cda.toFixed(2).replace('.', ',')}</option>
+            {POS.map(p => <option key={p.v} value={p.v}>{p.n}</option>)}
+          </select>
+        </Field>
+        <Field label="Route et pneus">
+          <select value={r.crr ?? 0.005} onChange={e => setR({ ...r, crr: +e.target.value })}>
+            {ROAD.map(p => <option key={p.v} value={p.v}>{p.n}</option>)}
+          </select>
+        </Field>
       </div>
+      <details className="fold" style={{ marginTop: 0, marginBottom: 12 }}>
+        <summary>Calibrer avec une sortie réelle</summary>
+        <div>
+          <div className="cols2">
+            <Field label="Puissance sur le plat (W)"><Num value={calW} min={80} max={500} onChange={setCalW} /></Field>
+            <Field label="Vitesse obtenue (km/h)"><Num value={calV} min={15} max={50} step={0.5} onChange={setCalV} /></Field>
+          </div>
+          <button type="button" className="btn" disabled={!calW || !calV} onClick={() => calW && calV && setR({ ...r, cda: +cdaFromFlat(r.mass, r.crr ?? 0.005, calW, calV).toFixed(3) })}>Calculer mon CdA</button>
+          <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>CdA actuel : {r.cda.toFixed(3).replace('.', ',')} m²</p>
+        </div>
+      </details>
       {!first && (
         <>
           <Field label="Thème de la vue de course">

@@ -8,6 +8,8 @@ export interface Rider {
   /** Masse totale coureur + vélo, kg. */
   mass: number
   cda: number
+  /** Résistance au roulement (route et pneus). Absent = 0,005. */
+  crr?: number
   /** FC au seuil (bpm). Facultative : estimée à 90 % de la FC max. */
   lthr: number | null
   hrMax: number | null
@@ -15,7 +17,7 @@ export interface Rider {
   flatSpeed: number | null
 }
 
-export const defaultRider = (): Rider => ({ hasPower: true, ftp: 240, mass: 82, cda: 0.3, lthr: null, hrMax: null, flatSpeed: null })
+export const defaultRider = (): Rider => ({ hasPower: true, ftp: 240, mass: 82, cda: 0.32, crr: 0.005, lthr: null, hrMax: null, flatSpeed: null })
 
 /** Part de la FTP tenue en moyenne sur une sortie de 2 h. */
 const ENDURANCE_RATIO = 0.7
