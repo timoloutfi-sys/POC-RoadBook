@@ -71,7 +71,7 @@ export function ParcoursTab() {
       <ProfileChart route={route} sections={sections} points={points} onLongPress={setHere}
         onMove={(id, km) => set({ points: points.map(x => (x.id === id ? { ...x, km } : x)) })}
         onTapPoint={id => { const v = points.find(x => x.id === id); if (v) setEdit({ kind: 'point', v, isNew: false }) }} />
-      <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Glisse le doigt sur le profil pour lire km, altitude et pente. Glisse un point pour le déplacer, touche-le pour le modifier. Appui long pour ajouter un point ou une section.</p>
+      <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Survole (ou glisse le doigt sur) le profil pour lire km, altitude et pente. Glisse un point pour le déplacer, touche-le pour le modifier. Appui long pour ajouter un point ou une section.</p>
 
       <h2 className="h2">Points · {points.length}</h2>
       <ul className="list">

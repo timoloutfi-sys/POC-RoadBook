@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nf0, nf1, slope } from '../core/format'
 import { gradeAt, type Route } from '../route/route'
-import type { RoutePoint, Section } from '../strategy/types'
+import { POINT_TYPES, type RoutePoint, type Section } from '../strategy/types'
 import { Icon } from './icons'
 
 const H = 220, PL = 46, PR = 12, PT = 30, PB = 24
@@ -83,7 +83,10 @@ export function ProfileChart({ route, sections, points = [], onLongPress, onMove
             ;(e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId)
           }
           if (scrub.current) setCursor(kmAt(e.clientX))
+          // Souris : la lecture suit le pointeur, sans clic.
+          else if (e.pointerType === 'mouse' && e.buttons === 0) { clearTimeout(hideT.current); setCursor(kmAt(e.clientX)) }
         }}
+        onPointerLeave={e => { if (e.pointerType === 'mouse') setCursor(null) }}
         onPointerUp={() => { cancel(); if (scrub.current) { scrub.current = false; hideT.current = setTimeout(() => setCursor(null), 1500) } }}
         onPointerCancel={() => { cancel(); scrub.current = false; setCursor(null) }} onContextMenu={e => e.preventDefault()}>
         {eTicks.map(e => <g key={e}><line x1={PL} x2={W - PR} y1={Y(e)} y2={Y(e)} stroke="var(--line)" strokeWidth={1} /><text x={PL - 6} y={Y(e) + 4} textAnchor="end" fontSize={12} fill="var(--muted)">{nf0(e)} m</text></g>)}
@@ -93,7 +96,11 @@ export function ProfileChart({ route, sections, points = [], onLongPress, onMove
         <path d={path} fill="none" stroke="var(--accent-fg)" strokeWidth={2.5} strokeLinejoin="round" />
         {cursor != null && (() => {
           const i = Math.min(route.n - 1, Math.round((cursor * 1000) / 50)), x = X(cursor), y = Y(route.ele[i])
-          const label = `km ${nf1(cursor)} · ${nf0(route.ele[i])} m · ${slope(gradeAt(route, cursor * 1000))}`
+          // Près d'un point : son nom et son km à la place de la pente.
+          const near = markers.find(m => Math.abs(m.x - x) < 12)
+          const label = near
+            ? `${near.p.text || POINT_TYPES[near.p.type].n} · km ${nf1(near.p.km)}`
+            : `km ${nf1(cursor)} · ${nf0(route.ele[i])} m · ${slope(gradeAt(route, cursor * 1000))}`
           const w = label.length * 7.4 + 18, cx = Math.max(PL + w / 2, Math.min(W - PR - w / 2, x))
           return (
             <g pointerEvents="none">
