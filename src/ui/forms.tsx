@@ -20,15 +20,15 @@ export function PointForm({ initial, isNew, onSave, onDelete, onClose, maxKm }: 
   const [p, setP] = useState(initial)
   const km = clamp(p.km, 0, maxKm)
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave({ ...p, km: +km.toFixed(1), text: p.text.trim() }) }}>
+    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...p, km: +km.toFixed(1), text: p.text.trim() }) }}>
       <Field label="Type">
         <select value={p.type} onChange={e => setP({ ...p, type: e.target.value as PointType })}>
           {Object.entries(POINT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.n}</option>)}
         </select>
       </Field>
       <div className="cols2">
-        <Field label="Kilomètre"><Num value={p.km} min={0} max={maxKm} step={0.1} onChange={v => setP({ ...p, km: v ?? 0 })} /></Field>
-        <Field label="Annoncer (km avant)"><Num value={p.avant} min={0} step={0.5} onChange={v => setP({ ...p, avant: v ?? 0 })} /></Field>
+        <Field label="Kilomètre"><Num value={p.km} min={0} max={maxKm} step={1} onChange={v => setP({ ...p, km: v ?? 0 })} /></Field>
+        <Field label="Annoncer (km avant)"><Num value={p.avant} min={0} step={1} onChange={v => setP({ ...p, avant: v ?? 0 })} /></Field>
       </div>
       <Field label="Message affiché" hint="Un danger s'affiche en alerte critique, une eau ou un ravito en action, une note en info.">
         <input value={p.text} maxLength={80} placeholder="Ex. station 24 h/24, remplir les 2 bidons" onChange={e => setP({ ...p, text: e.target.value })} />
@@ -43,17 +43,17 @@ export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, 
   const a = clamp(Math.min(s.a, s.b), 0, maxKm), b = clamp(Math.max(s.a, s.b), 0, maxKm)
   const mn = Math.min(s.min, s.max), mx = Math.max(s.min, s.max)
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: mn, max: mx, auto: false, gen: false, name: s.name.trim() || (s.kind === 'montee' ? 'Montée' : 'Tronçon') }) }}>
+    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: mn, max: mx, auto: false, gen: false, name: s.name.trim() || (s.kind === 'montee' ? 'Montée' : 'Tronçon') }) }}>
       <Field label="Nom"><input value={s.name} maxLength={60} placeholder="Ex. vallée exposée au vent" onChange={e => setS({ ...s, name: e.target.value })} /></Field>
       <div className="cols2">
         <Field label="Type">
           <select value={s.kind} onChange={e => setS({ ...s, kind: e.target.value as Section['kind'] })}><option value="zone">Tronçon</option><option value="montee">Montée</option></select>
         </Field>
-        <Field label="Annoncer (km avant)"><Num value={s.avant} min={0} step={0.5} onChange={v => setS({ ...s, avant: v ?? 0 })} /></Field>
-        <Field label="Du km"><Num value={s.a} min={0} max={maxKm} step={0.1} onChange={v => setS({ ...s, a: v ?? 0 })} /></Field>
-        <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={0.1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
-        <Field label="Cible min (% FTP)"><Num value={s.min} onChange={v => setS({ ...s, min: v ?? 0 })} /></Field>
-        <Field label="Cible max (% FTP)"><Num value={s.max} onChange={v => setS({ ...s, max: v ?? 0 })} /></Field>
+        <Field label="Annoncer (km avant)"><Num value={s.avant} min={0} step={1} onChange={v => setS({ ...s, avant: v ?? 0 })} /></Field>
+        <Field label="Du km"><Num value={s.a} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, a: v ?? 0 })} /></Field>
+        <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
+        <Field label="Cible min (% FTP)"><Num value={s.min} step={1} onChange={v => setS({ ...s, min: v ?? 0 })} /></Field>
+        <Field label="Cible max (% FTP)"><Num value={s.max} step={1} onChange={v => setS({ ...s, max: v ?? 0 })} /></Field>
       </div>
       <p className="muted" style={{ marginBottom: 12 }}>Sur ces {nf1(b - a)} km la cible devient {Math.round((mn * ftp) / 100)}–{Math.round((mx * ftp) / 100)} W et remplace les règles de base.</p>
       <Field label="Consigne à l'annonce"><input value={s.msg} maxLength={80} placeholder="Ex. mange maintenant, reste assis" onChange={e => setS({ ...s, msg: e.target.value })} /></Field>
@@ -67,7 +67,7 @@ export function AlertForm({ initial, isNew, onSave, onDelete, onClose }: FormPro
   const hasBand = a.metric === 'effort' || a.metric === 'power' || a.metric === 'hr'
   const ref = hasBand ? a.ref : 'val'
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave({ ...a, ref, name: a.name.trim() || 'Alerte', msg: a.msg.trim() || 'Alerte' }) }}>
+    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...a, ref, name: a.name.trim() || 'Alerte', msg: a.msg.trim() || 'Alerte' }) }}>
       <Field label="Nom"><input value={a.name} maxLength={40} onChange={e => setA({ ...a, name: e.target.value })} /></Field>
       <div className="cols2">
         <Field label="Quand">

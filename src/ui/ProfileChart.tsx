@@ -1,36 +1,89 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { nf0 } from '../core/format'
 import type { Route } from '../route/route'
-import type { Section } from '../strategy/types'
+import type { RoutePoint, Section } from '../strategy/types'
+import { Icon } from './icons'
 
-/** Profil d'altitude. Un appui long place un point ou une section à cet endroit. */
-export function ProfileChart({ route, sections, onLongPress }: { route: Route; sections: Section[]; onLongPress?: (km: number) => void }) {
-  const W = 1000, H = 200, L = route.total / 1000
-  const { path, area } = useMemo(() => {
+const H = 220, PL = 46, PR = 12, PT = 30, PB = 24
+
+/** Plus petit pas « rond » qui donne au plus `max` repères. */
+const niceStep = (span: number, max: number) => [1, 2, 5, 10, 20, 25, 50, 100, 200, 500].find(s => span / s <= max) ?? 1000
+
+/**
+ * Profil d'altitude en pixels réels (pas de déformation du texte), avec échelle en m et en km,
+ * sections surlignées et points posés sur la courbe. Un appui long place un point ou une section.
+ */
+export function ProfileChart({ route, sections, points = [], onLongPress }: {
+  route: Route; sections: Section[]; points?: RoutePoint[]; onLongPress?: (km: number) => void
+}) {
+  const box = useRef<HTMLDivElement>(null)
+  const [W, setW] = useState(360)
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setW(Math.max(200, el.clientWidth)))
+    ro.observe(el)
+    setW(Math.max(200, el.clientWidth))
+    return () => ro.disconnect()
+  }, [])
+
+  const L = route.total / 1000
+  const g = useMemo(() => {
     let lo = Infinity, hi = -Infinity
     for (let i = 0; i < route.n; i++) { lo = Math.min(lo, route.ele[i]); hi = Math.max(hi, route.ele[i]) }
-    if (hi - lo < 60) { const m = (hi + lo) / 2; lo = m - 30; hi = m + 30 }
-    const stride = Math.max(1, Math.floor(route.n / 600))
-    let p = ''
-    for (let i = 0; i < route.n; i += stride) {
-      const x = (i / (route.n - 1)) * W, y = 8 + (1 - (route.ele[i] - lo) / (hi - lo)) * (H - 16)
-      p += `${p ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
-    }
-    return { path: p, area: `${p}L${W},${H}L0,${H}Z` }
+    const eStep = niceStep(Math.max(hi - lo, 40), 4)
+    lo = Math.floor(lo / eStep) * eStep
+    hi = Math.max(Math.ceil(hi / eStep) * eStep, lo + eStep * 2)
+    return { lo, hi, eStep }
   }, [route])
+  const X = (km: number) => PL + (km / L) * (W - PL - PR)
+  const Y = (e: number) => PT + (1 - (e - g.lo) / (g.hi - g.lo)) * (H - PT - PB)
+  const stride = Math.max(1, Math.floor(route.n / (W * 1.2)))
+  let path = ''
+  for (let i = 0; i < route.n; i += stride) path += `${path ? 'L' : 'M'}${X((i * 50) / 1000).toFixed(1)},${Y(route.ele[i]).toFixed(1)}`
+  const area = `${path}L${X(L)},${H - PB}L${PL},${H - PB}Z`
+  const eTicks: number[] = []
+  for (let e = g.lo; e <= g.hi + 0.1; e += g.eStep) eTicks.push(e)
+  const kStep = niceStep(L, Math.max(3, Math.floor((W - PL) / 70)))
+  const kTicks: number[] = []
+  for (let k = 0; k <= L; k += kStep) kTicks.push(k)
+
+  // Points : icône en haut du trait, sur deux rangées quand ils se touchent.
+  const markers = [...points].sort((a, b) => a.km - b.km).reduce<{ p: RoutePoint; x: number; row: number }[]>((acc, p) => {
+    const x = X(p.km), prev = acc[acc.length - 1]
+    acc.push({ p, x, row: prev && x - prev.x < 22 ? 1 - prev.row : 0 })
+    return acc
+  }, [])
+
   const press = useRef<{ x: number; t: ReturnType<typeof setTimeout> } | null>(null)
   const cancel = () => { if (press.current) clearTimeout(press.current.t); press.current = null }
   return (
-    <svg className="profile" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`Profil du parcours, ${Math.round(L)} km. Appui long pour ajouter un point.`}
-      onPointerDown={e => {
-        if (!onLongPress) return
-        const r = e.currentTarget.getBoundingClientRect(), x = e.clientX
-        press.current = { x, t: setTimeout(() => { navigator.vibrate?.(40); onLongPress(Math.max(0, Math.min(L, ((x - r.left) / r.width) * L))); press.current = null }, 500) }
-      }}
-      onPointerMove={e => { if (press.current && Math.abs(e.clientX - press.current.x) > 10) cancel() }}
-      onPointerUp={cancel} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
-      {sections.map(s => <rect key={s.id} x={(s.a / L) * W} width={Math.max(2, ((s.b - s.a) / L) * W)} y={0} height={H} fill={s.kind === 'montee' ? 'rgba(255,107,90,.2)' : 'rgba(77,163,255,.18)'} />)}
-      <path d={area} fill="rgba(242,194,0,.14)" />
-      <path d={path} fill="none" stroke="var(--accent-fg)" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />
-    </svg>
+    <div ref={box} style={{ width: '100%' }}>
+      <svg width={W} height={H} style={{ display: 'block', touchAction: 'pan-y', userSelect: 'none' }} role="img"
+        aria-label={`Profil du parcours, ${nf0(L)} km, de ${nf0(g.lo)} à ${nf0(g.hi)} m. Appui long pour ajouter un point.`}
+        onPointerDown={e => {
+          if (!onLongPress) return
+          const r = e.currentTarget.getBoundingClientRect(), x = e.clientX
+          press.current = { x, t: setTimeout(() => { navigator.vibrate?.(40); onLongPress(Math.max(0, Math.min(L, ((x - r.left - PL) / (W - PL - PR)) * L))); press.current = null }, 500) }
+        }}
+        onPointerMove={e => { if (press.current && Math.abs(e.clientX - press.current.x) > 10) cancel() }}
+        onPointerUp={cancel} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
+        {eTicks.map(e => <g key={e}><line x1={PL} x2={W - PR} y1={Y(e)} y2={Y(e)} stroke="var(--line)" strokeWidth={1} /><text x={PL - 6} y={Y(e) + 4} textAnchor="end" fontSize={12} fill="var(--muted)">{nf0(e)} m</text></g>)}
+        {kTicks.map(k => <g key={k}><line x1={X(k)} x2={X(k)} y1={H - PB} y2={H - PB + 4} stroke="var(--muted)" /><text x={X(k)} y={H - 6} textAnchor={k === 0 ? 'start' : 'middle'} fontSize={12} fill="var(--muted)">{k} km</text></g>)}
+        {sections.map(s => <rect key={s.id} x={X(s.a)} width={Math.max(3, X(s.b) - X(s.a))} y={PT} height={H - PT - PB} fill={s.kind === 'montee' ? 'rgba(255,107,90,.2)' : 'rgba(77,163,255,.2)'} />)}
+        <path d={area} fill="rgba(242,194,0,.16)" />
+        <path d={path} fill="none" stroke="var(--accent-fg)" strokeWidth={2.5} strokeLinejoin="round" />
+        {markers.map(({ p, x, row }) => {
+          const col = p.type === 'danger' ? 'var(--danger)' : 'var(--ink)'
+          return (
+            <g key={p.id} style={{ color: col }}>
+              <line x1={x} x2={x} y1={PT - 2 + row * 0} y2={H - PB} stroke={col} strokeWidth={1.5} strokeDasharray="4 3" />
+              <circle cx={x} cy={Y(route.ele[Math.min(route.n - 1, Math.round((p.km * 1000) / 50))])} r={4} fill={col} />
+              <g transform={`translate(${x - 9},${row ? 2 : 10})`}><rect x={-2} y={-2} width={22} height={22} rx={6} fill="var(--surface)" stroke={col} /><Icon name={p.type} size={18} /></g>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
   )
 }

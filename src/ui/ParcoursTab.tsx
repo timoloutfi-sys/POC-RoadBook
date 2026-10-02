@@ -61,7 +61,7 @@ export function ParcoursTab() {
         <div><b>{nf0(route.dplus)} m</b><span>D+</span></div>
         <div><b>{sections.filter(s => s.kind === 'montee').length}</b><span>montées</span></div>
       </div>
-      <ProfileChart route={route} sections={sections} onLongPress={setHere} />
+      <ProfileChart route={route} sections={sections} points={points} onLongPress={setHere} />
       <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Appui long sur le profil pour ajouter un point ou une section.</p>
 
       <h2 className="h2">Points · {points.length}</h2>
