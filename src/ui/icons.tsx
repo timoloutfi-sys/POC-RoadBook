@@ -14,6 +14,7 @@ const P: Record<string, ReactNode> = {
   bluetooth: <path d="M7 7l10 10-5 4V3l5 4L7 17" />,
   gps: <><circle cx="12" cy="12" r="4" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></>,
   plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
   more: <><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></>,
   close: <path d="M6 6l12 12M18 6L6 18" />,
   up: <path d="M6 15l6-6 6 6" />,
