@@ -20,9 +20,7 @@ export function ParcoursTab() {
   const [edit, setEdit] = useState<Editing | null>(null)
   const [here, setHere] = useState<number | null>(null)
   const [menu, setMenu] = useState(false)
-  const [sel, setSel] = useState<string | null>(null)
   const ftp = effectiveFtp(rider), L = route ? route.total / 1000 : 0
-  const selectedPoint = points.find(p => p.id === sel) ?? null
 
   const onFile = async (f: File | undefined) => {
     if (!f) return
@@ -63,20 +61,15 @@ export function ParcoursTab() {
         <div><b>{nf0(route.dplus)} m</b><span>D+</span></div>
         <div><b>{sections.filter(s => s.kind === 'montee').length}</b><span>montées</span></div>
       </div>
-      <ProfileChart route={route} sections={sections} points={points} onLongPress={setHere} selectedId={sel} onSelect={setSel}
-        onMove={(id, km) => set({ points: points.map(x => (x.id === id ? { ...x, km } : x)) })} />
-      {selectedPoint ? (
-        <div className="row" style={{ margin: '8px 0 12px' }}>
-          <p style={{ flexBasis: '100%' }}><b>{POINT_TYPES[selectedPoint.type].n}</b> · <span style={{ whiteSpace: 'nowrap' }}>km {nf1(selectedPoint.km)}</span><br /><span className="muted" style={{ fontSize: 14 }}>Glisse-le, ou touche la courbe pour l'y déplacer.</span></p>
-          <button className="btn" onClick={() => setEdit({ kind: 'point', v: selectedPoint, isNew: false })}>Modifier</button>
-          <button className="btn ghost" onClick={() => setSel(null)}>OK</button>
-        </div>
-      ) : <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Touche un point pour le déplacer. Appui long sur le profil pour en ajouter un ou une section.</p>}
+      <ProfileChart route={route} sections={sections} points={points} onLongPress={setHere}
+        onMove={(id, km) => set({ points: points.map(x => (x.id === id ? { ...x, km } : x)) })}
+        onTapPoint={id => { const v = points.find(x => x.id === id); if (v) setEdit({ kind: 'point', v, isNew: false }) }} />
+      <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Glisse un point pour le déplacer, touche-le pour le modifier. Appui long sur le profil pour ajouter un point ou une section.</p>
 
       <h2 className="h2">Points · {points.length}</h2>
       <ul className="list">
         {sorted.map(p => (
-          <li key={p.id}><button className="item" onClick={() => { setSel(p.id); document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+          <li key={p.id}><button className="item" onClick={() => setEdit({ kind: 'point', v: p, isNew: false })}>
             <Icon name={p.type} /><span className="km">km {nf1(p.km)}</span><span className="t">{p.text || POINT_TYPES[p.type].n}</span>
           </button></li>
         ))}

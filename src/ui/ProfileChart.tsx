@@ -13,10 +13,10 @@ const niceStep = (span: number, max: number) => [1, 2, 5, 10, 20, 25, 50, 100, 2
  * Profil d'altitude en pixels réels (pas de déformation du texte), avec échelle en m et en km,
  * sections surlignées et points posés sur la courbe. Un appui long place un point ou une section.
  */
-export function ProfileChart({ route, sections, points = [], onLongPress, selectedId, onSelect, onMove }: {
+export function ProfileChart({ route, sections, points = [], onLongPress, onMove, onTapPoint }: {
   route: Route; sections: Section[]; points?: RoutePoint[]; onLongPress?: (km: number) => void
-  /** Point sélectionné : on le glisse, ou on touche la courbe pour l'y déplacer. */
-  selectedId?: string | null; onSelect?: (id: string | null) => void; onMove?: (id: string, km: number) => void
+  /** Un point glissé suit le doigt ; un simple toucher appelle onTapPoint. */
+  onMove?: (id: string, km: number) => void; onTapPoint?: (id: string) => void
 }) {
   const box = useRef<HTMLDivElement>(null)
   const svg = useRef<SVGSVGElement>(null)
@@ -62,7 +62,7 @@ export function ProfileChart({ route, sections, points = [], onLongPress, select
     const r = svg.current!.getBoundingClientRect()
     return Math.max(0, Math.min(L, Math.round((((clientX - r.left - PL) / (W - PL - PR)) * L) * 10) / 10))
   }
-  const press = useRef<{ x: number; t: ReturnType<typeof setTimeout>; t0: number } | null>(null)
+  const press = useRef<{ x: number; t: ReturnType<typeof setTimeout> } | null>(null)
   const drag = useRef<{ id: string; x0: number; moved: boolean } | null>(null)
   const cancel = () => { if (press.current) clearTimeout(press.current.t); press.current = null }
   return (
@@ -72,23 +72,17 @@ export function ProfileChart({ route, sections, points = [], onLongPress, select
         onPointerDown={e => {
           if (!onLongPress) return
           const x = e.clientX
-          press.current = { x, t0: Date.now(), t: setTimeout(() => { navigator.vibrate?.(40); onLongPress(kmAt(x)); press.current = null }, 500) }
+          press.current = { x, t: setTimeout(() => { navigator.vibrate?.(40); onLongPress(kmAt(x)); press.current = null }, 500) }
         }}
         onPointerMove={e => { if (press.current && Math.abs(e.clientX - press.current.x) > 10) cancel() }}
-        onPointerUp={e => {
-          const pr = press.current
-          cancel()
-          // Appui court sur la courbe avec un point sélectionné : on l'y déplace.
-          if (pr && selectedId && onMove && Math.abs(e.clientX - pr.x) < 10 && Date.now() - pr.t0 < 450) onMove(selectedId, kmAt(e.clientX))
-        }}
-        onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
+        onPointerUp={cancel} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
         {eTicks.map(e => <g key={e}><line x1={PL} x2={W - PR} y1={Y(e)} y2={Y(e)} stroke="var(--line)" strokeWidth={1} /><text x={PL - 6} y={Y(e) + 4} textAnchor="end" fontSize={12} fill="var(--muted)">{nf0(e)} m</text></g>)}
         {kTicks.map(k => <g key={k}><line x1={X(k)} x2={X(k)} y1={H - PB} y2={H - PB + 4} stroke="var(--muted)" /><text x={X(k)} y={H - 6} textAnchor={k === 0 ? 'start' : 'middle'} fontSize={12} fill="var(--muted)">{k} km</text></g>)}
         {sections.map(s => <rect key={s.id} x={X(s.a)} width={Math.max(3, X(s.b) - X(s.a))} y={PT} height={H - PT - PB} fill={s.kind === 'montee' ? 'rgba(255,107,90,.2)' : 'rgba(77,163,255,.2)'} />)}
         <path d={area} fill="rgba(242,194,0,.16)" />
         <path d={path} fill="none" stroke="var(--accent-fg)" strokeWidth={2.5} strokeLinejoin="round" />
         {markers.map(({ p, x, row }) => {
-          const sel = p.id === selectedId, col = p.type === 'danger' ? 'var(--danger)' : 'var(--ink)'
+          const col = p.type === 'danger' ? 'var(--danger)' : 'var(--ink)'
           return (
             <g key={p.id} style={{ color: col, touchAction: 'none', cursor: onMove ? 'grab' : undefined }}
               onPointerDown={e => {
@@ -102,20 +96,19 @@ export function ProfileChart({ route, sections, points = [], onLongPress, select
                 if (!d || d.id !== p.id) return
                 if (!d.moved && Math.abs(e.clientX - d.x0) < 5) return
                 d.moved = true
-                onSelect?.(p.id)
                 onMove?.(p.id, kmAt(e.clientX))
               }}
               onPointerUp={e => {
                 const d = drag.current
                 drag.current = null
                 e.stopPropagation()
-                if (d && !d.moved) onSelect?.(sel ? null : p.id)
+                if (d && !d.moved) onTapPoint?.(p.id)
               }}
               onPointerCancel={() => { drag.current = null }}>
               <rect x={x - 18} y={PT - 20} width={36} height={H - PB - PT + 20} fill="transparent" />
-              <line x1={x} x2={x} y1={PT - 2} y2={H - PB} stroke={sel ? 'var(--accent-fg)' : col} strokeWidth={sel ? 3 : 1.5} strokeDasharray={sel ? undefined : '4 3'} />
-              <circle cx={x} cy={Y(route.ele[Math.min(route.n - 1, Math.round((p.km * 1000) / 50))])} r={sel ? 7 : 4} fill={sel ? 'var(--accent)' : col} stroke={sel ? 'var(--ink)' : 'none'} strokeWidth={2} />
-              <g transform={`translate(${x - 9},${row ? 2 : 10})`}><rect x={-2} y={-2} width={22} height={22} rx={6} fill={sel ? 'var(--accent)' : 'var(--surface)'} stroke={sel ? 'var(--ink)' : col} strokeWidth={sel ? 2 : 1} /><Icon name={p.type} size={18} /></g>
+              <line x1={x} x2={x} y1={PT - 2} y2={H - PB} stroke={col} strokeWidth={1.5} strokeDasharray="4 3" />
+              <circle cx={x} cy={Y(route.ele[Math.min(route.n - 1, Math.round((p.km * 1000) / 50))])} r={4} fill={col} />
+              <g transform={`translate(${x - 9},${row ? 2 : 10})`}><rect x={-2} y={-2} width={22} height={22} rx={6} fill="var(--surface)" stroke={col} /><Icon name={p.type} size={18} /></g>
             </g>
           )
         })}
