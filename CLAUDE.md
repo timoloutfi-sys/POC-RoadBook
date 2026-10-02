@@ -22,29 +22,39 @@ Phase actuelle : valider l'usage avec un **téléphone en paysage** comme second
 
 ## État actuel
 
-Tout tient dans `roadbook-poc.html` (un seul fichier, sans dépendance). Onglets :
+Migration en cours du prototype (`legacy/roadbook-poc.html`, gardé comme référence jusqu'à parité) vers **Vite + React + TypeScript**, en PWA, ciblée **Chrome sur Android**. Plan validé, livré en 4 étapes :
 
-- **Parcours** : import GPX, rééchantillonnage tous les 50 m, lissage de l'altitude, profil, points (eau, ravito, danger, note) et zones posés sur le profil, détection des montées. Bloc **Stratégie automatique** : intention (Endurance, Seuil, À fond), programme par section, temps par zone Z1-Z7 avec curseurs qui replacent les blocs en direct.
-- **Stratégie** : FTP, masse, CdA, règles de base en % FTP selon la pente.
-- **Alertes** : règles Quand → Si → Alors, rappels périodiques.
-- **Écran** : grille 6 × 3 en paysage, widgets déplaçables et redimensionnables, affichage adapté à la taille (S, M, L).
-- **Simulation** : coureur virtuel sur le parcours, journal des alertes.
-- **Rouler** : capteurs Bluetooth (puissance, cardio, cadence, vitesse), GPS recalé sur le parcours, relais de distance par le capteur de vitesse, plein écran, écran maintenu allumé.
+1. **Socle** (fait) : React, PWA, mise en ligne GitHub Pages, Impeccable, calculs portés en modules testés. Coquille à 4 onglets, seul Parcours fonctionne.
+2. **Navigation et vue de course** : maquettes Impeccable `shape` validées avec l'utilisateur, puis développement. Onglets Parcours, Plan, Écran (disposition + alertes), Rouler (capteurs, sortie, répétition simulée).
+3. **Assistant Plan et algorithme** : une question (Sortie tranquille, Entraînement, Course, temps visé en option), plan immédiat, ajustement du temps par zone par − / +. L'algorithme place les efforts là où chaque watt fait gagner le plus de temps (`secondsPerWatt`), en puissance ou en cardio.
+4. **Passe `polish`** et réglages après essai sur le vélo.
 
-## Architecture cible
+L'ancien générateur `computePlan` n'est volontairement pas porté : il est remplacé à l'étape 3. L'analyse par Claude est mise de côté.
 
-Passer du fichier unique à un projet **Vite + TypeScript**, en PWA, avec des modules testables :
+## Architecture
 
-- `route/` : lecture GPX, rééchantillonnage, lissage, pentes, détection des montées.
-- `strategy/` : cible à un point donné (zones > règles de base), générateur de programme (`computePlan`), lever et coucher du soleil.
-- `alerts/` : évaluation (`evalRun`), émission, lissage de la sévérité, plafond horaire.
-- `sensors/` : Web Bluetooth. Services Cycling Power (0x1818), Heart Rate (0x180D), Cycling Speed and Cadence (0x1816). Cadence et vitesse calculées à partir des compteurs de tours et des temps d'événement (1/1024 s, avec retour à zéro des compteurs).
-- `gps/` : suivi de position, recalage sur le parcours (recherche locale, puis globale au-delà de 150 m).
+Code dans `src/` :
+
+- `core/` : formats fr-FR, utilitaires.
+- `route/` : lecture GPX, rééchantillonnage tous les 50 m, lissage, pentes, montées, boucle démo.
+- `physics/` : modèle physique, vitesse pour une puissance, secondes gagnées par watt.
+- `strategy/` : profil coureur (FTP et FC seuil facultatives, estimées sinon), zones puissance (7) et cardio (5), correspondance entre les deux, dérive cardiaque, cible à un point donné (`targetAt`, sections > règles de base), lever et coucher du soleil.
+- `alerts/` : moteur (`evalRun`) avec la métrique `effort` (puissance si capteur, sinon FC, avec délai de stabilisation), sévérité lissée, plafond horaire, annonces, rappels.
+- `sensors/` : décodage des trames Bluetooth (pur, testé) et `SensorHub` (connexion, reconnexion).
+- `gps/` : recalage sur le parcours (locale, puis globale au-delà de 150 m).
 - `sim/` : coureur virtuel.
-- `ui/` : éditeur d'écran, widgets, vue de course.
-- `storage/` : configuration et plan, export et import.
+- `storage/` : configuration par défaut, store zustand sauvegardé en localStorage, export et import (lit aussi l'ancien format).
+- `ui/` : composants React.
 
-Tests unitaires (Vitest) en priorité sur : lecture GPX, décodage des trames Bluetooth, générateur de programme, moteur d'alertes.
+Commandes : `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Chaque push lance tests et build, puis publie sur GitHub Pages (`.github/workflows/deploy.yml`).
+
+## Sans capteur de puissance
+
+Le plan reste calculé en puissance (le modèle physique sert à placer les efforts et estimer les temps). La cible affichée bascule en bpm si aucun capteur de puissance n'est connecté. En cardio : pas d'effort de moins de 5 min, alertes après 2 min de stabilisation et 60 s minimum au-dessus du seuil, tolérance haute élargie de 3 bpm par heure (10 max).
+
+## Design et UX : Impeccable
+
+Le skill Impeccable est installé dans `.claude/skills/impeccable` (agents dans `.claude/agents`). `PRODUCT.md` porte la vérité produit. Avant tout écran : `/impeccable shape`, choix de la direction avec l'utilisateur, puis construction ; à la fin de chaque étape : `critique`, `audit`, `polish`, et le détecteur `.claude/skills/impeccable/scripts/impeccable detect --json <cibles>`. Captures au format Android (390 × 844 en portrait, 844 × 390 en paysage).
 
 ## Modèle physique
 
@@ -52,15 +62,16 @@ Tests unitaires (Vitest) en priorité sur : lecture GPX, décodage des trames Bl
 
 ## Points d'attention
 
-- **Web Bluetooth** : Chrome sur Android, Bluefy sur iPhone (Safari ne le gère pas). HTTPS obligatoire.
+- **Web Bluetooth** : Chrome sur Android uniquement pour le POC. HTTPS obligatoire (GitHub Pages).
 - **Analyse du coach** : dans la version publiée sur claude.ai, elle passe par la capacité `sample`, qui n'existe que là. Hors de claude.ai, passer par une petite fonction serveur qui appelle l'API Anthropic. **Ne jamais mettre de clé d'API dans le front.**
 - Les recharges d'eau générées sont des rappels de distance, pas des lieux réels.
 
 ## Prochaines étapes
 
-1. Découper le fichier en modules TypeScript, sans changer le comportement, avec des tests.
-2. PWA hébergée (hors ligne, installable), pour tester sur le vélo.
-3. Rejeu d'un vrai fichier `.fit` dans le simulateur, et comparaison plan contre réel.
-4. Points d'eau et commerces réels via OpenStreetMap (Overpass), avec horaires.
-5. Export d'un parcours FIT annoté pour les GPS classiques.
-6. Prototype matériel : carte type ESP32, écran memory LCD, module GPS, batterie, boîtier imprimé en 3D.
+Après les 4 étapes ci-dessus :
+
+1. Puissance estimée en montée sans capteur (vitesse + pente).
+2. Rejeu d'un vrai fichier `.fit` dans le simulateur, et comparaison plan contre réel.
+3. Points d'eau et commerces réels via OpenStreetMap (Overpass), avec horaires.
+4. Export d'un parcours FIT annoté pour les GPS classiques.
+5. Prototype matériel : carte type ESP32, écran memory LCD, module GPS, batterie, boîtier imprimé en 3D.

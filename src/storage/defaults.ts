@@ -1,0 +1,55 @@
+import type { AlertRule, Periodic } from '../alerts/types'
+import { uid } from '../core/format'
+import { defaultRider, type Rider } from '../strategy/rider'
+import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
+
+export type WidgetKind = 'power' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time'
+export interface WidgetItem { id: string; k: WidgetKind; x: number; y: number; w: number; h: number }
+
+export const COLS = 6
+export const ROWS = 3
+
+export const WIDGETS: Record<WidgetKind, string> = {
+  power: 'Puissance', target: 'Cible', hr: 'FC', cad: 'Cadence', speed: 'Vitesse',
+  next: 'Prochain événement', profile: 'Profil à venir', fuel: 'Rappel', dist: 'Distance', time: 'Temps',
+}
+
+type Tpl = [WidgetKind, number, number, number, number][]
+export const TEMPLATES: Record<'ultra' | 'clm' | 'tri', { n: string; items: Tpl }> = {
+  ultra: { n: 'Ultra', items: [['power', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['dist', 4, 2, 2, 1]] },
+  clm: { n: 'Contre-la-montre', items: [['power', 0, 0, 3, 2], ['speed', 3, 0, 3, 1], ['cad', 3, 1, 1, 1], ['hr', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
+  tri: { n: 'Triathlon', items: [['power', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 3, 1], ['time', 3, 2, 3, 1]] },
+}
+export const mkLayout = (k: keyof typeof TEMPLATES): WidgetItem[] =>
+  TEMPLATES[k].items.map(([kind, x, y, w, h]) => ({ id: uid(), k: kind, x, y, w, h }))
+
+export const defaultAlerts = (): AlertRule[] => [
+  { id: uid(), on: true, name: 'Trop fort', metric: 'effort', op: '>', ref: 'max', val: 0, dur: 30, cool: 3, prio: 'action', msg: 'Trop fort : reviens sous {max}' },
+  { id: uid(), on: true, name: 'Sous la cible', metric: 'effort', op: '<', ref: 'min', val: 0, dur: 90, cool: 5, prio: 'info', msg: 'Sous la cible : vise {min}–{max}' },
+  { id: uid(), on: true, name: 'Cadence basse', metric: 'cad', op: '<', ref: 'val', val: 78, dur: 45, cool: 5, prio: 'info', msg: 'Cadence basse ({val} rpm) : mouline' },
+]
+
+export const defaultPeriodic = (): Periodic[] => [
+  { id: uid(), on: true, every: 20, msg: 'Mange : 30 g de glucides', prio: 'action' },
+  { id: uid(), on: true, every: 15, msg: 'Bois quelques gorgées', prio: 'info' },
+]
+
+export interface Config {
+  rider: Rider
+  /** Circonférence de roue, mm. */
+  wheel: number
+  base: BaseRules
+  sections: Section[]
+  points: RoutePoint[]
+  alerts: AlertRule[]
+  periodic: Periodic[]
+  maxPerHour: number
+  layout: WidgetItem[]
+  /** Le profil coureur a été rempli une première fois. */
+  onboarded: boolean
+}
+
+export const defaultConfig = (): Config => ({
+  rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
+  alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10, layout: mkLayout('ultra'), onboarded: false,
+})
