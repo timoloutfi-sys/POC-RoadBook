@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { nf0 } from '../core/format'
-import type { Route } from '../route/route'
+import { nf0, nf1, slope } from '../core/format'
+import { gradeAt, type Route } from '../route/route'
 import type { RoutePoint, Section } from '../strategy/types'
 import { Icon } from './icons'
 
@@ -62,6 +62,9 @@ export function ProfileChart({ route, sections, points = [], onLongPress, onMove
     const r = svg.current!.getBoundingClientRect()
     return Math.max(0, Math.min(L, Math.round((((clientX - r.left - PL) / (W - PL - PR)) * L) * 10) / 10))
   }
+  const [cursor, setCursor] = useState<number | null>(null)
+  const hideT = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const scrub = useRef(false)
   const press = useRef<{ x: number; t: ReturnType<typeof setTimeout> } | null>(null)
   const drag = useRef<{ id: string; x0: number; moved: boolean } | null>(null)
   const cancel = () => { if (press.current) clearTimeout(press.current.t); press.current = null }
@@ -74,13 +77,33 @@ export function ProfileChart({ route, sections, points = [], onLongPress, onMove
           const x = e.clientX
           press.current = { x, t: setTimeout(() => { navigator.vibrate?.(40); onLongPress(kmAt(x)); press.current = null }, 500) }
         }}
-        onPointerMove={e => { if (press.current && Math.abs(e.clientX - press.current.x) > 10) cancel() }}
-        onPointerUp={cancel} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
+        onPointerMove={e => {
+          if (press.current && Math.abs(e.clientX - press.current.x) > 10) {
+            cancel(); scrub.current = true; clearTimeout(hideT.current)
+            ;(e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId)
+          }
+          if (scrub.current) setCursor(kmAt(e.clientX))
+        }}
+        onPointerUp={() => { cancel(); if (scrub.current) { scrub.current = false; hideT.current = setTimeout(() => setCursor(null), 1500) } }}
+        onPointerCancel={() => { cancel(); scrub.current = false; setCursor(null) }} onContextMenu={e => e.preventDefault()}>
         {eTicks.map(e => <g key={e}><line x1={PL} x2={W - PR} y1={Y(e)} y2={Y(e)} stroke="var(--line)" strokeWidth={1} /><text x={PL - 6} y={Y(e) + 4} textAnchor="end" fontSize={12} fill="var(--muted)">{nf0(e)} m</text></g>)}
         {kTicks.map(k => <g key={k}><line x1={X(k)} x2={X(k)} y1={H - PB} y2={H - PB + 4} stroke="var(--muted)" /><text x={X(k)} y={H - 6} textAnchor={k === 0 ? 'start' : 'middle'} fontSize={12} fill="var(--muted)">{k} km</text></g>)}
         {sections.map(s => <rect key={s.id} x={X(s.a)} width={Math.max(3, X(s.b) - X(s.a))} y={PT} height={H - PT - PB} fill={s.kind === 'montee' ? 'rgba(255,107,90,.2)' : 'rgba(77,163,255,.2)'} />)}
         <path d={area} fill="rgba(242,194,0,.16)" />
         <path d={path} fill="none" stroke="var(--accent-fg)" strokeWidth={2.5} strokeLinejoin="round" />
+        {cursor != null && (() => {
+          const i = Math.min(route.n - 1, Math.round((cursor * 1000) / 50)), x = X(cursor), y = Y(route.ele[i])
+          const label = `km ${nf1(cursor)} · ${nf0(route.ele[i])} m · ${slope(gradeAt(route, cursor * 1000))}`
+          const w = label.length * 7.4 + 18, cx = Math.max(PL + w / 2, Math.min(W - PR - w / 2, x))
+          return (
+            <g pointerEvents="none">
+              <line x1={x} x2={x} y1={PT} y2={H - PB} stroke="var(--ink)" strokeWidth={1.5} />
+              <circle cx={x} cy={y} r={5} fill="var(--ink)" stroke="var(--surface)" strokeWidth={2} />
+              <rect x={cx - w / 2} y={PT + 4} width={w} height={26} rx={8} fill="var(--ink)" />
+              <text x={cx} y={PT + 22} textAnchor="middle" fontSize={14} fontWeight={600} fill="var(--bg)">{label}</text>
+            </g>
+          )
+        })()}
         {markers.map(({ p, x, row }) => {
           const col = p.type === 'danger' ? 'var(--danger)' : 'var(--ink)'
           return (

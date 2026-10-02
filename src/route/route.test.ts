@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { parseGPX } from './gpx'
-import { buildRoute, demoPoints, deserializeRoute, findClimbs, serializeRoute, STEP } from './route'
+import { buildRoute, demoPoints, deserializeRoute, findClimbs, sectionStats, serializeRoute, STEP } from './route'
 
 const line = (n: number, ele: (i: number) => number) =>
   Array.from({ length: n }, (_, i) => ({ lat: 48 + (i * 50) / 111320, lon: 2, ele: ele(i) }))
@@ -48,6 +48,16 @@ describe('construction du parcours', () => {
     expect(c).toHaveLength(1)
     expect(c[0].avg).toBeGreaterThan(4)
     expect(c[0].len).toBeGreaterThan(1500)
+  })
+  it('statistiques d’une section : longueur, D+, pente moyenne et max', () => {
+    const r = buildRoute('t', line(121, i => (i < 40 ? 100 : i < 80 ? 100 + (i - 40) * 2.5 : 200)))
+    const st = sectionStats(r, 2, 4)
+    expect(st.len).toBeCloseTo(2, 1)
+    expect(st.dplus).toBeGreaterThan(90)
+    expect(st.avg).toBeGreaterThan(4)
+    expect(st.avg).toBeLessThan(5.5)
+    expect(st.max).toBeGreaterThanOrEqual(st.avg)
+    expect(sectionStats(r, 4.5, 5.5).avg).toBeCloseTo(0, 0)
   })
   it('sérialise et relit à l’identique', () => {
     const r = buildRoute('Démo', demoPoints())

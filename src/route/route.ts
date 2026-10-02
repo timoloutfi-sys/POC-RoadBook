@@ -91,6 +91,18 @@ export function smoothGrades(r: Route) {
   return g
 }
 
+export interface SectionStats { len: number; dplus: number; avg: number; max: number }
+
+/** Longueur (km), D+ (m), pente moyenne et maximale (%) entre deux kilomètres. */
+export function sectionStats(r: Route, aKm: number, bKm: number): SectionStats {
+  const i0 = clamp(Math.round((Math.min(aKm, bKm) * 1000) / STEP), 0, r.n - 1), i1 = clamp(Math.round((Math.max(aKm, bKm) * 1000) / STEP), 0, r.n - 1)
+  let dplus = 0, max = 0
+  for (let i = i0 + 1; i <= i1; i++) if (r.ele[i] > r.ele[i - 1]) dplus += r.ele[i] - r.ele[i - 1]
+  for (let i = i0; i <= i1; i++) max = Math.max(max, smoothGrades(r)[i])
+  const len = (i1 - i0) * STEP
+  return { len: len / 1000, dplus, avg: len > 0 ? ((r.ele[i1] - r.ele[i0]) / len) * 100 : 0, max }
+}
+
 /** Montées d'au moins 800 m à 3 % de moyenne. */
 export function findClimbs(r: Route): Climb[] {
   const g = r.grade, n = r.n, runs: [number, number][] = []

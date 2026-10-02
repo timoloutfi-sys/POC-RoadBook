@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { clamp, nf1 } from '../core/format'
+import { clamp, nf0, nf1, slope } from '../core/format'
+import { sectionStats, type Route } from '../route/route'
 import { METRICS, PRIO_LABEL, type AlertRule, type Metric } from '../alerts/types'
 import { POINT_TYPES, type Prio, type PointType, type RoutePoint, type Section } from '../strategy/types'
 import { pctToValue, unitLabel, valueToPct } from '../strategy/units'
@@ -40,7 +41,7 @@ export function PointForm({ initial, isNew, onSave, onDelete, onClose, maxKm }: 
   )
 }
 
-export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, unit, ftp, lthr }: FormProps<Section> & { maxKm: number; unit: Unit; ftp: number; lthr: number | null }) {
+export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, unit, ftp, lthr, route }: FormProps<Section> & { maxKm: number; unit: Unit; ftp: number; lthr: number | null; route: Route }) {
   const [s, setS] = useState(initial)
   const zones = unit === 'power' ? POWER_ZONES : HR_ZONES
   const [zone, setZone] = useState<string>(() => {
@@ -71,6 +72,7 @@ export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, 
         <Field label="Du km"><Num value={s.a} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, a: v ?? 0 })} /></Field>
         <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
       </div>
+      <p className="muted" style={{ marginBottom: 12 }}>{statsLine(sectionStats(route, a, b))}</p>
       <Field label="Cible" hint={unit === 'hr' ? 'Une zone suffit : pas besoin de chiffres.' : 'Choisis une zone, ou règle la fourchette toi-même.'}>
         <select value={zone} onChange={e => pick(e.target.value)}>
           <option value="perso">Personnalisée</option>
@@ -134,3 +136,7 @@ export const alertSentence = (a: AlertRule) => {
   const ref = a.ref === 'val' || !(a.metric === 'effort' || a.metric === 'power' || a.metric === 'hr') ? `${a.val} ${METRICS[a.metric].u}`.trim() : a.ref === 'max' ? 'la cible max' : 'la cible min'
   return `${a.op === '>' ? 'Au-dessus de' : 'En dessous de'} ${ref} (${m}) pendant ${a.dur} s`
 }
+
+/** « 2,1 km · +92 m · pente moy. +4,4 % · max +8,1 % » */
+export const statsLine = (st: ReturnType<typeof sectionStats>) =>
+  `${nf1(st.len)} km · +${nf0(st.dplus)} m · pente moy. ${slope(st.avg)}${st.max > Math.abs(st.avg) + 1 ? ` · max ${slope(st.max)}` : ''}`

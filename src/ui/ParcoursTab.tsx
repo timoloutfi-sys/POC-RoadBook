@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react'
 import { nf0, nf1, uid } from '../core/format'
 import { parseGPX } from '../route/gpx'
-import { buildRoute } from '../route/route'
+import { buildRoute, sectionStats } from '../route/route'
 import { effectiveFtp, effectiveLthr, effortUnit } from '../strategy/rider'
 import { pctToValue, unitLabel } from '../strategy/units'
 import { hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
 import { POINT_TYPES, type RoutePoint, type Section } from '../strategy/types'
 import { useStore } from '../storage/store'
-import { PointForm, SectionForm } from './forms'
+import { PointForm, SectionForm, statsLine } from './forms'
 import { Icon } from './icons'
 import { ProfileChart } from './ProfileChart'
 import { Sheet } from './Sheet'
@@ -71,7 +71,7 @@ export function ParcoursTab() {
       <ProfileChart route={route} sections={sections} points={points} onLongPress={setHere}
         onMove={(id, km) => set({ points: points.map(x => (x.id === id ? { ...x, km } : x)) })}
         onTapPoint={id => { const v = points.find(x => x.id === id); if (v) setEdit({ kind: 'point', v, isNew: false }) }} />
-      <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Glisse un point pour le déplacer, touche-le pour le modifier. Appui long sur le profil pour ajouter un point ou une section.</p>
+      <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Glisse le doigt sur le profil pour lire km, altitude et pente. Glisse un point pour le déplacer, touche-le pour le modifier. Appui long pour ajouter un point ou une section.</p>
 
       <h2 className="h2">Points · {points.length}</h2>
       <ul className="list">
@@ -89,7 +89,7 @@ export function ParcoursTab() {
         {sections.map(s => (
           <li key={s.id}><button className="item" onClick={() => setEdit({ kind: 'section', v: s, isNew: false })}>
             <Icon name={s.kind === 'montee' ? 'montee' : 'route'} /><span className="km">{nf1(s.a)}–{nf1(s.b)}</span>
-            <span className="t">{s.name}<small>{sectionLine(s)}</small></span>
+            <span className="t">{s.name}<small>{sectionLine(s)}</small><small>{statsLine(sectionStats(route, s.a, s.b))}</small></span>
           </button></li>
         ))}
         {!sections.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune section. Pose-en une ou détecte les montées.</li>}
@@ -119,7 +119,7 @@ export function ParcoursTab() {
       )}
       {edit?.kind === 'section' && (
         <Sheet title={edit.isNew ? 'Nouvelle section' : 'Modifier la section'} onClose={() => setEdit(null)}>
-          <SectionForm initial={edit.v} isNew={edit.isNew} maxKm={L} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
+          <SectionForm initial={edit.v} isNew={edit.isNew} maxKm={L} unit={unit} ftp={ftp} lthr={lthr} route={route} onClose={() => setEdit(null)}
             onSave={v => { set({ sections: (edit.isNew ? [...sections, v] : sections.map(x => (x.id === v.id ? v : x))).sort((a, b) => a.a - b.a) }); setEdit(null) }}
             onDelete={() => { set({ sections: sections.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
         </Sheet>

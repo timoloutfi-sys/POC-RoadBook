@@ -25,3 +25,6 @@ export const hrs = (h: number) => {
 /** Durée lisible : "45 min" ou "5 h 15". */
 export const fdur = (sec: number) => (sec >= 3600 ? hrs(sec / 3600) : `${Math.round(sec / 60)} min`)
 export const hhmm = (d: Date) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+
+/** Pente en % avec son signe : « +4,4 % », « −3,2 % ». */
+export const slope = (g: number) => `${g < -0.05 ? '−' : g > 0.05 ? '+' : ''}${nf1(Math.abs(g))} %`
