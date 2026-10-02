@@ -33,7 +33,7 @@ export function PointForm({ initial, isNew, onSave, onDelete, onClose, maxKm }: 
         <Field label="Kilomètre"><Num value={p.km} min={0} max={maxKm} step={1} onChange={v => setP({ ...p, km: v ?? 0 })} /></Field>
         <Field label="Annoncer (km avant)"><Num value={p.avant} min={0} step={1} onChange={v => setP({ ...p, avant: v ?? 0 })} /></Field>
       </div>
-      <Field label="Message affiché" hint="Un danger s'affiche en alerte critique, une eau ou un ravito en action, une note en info.">
+      <Field label="Message affiché">
         <input value={p.text} maxLength={80} placeholder="Ex. station 24 h/24, remplir les 2 bidons" onChange={e => setP({ ...p, text: e.target.value })} />
       </Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
@@ -73,23 +73,21 @@ export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, 
         <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
       </div>
       <p className="muted" style={{ marginBottom: 12 }}>{statsLine(sectionStats(route, a, b))}</p>
-      <Field label="Cible" hint={unit === 'hr' ? 'Une zone suffit : pas besoin de chiffres.' : 'Choisis une zone, ou règle la fourchette toi-même.'}>
+      <Field label="Cible">
         <select value={zone} onChange={e => pick(e.target.value)}>
           <option value="perso">Personnalisée</option>
           {zones.map((z, i) => <option key={z.n} value={i}>{z.n} · {z.l}</option>)}
         </select>
       </Field>
       {noBpm ? (
-        <p className="notice" style={{ marginBottom: 12 }}>Renseigne ta FC seuil dans les réglages pour voir et saisir les bpm. Le choix par zone fonctionne déjà.</p>
+        <p className="notice" style={{ marginBottom: 12 }}>FC seuil à renseigner dans les réglages pour saisir des bpm.</p>
       ) : (
         <div className="cols2">
           <Field label={`Cible min (${u})`}><Num value={pctToValue(mn, unit, ftp, lthr)} step={unit === 'hr' ? 1 : 5} onChange={v => setVal('min', v)} /></Field>
           <Field label={`Cible max (${u})`}><Num value={pctToValue(mx, unit, ftp, lthr)} step={unit === 'hr' ? 1 : 5} onChange={v => setVal('max', v)} /></Field>
         </div>
       )}
-      <p className="muted" style={{ marginBottom: 12 }}>
-        Remplace les règles de base sur {nf1(b - a)} km : {W[0]}–{W[1]} W{B[0] != null ? ` · ${B[0]}–${B[1]} bpm` : ''}.
-      </p>
+      {(unit === 'hr' ? true : B[0] != null) && <p className="muted" style={{ marginBottom: 12 }}>{unit === 'hr' ? `${W[0]}–${W[1]} W` : `${B[0]}–${B[1]} bpm`}</p>}
       <Field label="Consigne à l'annonce"><input value={s.msg} maxLength={80} placeholder="Ex. mange maintenant, reste assis" onChange={e => setS({ ...s, msg: e.target.value })} /></Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
     </form>
@@ -123,7 +121,7 @@ export function AlertForm({ initial, isNew, onSave, onDelete, onClose }: FormPro
       <Field label="Priorité">
         <select value={a.prio} onChange={e => setA({ ...a, prio: e.target.value as Prio })}>{Object.entries(PRIO_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
       </Field>
-      <Field label="Alors afficher" hint="{min} et {max} donnent la cible du moment, {val} la valeur mesurée.">
+      <Field label="Alors afficher" hint="{min} {max} : cible · {val} : mesure">
         <input value={a.msg} maxLength={70} onChange={e => setA({ ...a, msg: e.target.value })} />
       </Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />

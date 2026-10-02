@@ -34,10 +34,10 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   return (
     <>
       <div>
-        {route ? <Check s="ok" t={`Parcours : ${route.name}`} sm={`${nf1(route.total / 1000)} km, ${points.length} points, ${sections.length} sections`} /> : <Check s="wa" t="Aucun parcours chargé" sm="Les mesures et rappels marchent, pas les annonces du parcours." />}
-        {bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Utilise Chrome sur Android, en HTTPS." />}
-        {geo ? <Check s="ok" t="Position GPS disponible" sm="Le suivi démarre avec la sortie." /> : <Check s="ko" t="Position indisponible" />}
-        {wl ? <Check s="ok" t="Écran maintenu allumé pendant la sortie" /> : <Check s="wa" t="Maintien de l'écran non pris en charge" sm="Désactive la mise en veille du téléphone avant de partir." />}
+        {route ? <Check s="ok" t={`Parcours : ${route.name}`} sm={`${nf1(route.total / 1000)} km, ${points.length} points, ${sections.length} sections`} /> : <Check s="wa" t="Aucun parcours chargé" />}
+        {bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}
+        {geo ? <Check s="ok" t="Position GPS disponible" /> : <Check s="ko" t="Position indisponible" />}
+        {wl ? <Check s="ok" t="Écran maintenu allumé pendant la sortie" /> : <Check s="wa" t="Maintien de l'écran non pris en charge" sm="Désactive la mise en veille du téléphone" />}
       </div>
 
       <h2 className="h2">Capteurs</h2>
@@ -54,20 +54,18 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
           ) : <button key={k} className="btn" disabled={!bt} onClick={() => void connect(k)}><Icon name="plus" size={20} />Capteur de {SENSORS[k].n.toLowerCase()}</button>
         })}
       </div>
-      <p className="muted" style={{ margin: '8px 0 12px', fontSize: 14 }}>Sans capteur de puissance, la cible passe en battements par minute dès que la ceinture cardio est connectée.</p>
-      <Field label="Circonférence de roue (mm)" hint="2146 mm pour un pneu 700 × 30. Pour plus de précision, mesure un tour de roue au sol, en charge."><Num value={wheel} min={1000} max={3000} onChange={v => v && set({ wheel: v })} /></Field>
+      <Field label="Circonférence de roue (mm)" hint="2146 mm = pneu 700 × 30"><Num value={wheel} min={1000} max={3000} onChange={v => v && set({ wheel: v })} /></Field>
 
       <h2 className="h2">Sortie</h2>
       <div className="stack">
         <button className="btn primary big" onClick={() => onStart('live')}>{resume ? 'Reprendre la sortie' : 'Démarrer la sortie'}</button>
         {resume && <button className="btn" onClick={() => { ride.newRide(); bump(n => n + 1); toast('Nouvelle sortie prête.') }}>Nouvelle sortie</button>}
       </div>
-      <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>Pendant la sortie : appui long sur le bord droit = « Fait » (valide le rappel), glisser sur ce bord = écran suivant, appui long de 1,5 s sur le bord gauche = quitter. Garde ton GPS pour la navigation, ce téléphone dit comment courir.</p>
+      <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>Bord droit : appui long = Fait, glisser = écran suivant. Bord gauche : maintenir = quitter.</p>
 
       <details className="fold">
         <summary>Répéter la sortie (simulation)</summary>
         <div>
-          <p className="muted" style={{ marginBottom: 12 }}>Un coureur virtuel suit ton parcours dans la vraie vue de course, pour juger la lisibilité chez toi.</p>
           <div className="cols2">
             <Field label="Vitesse"><select value={opts.speed} onChange={e => upd({ speed: +e.target.value })}><option value={10}>× 10</option><option value={30}>× 30</option><option value={60}>× 60</option><option value={120}>× 120</option></select></Field>
             <Field label="Coureur"><select value={opts.behavior} onChange={e => upd({ behavior: +e.target.value })}><option value={0.1}>Discipliné</option><option value={0.3}>Normal</option><option value={0.8}>Fougueux</option></select></Field>
@@ -81,7 +79,6 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
       <details className="fold">
         <summary>Transférer le plan</summary>
         <div>
-          <p className="muted" style={{ marginBottom: 12 }}>Copie le plan ici pour le coller dans une autre page ou sur un autre téléphone.</p>
           <Field label="Plan"><textarea value={xfer} onChange={e => setXfer(e.target.value)} placeholder="Le texte du plan apparaît ici" spellCheck={false} /></Field>
           <div className="row">
             <button className="btn" onClick={() => { const c = useStore.getState(); const { route: r, set: _s, setRoute: _r, loadDemo: _l, detectClimbs: _d, replaceAll: _a, ...cfg } = c; setXfer(exportPlan(cfg, r)); toast('Plan généré : copie le texte.') }}>Exporter</button>

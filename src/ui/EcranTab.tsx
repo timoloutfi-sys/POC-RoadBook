@@ -27,7 +27,6 @@ export function EcranTab() {
 
   return (
     <>
-      <p className="muted" style={{ marginBottom: 12 }}>Crée plusieurs écrans (plat, montée, nuit…). En course, glisse le pouce sur le bord droit pour changer d'écran.</p>
       <div className="stack">
         {screens.map(s => (
           <button key={s.id} className="card" onClick={() => setEditId(s.id)}>
@@ -40,7 +39,6 @@ export function EcranTab() {
       <AlertsSection />
       {creating && (
         <Sheet title="Nouvel écran" onClose={() => setCreating(false)}>
-          <p className="muted" style={{ marginBottom: 12 }}>Pars d'un modèle ou d'un écran vide.</p>
           <div className="stack">
             {(Object.keys(TEMPLATES) as (keyof typeof TEMPLATES)[]).map(k => <button key={k} className="btn" onClick={() => add(k)}>{TEMPLATES[k].n}</button>)}
             <button className="btn" onClick={() => add('vide')}>Écran vide</button>
@@ -68,7 +66,6 @@ export function EcranTab() {
           <div className="seg" role="group" aria-label="Aperçu du thème"><button aria-pressed={tone === 0} onClick={() => setTone(0)}>Jour</button><button aria-pressed={tone === 1} onClick={() => setTone(1)}>Nuit</button></div>
         </div>
         <ScaledDevice className="edit-dev" items={screen.items} data={previewData(src)} tone={tone} editable onChange={items => upd(screen.id, { items })} />
-        <p className="muted" style={{ margin: '8px 0 12px', fontSize: 14 }}>Glisse un widget pour le déplacer, tire son coin pour l'agrandir.</p>
         <div className="row">
           <button className="btn primary" onClick={() => setAdding(true)}><Icon name="plus" size={20} />Ajouter un widget</button>
           {!isStart && <button className="btn" onClick={() => { set({ activeScreen: screen.id }); toast('Écran de départ défini.') }}>Écran de départ</button>}

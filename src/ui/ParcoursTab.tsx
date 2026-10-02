@@ -45,7 +45,7 @@ export function ParcoursTab() {
 
   if (!route) return (
     <>
-      <p className="muted" style={{ marginBottom: 16 }}>Importe le GPX de ta course (Komoot, Ride with GPS, Strava). Le tracé n'est jamais modifié : tu l'annotes avec des points d'eau, des dangers et des sections.</p>
+      <p className="muted" style={{ marginBottom: 16 }}>Importe le GPX de ta course.</p>
       <div className="stack">
         <button className="btn primary big" onClick={() => file.current?.click()}>Importer un GPX</button>
         <button className="btn" onClick={() => { loadDemo(); toast('Boucle démo chargée avec quelques annotations.') }}>Essayer avec la boucle démo</button>
@@ -71,7 +71,6 @@ export function ParcoursTab() {
       <ProfileChart route={route} sections={sections} points={points} onLongPress={setHere}
         onMove={(id, km) => set({ points: points.map(x => (x.id === id ? { ...x, km } : x)) })}
         onTapPoint={id => { const v = points.find(x => x.id === id); if (v) setEdit({ kind: 'point', v, isNew: false }) }} />
-      <p className="muted" style={{ fontSize: 14, margin: '4px 0 12px' }}>Survole (ou glisse le doigt sur) le profil pour lire km, altitude et pente. Glisse un point pour le déplacer, touche-le pour le modifier. Appui long pour ajouter un point ou une section.</p>
 
       <h2 className="h2">Points · {points.length}</h2>
       <ul className="list">
@@ -80,7 +79,7 @@ export function ParcoursTab() {
             <Icon name={p.type} /><span className="km">km {nf1(p.km)}</span><span className="t">{p.text || POINT_TYPES[p.type].n}</span>
           </button></li>
         ))}
-        {!sorted.length && <li className="muted" style={{ padding: '12px 0' }}>Aucun point pour l'instant.</li>}
+        {!sorted.length && <li className="muted" style={{ padding: '12px 0' }}>Aucun point.</li>}
       </ul>
       <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newPoint(0))}><Icon name="plus" size={20} />Ajouter un point</button>
 
@@ -92,7 +91,7 @@ export function ParcoursTab() {
             <span className="t">{s.name}<small>{sectionLine(s)}</small><small>{statsLine(sectionStats(route, s.a, s.b))}</small></span>
           </button></li>
         ))}
-        {!sections.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune section. Pose-en une ou détecte les montées.</li>}
+        {!sections.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune section.</li>}
       </ul>
       <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newSection(0))}><Icon name="plus" size={20} />Ajouter une section</button>
       {input}

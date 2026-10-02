@@ -127,11 +127,11 @@ function ProfileW({ d, sz }: { d: WidgetData; sz: Size }) {
 }
 
 
-function FuelW({ d, sz }: { d: WidgetData; sz: Size }) {
+function FuelW({ d }: { d: WidgetData }) {
   if (!d.fuel) return <><div className="lab">Rappel</div><div className="sub">Aucun rappel actif</div></>
   const s = d.fuel.s
   const when = s < 60 ? `${Math.round(s)} s` : `${Math.ceil(s / 60)} min`
-  return <><div className="lab wrap">{d.fuel.msg}</div><div className="val y"><small>dans</small> {when}</div>{sz === 'L' && <div className="sub dim">Appui long à droite : Fait</div>}</>
+  return <><div className="lab wrap">{d.fuel.msg}</div><div className="val y"><small>dans</small> {when}</div></>
 }
 
 export function Widget({ k, sz, d }: { k: WidgetItem['k']; sz: Size; d: WidgetData }) {
@@ -140,7 +140,7 @@ export function Widget({ k, sz, d }: { k: WidgetItem['k']; sz: Size; d: WidgetDa
     case 'target': return <TargetW d={d} sz={sz} />
     case 'next': return <NextW d={d} sz={sz} />
     case 'profile': return <ProfileW d={d} sz={sz} />
-    case 'fuel': return <FuelW d={d} sz={sz} />
+    case 'fuel': return <FuelW d={d} />
     case 'hr': return <><div className="lab">FC</div><div className="val">{d.hr == null ? '--' : nf0(d.hr)}<small>bpm</small></div>{sz !== 'S' && <Spark arr={d.hrHist} />}</>
     case 'cad': return <><div className="lab">Cadence</div><div className="val">{d.cad == null ? '--' : nf0(d.cad)}<small>rpm</small></div></>
     case 'speed': return <><div className="lab">Vitesse</div><div className="val">{nf1(d.speed)}<small>km/h</small></div></>

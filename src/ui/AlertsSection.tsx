@@ -20,7 +20,6 @@ export function AlertsSection() {
     <details className="fold">
       <summary>Alertes et rappels</summary>
       <div>
-        <p className="muted" style={{ marginBottom: 8 }}>Une alerte colore les bords et le widget concerné, sans bandeau. Elle ne se répète pas avant son délai.</p>
         <ul className="list">
           {alerts.map(a => (
             <li key={a.id}>
@@ -47,7 +46,6 @@ export function AlertsSection() {
           </div>
         ))}
         <button className="btn" onClick={() => set({ periodic: [...periodic, { id: uid(), on: true, every: 30, msg: 'Sel : une pastille', prio: 'info' }] })}>Nouveau rappel</button>
-        <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>L'intervalle compte en minutes de roulage.</p>
       </div>
       {edit && (
         <Sheet title={edit.isNew ? 'Nouvelle alerte' : "Modifier l'alerte"} onClose={() => setEdit(null)}>
