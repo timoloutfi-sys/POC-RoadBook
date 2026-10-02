@@ -1,37 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ride, type RideSource } from './ride/controller'
+import { useStore } from './storage/store'
+import { EcranTab } from './ui/EcranTab'
+import { Icon, type IconName } from './ui/icons'
 import { ParcoursTab } from './ui/ParcoursTab'
+import { PlanTab } from './ui/PlanTab'
+import { ProfileSheet } from './ui/ProfileSheet'
+import { RideView } from './ui/RideView'
+import { RoulerTab } from './ui/RoulerTab'
+import { Toaster } from './ui/toast'
 
-const TABS = [
-  { id: 'parcours', n: 'Parcours' },
-  { id: 'plan', n: 'Plan' },
-  { id: 'ecran', n: 'Écran' },
-  { id: 'rouler', n: 'Rouler' },
-] as const
-type TabId = (typeof TABS)[number]['id']
-
-const SOON: Record<Exclude<TabId, 'parcours'>, string> = {
-  plan: "L'assistant de stratégie arrive à l'étape 3 : une question, un plan, des ajustements par zone.",
-  ecran: "L'éditeur de l'écran de course et les alertes arrivent à l'étape 2.",
-  rouler: 'Capteurs, sortie et répétition simulée arrivent à l’étape 2.',
-}
+const TABS: { id: string; n: string; icon: IconName }[] = [
+  { id: 'parcours', n: 'Parcours', icon: 'route' },
+  { id: 'plan', n: 'Plan', icon: 'plan' },
+  { id: 'ecran', n: 'Écran', icon: 'screen' },
+  { id: 'rouler', n: 'Rouler', icon: 'ride' },
+]
+const TITLES: Record<string, string> = { parcours: 'Parcours', plan: 'Plan', ecran: 'Écrans de course', rouler: 'Rouler' }
 
 export default function App() {
-  const [tab, setTab] = useState<TabId>('parcours')
+  const [tab, setTab] = useState('parcours')
+  const [riding, setRiding] = useState(false)
+  const [settings, setSettings] = useState(false)
+  const onboarded = useStore(s => s.onboarded)
+  const routeName = useStore(s => s.route?.name)
+
+  useEffect(() => { const a = document.querySelector('main'); a?.scrollTo({ top: 0 }) }, [tab])
+  const start = async (src: RideSource) => { setRiding(true); await ride.start(src) }
+  const exit = () => { ride.stop(); setRiding(false) }
+
   return (
     <div className="app">
+      <header className="topbar">
+        <h1>{tab === 'parcours' && routeName ? 'Parcours' : TITLES[tab]}</h1>
+        <button className="iconbtn" aria-label="Profil et réglages" onClick={() => setSettings(true)}><Icon name="settings" /></button>
+      </header>
       <main>
-        {tab === 'parcours' ? <ParcoursTab /> : (
-          <>
-            <h1 className="title">{TABS.find(t => t.id === tab)!.n}</h1>
-            <p className="muted">{SOON[tab]}</p>
-          </>
-        )}
+        {tab === 'parcours' && <ParcoursTab />}
+        {tab === 'plan' && <PlanTab />}
+        {tab === 'ecran' && <EcranTab />}
+        {tab === 'rouler' && <RoulerTab onStart={start} />}
       </main>
       <nav className="nav" aria-label="Sections">
-        {TABS.map(t => (
-          <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}>{t.n}</button>
-        ))}
+        {TABS.map(t => <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}><Icon name={t.icon} />{t.n}</button>)}
       </nav>
+      {(settings || !onboarded) && <ProfileSheet first={!onboarded} onClose={() => setSettings(false)} />}
+      {riding && <RideView onExit={exit} />}
+      <Toaster />
     </div>
   )
 }

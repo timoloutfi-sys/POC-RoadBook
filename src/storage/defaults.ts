@@ -3,25 +3,30 @@ import { uid } from '../core/format'
 import { defaultRider, type Rider } from '../strategy/rider'
 import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
 
-export type WidgetKind = 'power' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time'
+export type WidgetKind = 'effort' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time' | 'clock'
 export interface WidgetItem { id: string; k: WidgetKind; x: number; y: number; w: number; h: number }
 
 export const COLS = 6
 export const ROWS = 3
 
 export const WIDGETS: Record<WidgetKind, string> = {
-  power: 'Puissance', target: 'Cible', hr: 'FC', cad: 'Cadence', speed: 'Vitesse',
-  next: 'Prochain événement', profile: 'Profil à venir', fuel: 'Rappel', dist: 'Distance', time: 'Temps',
+  effort: 'Effort', target: 'Cible', hr: 'FC', cad: 'Cadence', speed: 'Vitesse',
+  next: 'Prochain événement', profile: 'Profil à venir', fuel: 'Rappel', dist: 'Distance', time: 'Temps', clock: 'Heure et arrivée',
 }
 
 type Tpl = [WidgetKind, number, number, number, number][]
 export const TEMPLATES: Record<'ultra' | 'clm' | 'tri', { n: string; items: Tpl }> = {
-  ultra: { n: 'Ultra', items: [['power', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['dist', 4, 2, 2, 1]] },
-  clm: { n: 'Contre-la-montre', items: [['power', 0, 0, 3, 2], ['speed', 3, 0, 3, 1], ['cad', 3, 1, 1, 1], ['hr', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
-  tri: { n: 'Triathlon', items: [['power', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 3, 1], ['time', 3, 2, 3, 1]] },
+  ultra: { n: 'Ultra', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['dist', 4, 2, 2, 1]] },
+  clm: { n: 'Contre-la-montre', items: [['effort', 0, 0, 3, 2], ['speed', 3, 0, 3, 1], ['cad', 3, 1, 1, 1], ['hr', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
+  tri: { n: 'Triathlon', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 3, 1], ['time', 3, 2, 3, 1]] },
 }
 export const mkLayout = (k: keyof typeof TEMPLATES): WidgetItem[] =>
   TEMPLATES[k].items.map(([kind, x, y, w, h]) => ({ id: uid(), k: kind, x, y, w, h }))
+
+/** Un écran de course : une disposition nommée de widgets. */
+export interface ScreenDef { id: string; name: string; items: WidgetItem[] }
+
+export type RideTheme = 'auto' | 'day' | 'night'
 
 export const defaultAlerts = (): AlertRule[] => [
   { id: uid(), on: true, name: 'Trop fort', metric: 'effort', op: '>', ref: 'max', val: 0, dur: 30, cool: 3, prio: 'action', msg: 'Trop fort : reviens sous {max}' },
@@ -44,12 +49,38 @@ export interface Config {
   alerts: AlertRule[]
   periodic: Periodic[]
   maxPerHour: number
-  layout: WidgetItem[]
+  screens: ScreenDef[]
+  activeScreen: string
+  rideTheme: RideTheme
   /** Le profil coureur a été rempli une première fois. */
   onboarded: boolean
 }
 
-export const defaultConfig = (): Config => ({
-  rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
-  alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10, layout: mkLayout('ultra'), onboarded: false,
-})
+export const defaultConfig = (): Config => {
+  const main: ScreenDef = { id: uid(), name: 'Principal', items: mkLayout('ultra') }
+  return {
+    rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
+    alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
+    screens: [main], activeScreen: main.id, rideTheme: 'auto', onboarded: false,
+  }
+}
+
+/**
+ * Remet une configuration relue (ancien format compris) dans la forme actuelle :
+ * l'ancienne `layout` devient l'écran « Principal », « power » devient « effort ».
+ */
+export function migrateConfig(c: Config & { layout?: WidgetItem[] }): Config {
+  const base = defaultConfig()
+  const out: Config = { ...base, ...c, rider: { ...base.rider, ...c.rider }, base: { ...base.base, ...c.base } }
+  if (!out.screens?.length || c.screens === undefined) {
+    const items = c.layout?.length ? c.layout : mkLayout('ultra')
+    out.screens = [{ id: uid(), name: 'Principal', items }]
+  }
+  out.screens = out.screens.map(sc => ({
+    ...sc,
+    items: sc.items.map(it => ((it.k as string) === 'power' ? { ...it, k: 'effort' as const } : it)),
+  }))
+  if (!out.screens.some(sc => sc.id === out.activeScreen)) out.activeScreen = out.screens[0].id
+  delete (out as Config & { layout?: unknown }).layout
+  return out
+}

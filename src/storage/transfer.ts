@@ -1,5 +1,5 @@
 import { buildRoute, serializeRoute, type Route } from '../route/route'
-import { defaultConfig, type Config } from './defaults'
+import { defaultConfig, migrateConfig, type Config } from './defaults'
 
 export interface Snapshot { v: 2; cfg: Config; route: ReturnType<typeof serializeRoute> | null }
 
@@ -15,7 +15,7 @@ export function importPlan(text: string): { cfg: Config; route: Route | null } {
   if (!d || typeof d !== 'object' || !d.cfg) throw new Error('Texte illisible : colle un plan exporté par Road book.')
   const base = defaultConfig()
   let cfg: Config
-  if (d.v === 2) cfg = { ...base, ...d.cfg, rider: { ...base.rider, ...d.cfg.rider } }
+  if (d.v === 2) cfg = migrateConfig(d.cfg)
   else {
     const o = d.cfg
     cfg = {
@@ -27,9 +27,9 @@ export function importPlan(text: string): { cfg: Config; route: Route | null } {
       points: o.points ?? [],
       periodic: o.periodic ?? base.periodic,
       maxPerHour: o.maxPerHour ?? base.maxPerHour,
-      layout: o.layout ?? base.layout,
       onboarded: true,
     }
+    cfg = migrateConfig({ ...cfg, layout: o.layout } as Config)
   }
   const route = d.route ? buildRoute(d.route.name, d.route.pts.map((p: number[]) => ({ lat: p[0], lon: p[1], ele: p[2] }))) : null
   return { cfg, route }

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { buildRoute, demoPoints, deserializeRoute, findClimbs, serializeRoute, type Route } from '../route/route'
 import { nf1, uid } from '../core/format'
-import { defaultConfig, type Config } from './defaults'
+import { defaultConfig, migrateConfig, type Config } from './defaults'
 
 const KEY_CFG = 'roadbook-v2-cfg'
 const KEY_ROUTE = 'roadbook-v2-route'
@@ -20,7 +20,7 @@ function load(): { cfg: Config; route: Route | null } {
   let route: Route | null = null
   try {
     const c = JSON.parse(localStorage.getItem(KEY_CFG) ?? 'null')
-    if (c) Object.assign(cfg, c, { rider: { ...cfg.rider, ...c.rider }, base: { ...cfg.base, ...c.base } })
+    if (c) Object.assign(cfg, migrateConfig(c))
     const r = JSON.parse(localStorage.getItem(KEY_ROUTE) ?? 'null')
     if (r) route = deserializeRoute(r)
   } catch { /* stockage illisible ou indisponible : on repart des valeurs par défaut */ }

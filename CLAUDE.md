@@ -25,7 +25,7 @@ Phase actuelle : valider l'usage avec un **téléphone en paysage** comme second
 Migration en cours du prototype (`legacy/roadbook-poc.html`, gardé comme référence jusqu'à parité) vers **Vite + React + TypeScript**, en PWA, ciblée **Chrome sur Android**. Plan validé, livré en 4 étapes :
 
 1. **Socle** (fait) : React, PWA, mise en ligne GitHub Pages, Impeccable, calculs portés en modules testés. Coquille à 4 onglets, seul Parcours fonctionne.
-2. **Navigation et vue de course** : maquettes Impeccable `shape` validées avec l'utilisateur, puis développement. Onglets Parcours, Plan, Écran (disposition + alertes), Rouler (capteurs, sortie, répétition simulée).
+2. **Navigation et vue de course** (fait) : barre de 4 onglets en bas (Parcours, Plan, Écran, Rouler), profil coureur au premier lancement, écrans de course modulaires et sauvegardés (plusieurs écrans nommés, éditeur par glisser-déposer, aperçu fidèle jour/nuit, watts/cardio), vue de course plein écran paysage avec thème jour/nuit selon le soleil, gestes sur les bandes de 24 px (appui long droite = Fait, glisser = écran suivant, appui long gauche 1,5 s = quitter), alertes et rappels dans l'onglet Écran, Rouler (capteurs, démarrer, répéter la sortie). L'onglet Plan est un emplacement.
 3. **Assistant Plan et algorithme** : une question (Sortie tranquille, Entraînement, Course, temps visé en option), plan immédiat, ajustement du temps par zone par − / +. L'algorithme place les efforts là où chaque watt fait gagner le plus de temps (`secondsPerWatt`), en puissance ou en cardio.
 4. **Passe `polish`** et réglages après essai sur le vélo.
 
@@ -35,7 +35,7 @@ L'ancien générateur `computePlan` n'est volontairement pas porté : il est rem
 
 Code dans `src/` :
 
-- `core/` : formats fr-FR, utilitaires.
+- `core/` : formats fr-FR, utilitaires, degré de nuit (`nightAmount`, fondu de 15 min).
 - `route/` : lecture GPX, rééchantillonnage tous les 50 m, lissage, pentes, montées, boucle démo.
 - `physics/` : modèle physique, vitesse pour une puissance, secondes gagnées par watt.
 - `strategy/` : profil coureur (FTP et FC seuil facultatives, estimées sinon), zones puissance (7) et cardio (5), correspondance entre les deux, dérive cardiaque, cible à un point donné (`targetAt`, sections > règles de base), lever et coucher du soleil.
@@ -43,8 +43,9 @@ Code dans `src/` :
 - `sensors/` : décodage des trames Bluetooth (pur, testé) et `SensorHub` (connexion, reconnexion).
 - `gps/` : recalage sur le parcours (locale, puis globale au-delà de 150 m).
 - `sim/` : coureur virtuel.
-- `storage/` : configuration par défaut, store zustand sauvegardé en localStorage, export et import (lit aussi l'ancien format).
-- `ui/` : composants React.
+- `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
+- `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.
+- `ui/` : composants React. `Device` = grille 6 × 3 d'un écran, `widgets.tsx` = les widgets (tailles S, M, L), `RideView` = vue de course et gestes, `ScaledDevice` = aperçu fidèle à 844 px réduit, `device.css` = tons jour/nuit mélangés par `--n`.
 
 Commandes : `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Chaque push lance tests et build, puis publie sur GitHub Pages (`.github/workflows/deploy.yml`).
 
