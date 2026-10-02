@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { buildRoute, demoPoints, deserializeRoute, findClimbs, serializeRoute, type Route } from '../route/route'
 import { nf1, uid } from '../core/format'
+import type { PlanResult } from '../strategy/plan'
 import { defaultConfig, migrateConfig, type Config } from './defaults'
 
 const KEY_CFG = 'roadbook-v2-cfg'
@@ -13,6 +14,9 @@ interface AppState extends Config {
   loadDemo: () => void
   detectClimbs: () => number
   replaceAll: (cfg: Config, route: Route | null) => void
+  /** Remplace ce qu'un plan a généré (sections, points, rappels, règles de base) ; le travail manuel reste. */
+  applyPlan: (r: Pick<PlanResult, 'sections' | 'points' | 'periodic' | 'base'>) => void
+  clearPlan: () => void
 }
 
 function load(): { cfg: Config; route: Route | null } {
@@ -69,6 +73,16 @@ export const useStore = create<AppState>((set, get) => ({
     return found.length
   },
   replaceAll: (cfg, route) => set({ ...cfg, route }),
+  applyPlan: r => {
+    const c = get()
+    set({
+      sections: [...c.sections.filter(s => !s.gen && !s.auto), ...r.sections].sort((a, b) => a.a - b.a),
+      points: [...c.points.filter(p => !p.gen), ...r.points],
+      periodic: [...c.periodic.filter(p => !p.auto), ...r.periodic],
+      base: r.base,
+    })
+  },
+  clearPlan: () => { const c = get(); set({ plan: null, sections: c.sections.filter(s => !s.gen), points: c.points.filter(p => !p.gen), periodic: c.periodic.filter(p => !p.auto), base: defaultConfig().base }) },
 }))
 
 // Sauvegarde différée : la config à chaque changement, le parcours seulement s'il change.
@@ -78,7 +92,7 @@ useStore.subscribe(s => {
   clearTimeout(saveT)
   saveT = setTimeout(() => {
     try {
-      const { route, set: _a, setRoute: _b, loadDemo: _c, detectClimbs: _d, replaceAll: _e, ...cfg } = s
+      const { route, set: _a, setRoute: _b, loadDemo: _c, detectClimbs: _d, replaceAll: _e, applyPlan: _f, clearPlan: _g, ...cfg } = s
       localStorage.setItem(KEY_CFG, JSON.stringify(cfg))
       if (route !== savedRoute) {
         savedRoute = route

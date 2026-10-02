@@ -26,7 +26,7 @@ Migration en cours du prototype (`legacy/roadbook-poc.html`, gardé comme réfé
 
 1. **Socle** (fait) : React, PWA, mise en ligne GitHub Pages, Impeccable, calculs portés en modules testés. Coquille à 4 onglets, seul Parcours fonctionne.
 2. **Navigation et vue de course** (fait) : barre de 4 onglets en bas (Parcours, Plan, Écran, Rouler), profil coureur au premier lancement, écrans de course modulaires et sauvegardés (plusieurs écrans nommés, éditeur par glisser-déposer, aperçu fidèle jour/nuit, watts/cardio), vue de course plein écran paysage avec thème jour/nuit selon le soleil, gestes sur les bandes de 24 px (appui long droite = Fait, glisser = écran suivant, appui long gauche 1,5 s = quitter), alertes et rappels dans l'onglet Écran, Rouler (capteurs, démarrer, répéter la sortie). L'onglet Plan est un emplacement.
-3. **Assistant Plan et algorithme** : une question (Sortie tranquille, Entraînement, Course, temps visé en option), plan immédiat, ajustement du temps par zone par − / +. L'algorithme place les efforts là où chaque watt fait gagner le plus de temps (`secondsPerWatt`), en puissance ou en cardio.
+3. **Assistant Plan et algorithme** (fait) : une question (Sortie tranquille, Entraînement, Course, temps visé en option), plan immédiat, ajustement du temps par zone par − / +. L'algorithme place les efforts là où chaque watt fait gagner le plus de temps (`secondsPerWatt`), en puissance ou en cardio.
 4. **Passe `polish`** et réglages après essai sur le vélo.
 
 L'ancien générateur `computePlan` n'est volontairement pas porté : il est remplacé à l'étape 3. L'analyse par Claude est mise de côté.
@@ -42,6 +42,7 @@ Code dans `src/` :
 - `alerts/` : moteur (`evalRun`) avec la métrique `effort` (puissance si capteur, sinon FC, avec délai de stabilisation), sévérité lissée, plafond horaire, annonces, rappels.
 - `sensors/` : décodage des trames Bluetooth (pur, testé) et `SensorHub` (connexion, reconnexion).
 - `gps/` : recalage sur le parcours (locale, puis globale au-delà de 150 m).
+- `strategy/plan.ts` + `pacing.ts` : `computePlan` (3 modes : sortie tranquille, entraînement, course). Course = allure qui minimise le temps pour une puissance normalisée donnée (minimise t·(κ + x⁴) par pente, solveur par bissection), temps visé ou intensité tenable selon la durée. Blocs Z3/Z4/Z5 placés sur les montées régulières, plafonnés (`blockLimit`) ; en cardio pas de Z5. Génère sections, points d'eau, nuit, rappels ; appliqué automatiquement par l'onglet Plan (`applyPlan` remplace ce qui est `gen`/`auto`, le manuel reste).
 - `sim/` : coureur virtuel.
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.

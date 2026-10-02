@@ -1,6 +1,7 @@
 import type { AlertRule, Periodic } from '../alerts/types'
 import { uid } from '../core/format'
 import { defaultRider, type Rider } from '../strategy/rider'
+import type { PlanCfg } from '../strategy/plan'
 import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
 
 export type WidgetKind = 'effort' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time' | 'clock'
@@ -52,6 +53,8 @@ export interface Config {
   screens: ScreenDef[]
   activeScreen: string
   rideTheme: RideTheme
+  /** Plan de course choisi dans l'onglet Plan ; null tant que rien n'est choisi. */
+  plan: PlanCfg | null
   /** Le profil coureur a été rempli une première fois. */
   onboarded: boolean
 }
@@ -61,7 +64,7 @@ export const defaultConfig = (): Config => {
   return {
     rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
     alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
-    screens: [main], activeScreen: main.id, rideTheme: 'auto', onboarded: false,
+    screens: [main], activeScreen: main.id, rideTheme: 'auto', plan: null, onboarded: false,
   }
 }
 

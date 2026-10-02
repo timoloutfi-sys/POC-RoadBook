@@ -81,7 +81,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
         <div>
           <Field label="Plan"><textarea value={xfer} onChange={e => setXfer(e.target.value)} placeholder="Le texte du plan apparaît ici" spellCheck={false} /></Field>
           <div className="row">
-            <button className="btn" onClick={() => { const c = useStore.getState(); const { route: r, set: _s, setRoute: _r, loadDemo: _l, detectClimbs: _d, replaceAll: _a, ...cfg } = c; setXfer(exportPlan(cfg, r)); toast('Plan généré : copie le texte.') }}>Exporter</button>
+            <button className="btn" onClick={() => { const c = useStore.getState(); const { route: r, set: _s, setRoute: _r, loadDemo: _l, detectClimbs: _d, replaceAll: _a, applyPlan: _p, clearPlan: _c, ...cfg } = c; setXfer(exportPlan(cfg, r)); toast('Plan généré : copie le texte.') }}>Exporter</button>
             <button className="btn" onClick={() => { try { const { cfg, route: r } = importPlan(xfer); useStore.getState().replaceAll(cfg, r); toast('Plan chargé.') } catch (e) { toast(e instanceof Error && e.message.includes('illisible') ? e.message : 'Texte illisible : colle un plan exporté par Road book.') } }}>Importer</button>
           </div>
         </div>
