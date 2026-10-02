@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { clamp, nf1 } from '../core/format'
 import { METRICS, PRIO_LABEL, type AlertRule, type Metric } from '../alerts/types'
 import { POINT_TYPES, type Prio, type PointType, type RoutePoint, type Section } from '../strategy/types'
+import { pctToValue, unitLabel, valueToPct } from '../strategy/units'
+import { HR_ZONES, POWER_ZONES, zoneBandPct, type Unit } from '../strategy/zones'
 import { Field, Num } from './fields'
 
 interface FormProps<T> { initial: T; isNew: boolean; onSave: (v: T) => void; onDelete?: () => void; onClose: () => void }
@@ -38,10 +40,26 @@ export function PointForm({ initial, isNew, onSave, onDelete, onClose, maxKm }: 
   )
 }
 
-export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, ftp }: FormProps<Section> & { maxKm: number; ftp: number }) {
+export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, unit, ftp, lthr }: FormProps<Section> & { maxKm: number; unit: Unit; ftp: number; lthr: number | null }) {
   const [s, setS] = useState(initial)
+  const zones = unit === 'power' ? POWER_ZONES : HR_ZONES
+  const [zone, setZone] = useState<string>(() => {
+    const k = zones.findIndex((_, i) => { const [lo, hi] = zoneBandPct(i, unit); return lo === initial.min && hi === initial.max })
+    return k >= 0 ? String(k) : 'perso'
+  })
+  const u = unitLabel(unit), noBpm = unit === 'hr' && !lthr
   const a = clamp(Math.min(s.a, s.b), 0, maxKm), b = clamp(Math.max(s.a, s.b), 0, maxKm)
   const mn = Math.min(s.min, s.max), mx = Math.max(s.min, s.max)
+  const pick = (z: string) => {
+    setZone(z)
+    if (z !== 'perso') { const [lo, hi] = zoneBandPct(+z, unit); setS({ ...s, min: lo, max: hi }) }
+  }
+  const setVal = (key: 'min' | 'max', v: number | null) => {
+    setZone('perso')
+    const pct = v == null ? null : valueToPct(v, unit, ftp, lthr)
+    if (pct != null) setS({ ...s, [key]: pct })
+  }
+  const W = [pctToValue(mn, 'power', ftp, lthr), pctToValue(mx, 'power', ftp, lthr)], B = [pctToValue(mn, 'hr', ftp, lthr), pctToValue(mx, 'hr', ftp, lthr)]
   return (
     <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: mn, max: mx, auto: false, gen: false, name: s.name.trim() || (s.kind === 'montee' ? 'Montée' : 'Tronçon') }) }}>
       <Field label="Nom"><input value={s.name} maxLength={60} placeholder="Ex. vallée exposée au vent" onChange={e => setS({ ...s, name: e.target.value })} /></Field>
@@ -52,10 +70,24 @@ export function SectionForm({ initial, isNew, onSave, onDelete, onClose, maxKm, 
         <Field label="Annoncer (km avant)"><Num value={s.avant} min={0} step={1} onChange={v => setS({ ...s, avant: v ?? 0 })} /></Field>
         <Field label="Du km"><Num value={s.a} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, a: v ?? 0 })} /></Field>
         <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
-        <Field label="Cible min (% FTP)"><Num value={s.min} step={1} onChange={v => setS({ ...s, min: v ?? 0 })} /></Field>
-        <Field label="Cible max (% FTP)"><Num value={s.max} step={1} onChange={v => setS({ ...s, max: v ?? 0 })} /></Field>
       </div>
-      <p className="muted" style={{ marginBottom: 12 }}>Sur ces {nf1(b - a)} km la cible devient {Math.round((mn * ftp) / 100)}–{Math.round((mx * ftp) / 100)} W et remplace les règles de base.</p>
+      <Field label="Cible" hint={unit === 'hr' ? 'Une zone suffit : pas besoin de chiffres.' : 'Choisis une zone, ou règle la fourchette toi-même.'}>
+        <select value={zone} onChange={e => pick(e.target.value)}>
+          <option value="perso">Personnalisée</option>
+          {zones.map((z, i) => <option key={z.n} value={i}>{z.n} · {z.l}</option>)}
+        </select>
+      </Field>
+      {noBpm ? (
+        <p className="notice" style={{ marginBottom: 12 }}>Renseigne ta FC seuil dans les réglages pour voir et saisir les bpm. Le choix par zone fonctionne déjà.</p>
+      ) : (
+        <div className="cols2">
+          <Field label={`Cible min (${u})`}><Num value={pctToValue(mn, unit, ftp, lthr)} step={unit === 'hr' ? 1 : 5} onChange={v => setVal('min', v)} /></Field>
+          <Field label={`Cible max (${u})`}><Num value={pctToValue(mx, unit, ftp, lthr)} step={unit === 'hr' ? 1 : 5} onChange={v => setVal('max', v)} /></Field>
+        </div>
+      )}
+      <p className="muted" style={{ marginBottom: 12 }}>
+        Remplace les règles de base sur {nf1(b - a)} km : {W[0]}–{W[1]} W{B[0] != null ? ` · ${B[0]}–${B[1]} bpm` : ''}.
+      </p>
       <Field label="Consigne à l'annonce"><input value={s.msg} maxLength={80} placeholder="Ex. mange maintenant, reste assis" onChange={e => setS({ ...s, msg: e.target.value })} /></Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
     </form>

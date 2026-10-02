@@ -49,3 +49,29 @@ export function hrRatioForPowerRatio(p: number) {
  * On élargit la borne haute de 3 bpm par heure, plafonné à 10 bpm.
  */
 export const hrDrift = (hours: number) => Math.min(10, Math.max(0, hours) * 3)
+
+/** Fraction de FTP attendue en régime stable pour une fraction de FC seuil (inverse de `hrRatioForPowerRatio`). */
+export function powerRatioForHrRatio(h: number) {
+  if (h <= HR[0]) return PW[0]
+  for (let i = 1; i < HR.length; i++) {
+    if (h <= HR[i]) {
+      const f = (h - HR[i - 1]) / (HR[i] - HR[i - 1])
+      return PW[i - 1] + f * (PW[i] - PW[i - 1])
+    }
+  }
+  return PW[PW.length - 1]
+}
+
+export type Unit = 'power' | 'hr'
+
+/** Bande d'une zone en % de FTP, quelle que soit l'unité dans laquelle on pilote (bornes extrêmes recadrées). */
+export function zoneBandPct(zone: number, unit: Unit): [number, number] {
+  if (unit === 'power') {
+    const z = POWER_ZONES[zone]
+    return [Math.max(40, Math.round(z.lo * 100)), Math.min(180, Math.round(z.hi * 100))]
+  }
+  const z = HR_ZONES[zone]
+  const lo = z.lo === 0 ? 45 : Math.round(powerRatioForHrRatio(z.lo) * 100)
+  const hi = Math.min(zone === 4 ? 120 : 999, Math.round(powerRatioForHrRatio(z.hi) * 100))
+  return [lo, hi]
+}

@@ -2,7 +2,9 @@ import { useRef, useState } from 'react'
 import { nf0, nf1, uid } from '../core/format'
 import { parseGPX } from '../route/gpx'
 import { buildRoute } from '../route/route'
-import { effectiveFtp } from '../strategy/rider'
+import { effectiveFtp, effectiveLthr, effortUnit } from '../strategy/rider'
+import { pctToValue, unitLabel } from '../strategy/units'
+import { hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
 import { POINT_TYPES, type RoutePoint, type Section } from '../strategy/types'
 import { useStore } from '../storage/store'
 import { PointForm, SectionForm } from './forms'
@@ -20,7 +22,12 @@ export function ParcoursTab() {
   const [edit, setEdit] = useState<Editing | null>(null)
   const [here, setHere] = useState<number | null>(null)
   const [menu, setMenu] = useState(false)
-  const ftp = effectiveFtp(rider), L = route ? route.total / 1000 : 0
+  const ftp = effectiveFtp(rider), lthr = effectiveLthr(rider), unit = effortUnit(rider), L = route ? route.total / 1000 : 0
+  const sectionLine = (s: Section) => {
+    const z0 = powerZoneOf((s.min + s.max) / 200), z = unit === 'power' ? z0 : hrZoneOfPowerZone(z0)
+    const lo = pctToValue(s.min, unit, ftp, lthr), hi = pctToValue(s.max, unit, ftp, lthr)
+    return `Z${z + 1} · ${lo != null ? `${lo}–${hi} ${unitLabel(unit)}` : 'FC seuil à renseigner'}`
+  }
 
   const onFile = async (f: File | undefined) => {
     if (!f) return
@@ -82,7 +89,7 @@ export function ParcoursTab() {
         {sections.map(s => (
           <li key={s.id}><button className="item" onClick={() => setEdit({ kind: 'section', v: s, isNew: false })}>
             <Icon name={s.kind === 'montee' ? 'montee' : 'route'} /><span className="km">{nf1(s.a)}–{nf1(s.b)}</span>
-            <span className="t">{s.name}<small>{s.min}–{s.max} % FTP · {Math.round((s.min * ftp) / 100)}–{Math.round((s.max * ftp) / 100)} W</small></span>
+            <span className="t">{s.name}<small>{sectionLine(s)}</small></span>
           </button></li>
         ))}
         {!sections.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune section. Pose-en une ou détecte les montées.</li>}
@@ -112,7 +119,7 @@ export function ParcoursTab() {
       )}
       {edit?.kind === 'section' && (
         <Sheet title={edit.isNew ? 'Nouvelle section' : 'Modifier la section'} onClose={() => setEdit(null)}>
-          <SectionForm initial={edit.v} isNew={edit.isNew} maxKm={L} ftp={ftp} onClose={() => setEdit(null)}
+          <SectionForm initial={edit.v} isNew={edit.isNew} maxKm={L} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
             onSave={v => { set({ sections: (edit.isNew ? [...sections, v] : sections.map(x => (x.id === v.id ? v : x))).sort((a, b) => a.a - b.a) }); setEdit(null) }}
             onDelete={() => { set({ sections: sections.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
         </Sheet>

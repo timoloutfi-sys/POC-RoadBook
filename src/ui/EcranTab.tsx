@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { WIDGETS, TEMPLATES, type WidgetKind, type ScreenDef } from '../storage/defaults'
 import { addWidget, createScreen, duplicateScreen, moveScreen, removeScreen } from '../storage/screens'
 import { useStore } from '../storage/store'
+import { effortUnit } from '../strategy/rider'
 import { previewData } from '../ride/data'
 import { AlertsSection } from './AlertsSection'
 import { ScaledDevice } from './ScaledDevice'
@@ -13,10 +14,10 @@ import { toast } from './toast'
 type Tpl = keyof typeof TEMPLATES | 'vide'
 
 export function EcranTab() {
-  const { screens, activeScreen, set } = useStore()
+  const { screens, activeScreen, rider, set } = useStore()
   const [editId, setEditId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
-  const [src, setSrc] = useState<'power' | 'hr'>('power')
+  const [src, setSrc] = useState<'power' | 'hr'>(effortUnit(rider))
   const [tone, setTone] = useState(1)
   const [adding, setAdding] = useState(false)
   const edit = screens.find(s => s.id === editId)

@@ -32,7 +32,9 @@ class Ride {
 
   /** Mesure qui pilote la cible : puissance si un capteur est connecté, sinon FC. */
   source(): EffortSource {
-    if (this.src === 'sim') return this.simOpts.noPower ? 'hr' : 'power'
+    const noPower = useStore.getState().rider.hasPower === false
+    if (this.src === 'sim') return this.simOpts.noPower || noPower ? 'hr' : 'power'
+    if (noPower) return 'hr'
     return !this.hub.connected('power') && this.hub.connected('hr') ? 'hr' : 'power'
   }
 

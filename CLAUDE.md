@@ -51,6 +51,8 @@ Commandes : `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run li
 
 ## Sans capteur de puissance
 
+Le profil coureur a un réglage « Je règle mes cibles en » (watts ou cardio). En cardio, les sections se règlent par zone (Z1 à Z5, sans aucun chiffre) ou par fourchette en bpm, et les listes s'affichent en bpm. Le plan stocke toujours en % de FTP (`units.ts` convertit dans les deux sens via la correspondance zones puissance/cardio).
+
 Le plan reste calculé en puissance (le modèle physique sert à placer les efforts et estimer les temps). La cible affichée bascule en bpm si aucun capteur de puissance n'est connecté. En cardio : pas d'effort de moins de 5 min, alertes après 2 min de stabilisation et 60 s minimum au-dessus du seuil, tolérance haute élargie de 3 bpm par heure (10 max).
 
 ## Design et UX : Impeccable
