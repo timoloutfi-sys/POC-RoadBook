@@ -24,13 +24,17 @@ Deux situations d'usage très différentes :
 
 ## Product Purpose
 
-Un second écran de stratégie vélo. **Le GPS dit où aller, cet écran dit comment courir.** Il exécute une stratégie préparée à l'avance : cibles d'effort selon le terrain (puissance, ou fréquence cardiaque sans capteur de puissance), annonces du parcours (eau, dangers, montées), rappels de nutrition, alertes de seuil.
+Un second écran de stratégie vélo, pour les longues sorties et les courses. **Le GPS dit où aller, cet écran dit comment courir.**
+
+L'outil sert à **préparer puis tenir un plan** :
+1. **En amont** : on construit son **road book** (points d'eau, ravitos, dangers, repères, rappels de nutrition, nuit) et ses **cibles** (une cible de base, un maximum plus haut en montée, des cibles par tronçon), seul ou avec une suggestion. Le modèle physique estime durée, heures d'arrivée et nuit à partir de ces cibles.
+2. **Pendant la sortie** : l'écran déroule le road book au bon moment, dit **où l'on en est par rapport au plan** (avance, retard, effort cumulé, FC ou puissance dans la cible) pour ne pas se cramer ni prendre du retard.
 
 Succès du POC : valider l'usage d'un téléphone en paysage comme second écran sur de vraies sorties, avant tout matériel dédié.
 
 ## Positioning
 
-La stratégie est calculée à partir du parcours lui-même : un algorithme place les efforts là où chaque watt fait gagner le plus de temps (montées, portions lentes) et fait récupérer là où il ne rapporte rien (descentes rapides). Le coureur choisit son intention et son temps par zone ; l'outil place les efforts et explique pourquoi.
+Les compteurs (Garmin, Wahoo, Bryton, Karoo) donnent des alertes et des cibles dans une petite fenêtre pensée pour la carte ; Best Bike Split et TrainingPeaks calculent des plans ; Komoot et Ride with GPS font la navigation. Aucun ne déroule **ton road book personnel et ton plan** sur un grand écran lisible, avec la logistique d'une longue distance (heures d'arrivée aux arrêts, nuit, avance ou retard sur le plan). L'outil est **flexible** : on peut tout régler soi-même, ou se faire suggérer un plan puis le retoucher. **L'algorithme suggère, il n'impose jamais.**
 
 ## Operating Context
 
@@ -62,8 +66,8 @@ La stratégie est calculée à partir du parcours lui-même : un algorithme plac
 ## Product Principles
 
 1. **Lisible à bout de bras** : en course, une information principale par zone, grands chiffres, aucun geste fin.
-2. **Simple par défaut, précis sur demande** : une question pour démarrer, les réglages experts repliés.
-3. **Chaque consigne s'explique** : le plan dit pourquoi un effort est placé à cet endroit.
+2. **Simple par défaut, précis sur demande** : cibles de base en trois lignes, détails repliés ; le coureur garde la main, la suggestion est un point de départ.
+3. **Un plan qui se tient** : tout est pensé pour savoir en course où l'on en est par rapport au plan.
 4. **Ne jamais distraire** : l'écran signale par la couleur, ne parle que quand c'est utile.
 5. **Le parcours appartient au coureur** : on annote, on ne trace pas.
 

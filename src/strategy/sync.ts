@@ -12,7 +12,7 @@ export function startPlanSync() {
   const run = () => {
     const s = useStore.getState()
     if (!s.route) { if (s.planResult) useStore.setState({ planResult: null }); return }
-    if (!s.plan) { useStore.setState({ plan: { ...defaultPlanCfg(), mode: 'tranquille' } }); return }
+    if (!s.plan) { useStore.setState({ plan: defaultPlanCfg() }); return }
     const r = computePlan({ route: s.route, body: s.rider, ftp: effectiveFtp(s.rider), unit: effortUnit(s.rider), cfg: s.plan })
     useStore.setState({ planResult: r })
     s.applyPlan(r)

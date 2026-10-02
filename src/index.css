@@ -137,3 +137,6 @@ details.fold > div { padding-bottom: 16px; }
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .modes .card { flex-direction: column; align-items: flex-start; gap: 2px; }
 .imp { display: flex; flex-direction: column; }
+
+.undo { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.undo .btn { min-height: 40px; }

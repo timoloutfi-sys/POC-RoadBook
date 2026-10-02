@@ -44,7 +44,7 @@ export interface PlanCfg {
 export const defaultPlanCfg = (): PlanCfg => {
   const d = new Date(); d.setHours(8, 0, 0, 0)
   const p = (n: number) => String(n).padStart(2, '0')
-  return { mode: 'entrainement', targetHours: null, intensity: null, manual: { plat: [65, 72], montee: [75, 90], descente: [0, 60], gUp: 3.5, gDown: -3 }, imposed: [], minutes: {}, start: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T08:00`, stops: null, water: 1.5, carbs: null, windKmh: 0, windFrom: 270, tempC: 15 }
+  return { mode: 'manuel', targetHours: null, intensity: null, manual: { plat: [65, 72], montee: [75, 90], descente: [0, 60], gUp: 3.5, gDown: -3 }, imposed: [], minutes: {}, start: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T08:00`, stops: null, water: 1.5, carbs: null, windKmh: 0, windFrom: 270, tempC: 15 }
 }
 
 /** Blocs d'effort : allure moyenne, bande, durée d'un bloc, récupération minimale (s), pas des boutons, plafonds. */

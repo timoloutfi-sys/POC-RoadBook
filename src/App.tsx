@@ -11,19 +11,18 @@ import { RoulerTab } from './ui/RoulerTab'
 import { Toaster } from './ui/toast'
 
 const TABS: { id: string; n: string; icon: IconName }[] = [
-  { id: 'parcours', n: 'Parcours', icon: 'route' },
-  { id: 'plan', n: 'Plan', icon: 'plan' },
+  { id: 'parcours', n: 'Road book', icon: 'route' },
+  { id: 'plan', n: 'Cibles', icon: 'plan' },
   { id: 'ecran', n: 'Écran', icon: 'screen' },
   { id: 'rouler', n: 'Rouler', icon: 'ride' },
 ]
-const TITLES: Record<string, string> = { parcours: 'Parcours', plan: 'Plan', ecran: 'Écrans de course', rouler: 'Rouler' }
+const TITLES: Record<string, string> = { parcours: 'Road book', plan: 'Cibles', ecran: 'Écrans de course', rouler: 'Rouler' }
 
 export default function App() {
   const [tab, setTab] = useState('parcours')
   const [riding, setRiding] = useState(false)
   const [settings, setSettings] = useState(false)
   const onboarded = useStore(s => s.onboarded)
-  const routeName = useStore(s => s.route?.name)
 
   useEffect(() => { const a = document.querySelector('main'); a?.scrollTo({ top: 0 }) }, [tab])
   const start = async (src: RideSource) => { setRiding(true); await ride.start(src) }
@@ -32,7 +31,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <h1>{tab === 'parcours' && routeName ? 'Parcours' : TITLES[tab]}</h1>
+        <h1>{TITLES[tab]}</h1>
         <button className="iconbtn" aria-label="Profil et réglages" onClick={() => setSettings(true)}><Icon name="settings" /></button>
       </header>
       <main>
