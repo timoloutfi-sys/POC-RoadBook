@@ -168,3 +168,5 @@ details.fold > div { padding-bottom: 16px; }
 .rb-sub { display: flex; margin-bottom: 12px; }
 .rb-sub button { flex: 1; }
 .rb-cta { position: sticky; bottom: -24px; margin: 16px -16px -24px; padding: 12px 16px calc(12px + 0px); background: linear-gradient(transparent, var(--bg) 30%); }
+.mod { gap: 4px; margin: -4px 0 4px 40px; }
+.mod .btn { min-height: 36px; padding: 0 8px; }

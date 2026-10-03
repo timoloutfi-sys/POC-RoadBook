@@ -22,6 +22,8 @@ interface Session {
   rename: (id: string, name: string) => Promise<void>
   /** Supprime et renvoie de quoi annuler. */
   remove: (id: string) => Promise<() => Promise<void>>
+  /** Modifie le road book courant (réglages propres) et l'enregistre. */
+  patch: (p: Partial<Pick<RoadBook, 'overrides' | 'startScreen'>>) => Promise<void>
   load: (id: string) => Promise<{ rb: RoadBook; route: Route | null } | null>
 }
 
@@ -38,6 +40,15 @@ function apply(rb: RoadBook, route: Route | null) {
 export const useLibrary = create<Session>((set, get) => ({
   ready: false, list: [], current: null, detail: false,
   setDetail: detail => set({ detail }),
+  patch: async p => {
+    const cur = get().current
+    if (!cur || !lib) return
+    set({ current: { ...cur, ...p } })
+    const saved = await lib.saveRoadBook({ ...cur, ...p })
+    const now = get().current
+    if (now?.id === saved.id) set({ current: { ...now, updated: saved.updated } })
+    await refresh()
+  },
   load: async id => {
     const rb = await lib?.getRoadBook(id)
     return rb && lib ? { rb, route: await lib.getRoute(id) } : null

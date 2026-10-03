@@ -1,8 +1,12 @@
+import { effectiveAlerts, effectivePeriodic } from '../library/roadbooks'
+import { useLibrary } from '../library/session'
 import { defaultBase } from '../strategy/types'
 import { useStore } from '../storage/store'
 
 /** L'état vu par la sortie : en sortie libre, ni parcours, ni repères, ni plan. */
 export function rideState() {
   const c = useStore.getState()
-  return c.libre ? { ...c, route: null, sections: [], points: [], base: defaultBase(), plan: null } : c
+  if (c.libre) return { ...c, route: null, sections: [], points: [], base: defaultBase(), plan: null }
+  const o = useLibrary.getState().current?.overrides
+  return o ? { ...c, alerts: effectiveAlerts(c.alerts, o), periodic: effectivePeriodic(c.periodic, o) } : c
 }

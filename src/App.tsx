@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ride, type RideSource } from './ride/controller'
+import { useLibrary } from './library/session'
 import { useStore } from './storage/store'
 import { EcranTab } from './ui/EcranTab'
 import { Icon, type IconName } from './ui/icons'
@@ -23,7 +24,11 @@ export default function App() {
   const onboarded = useStore(s => s.onboarded)
 
   useEffect(() => { const a = document.querySelector('main'); a?.scrollTo({ top: 0 }) }, [tab])
-  const start = async (src: RideSource) => { setRiding(true); await ride.start(src) }
+  const start = async (src: RideSource) => {
+    const st = useStore.getState(), sc = useLibrary.getState().current?.startScreen
+    if (!ride.hasRide && !st.libre && sc && st.screens.some(x => x.id === sc)) st.set({ activeScreen: sc })
+    setRiding(true); await ride.start(src)
+  }
   const exit = () => { ride.stop(); setRiding(false) }
 
   return (
