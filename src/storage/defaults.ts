@@ -60,6 +60,10 @@ export interface Config {
   sensors: Partial<Record<SensorKind, { id: string; name: string }>>
   /** Le profil coureur a été rempli une première fois. */
   onboarded: boolean
+  /** Road book choisi dans Rouler : son id, « libre » pour une sortie libre, null tant que rien n'est choisi. */
+  activeRoadbook: string | null
+  /** Le travail en cours a été repris dans la bibliothèque de road books. */
+  libraryMigrated: boolean
 }
 
 export const defaultConfig = (): Config => {
@@ -68,6 +72,7 @@ export const defaultConfig = (): Config => {
     rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
     alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
     screens: [main], activeScreen: main.id, rideTheme: 'auto', plan: null, sensors: {}, onboarded: false,
+    activeRoadbook: null, libraryMigrated: false,
   }
 }
 

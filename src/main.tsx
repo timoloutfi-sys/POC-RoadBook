@@ -9,9 +9,11 @@ import '@fontsource/barlow-condensed/latin-700.css'
 import './index.css'
 import './ui/device.css'
 import App from './App.tsx'
+import { requestPersist } from './library/db'
 import { startPlanSync } from './strategy/sync'
 
 startPlanSync()
+void requestPersist()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
