@@ -22,14 +22,15 @@ const ROAD = [
 
 /** Profil coureur : demandé au premier lancement, puis accessible par l'icône réglages. */
 export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () => void }) {
-  const { rider, rideTheme, maxPerHour, set } = useStore()
+  const { rider, rideTheme, maxPerHour, wheel, set } = useStore()
   const [r, setR] = useState<Rider>(rider)
   const [theme, setTheme] = useState<RideTheme>(rideTheme)
   const [cap, setCap] = useState<number | null>(maxPerHour)
+  const [wh, setWh] = useState<number | null>(wheel)
   const [calW, setCalW] = useState<number | null>(null)
   const [calV, setCalV] = useState<number | null>(null)
   const est = ftpIsEstimated(r), ftp = effectiveFtp(r), lthr = effectiveLthr(r)
-  const save = () => { set({ rider: r, rideTheme: theme, maxPerHour: Math.max(1, cap ?? 10), onboarded: true }); onClose() }
+  const save = () => { set({ rider: r, rideTheme: theme, maxPerHour: Math.max(1, cap ?? 10), wheel: wh && wh >= 1000 ? wh : wheel, onboarded: true }); onClose() }
   const dismiss = () => { set({ onboarded: true }); onClose() }
   return (
     <Sheet title={first ? 'Ton profil' : 'Réglages'} onClose={first ? dismiss : onClose}>
@@ -74,6 +75,7 @@ export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () =
           <Field label="Thème de la vue de course">
             <select value={theme} onChange={e => setTheme(e.target.value as RideTheme)}><option value="auto">Auto selon le soleil</option><option value="day">Toujours clair</option><option value="night">Toujours sombre</option></select>
           </Field>
+          <Field label="Circonférence de roue (mm)" hint="2146 mm = pneu 700 × 30"><Num value={wh} min={1000} max={3000} onChange={setWh} /></Field>
           <Field label="Alertes de seuil par heure au plus"><Num value={cap} min={1} max={60} onChange={setCap} /></Field>
         </>
       )}

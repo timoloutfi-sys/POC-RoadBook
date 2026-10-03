@@ -58,9 +58,9 @@ export function SensorsBlock() {
   return (
     <>
       <button className="sensors-block" onClick={() => setOpen(true)} aria-label={`Capteurs : ${connected} sur 4 connectés`}>
-        <span className="sicons">{KINDS.map(k => <span key={k} className={`st-${statusOf(k)}`} title={`${LABEL[k]} : ${STATE_TEXT[statusOf(k)]}`}><Icon name={ICON[k]} size={26} /></span>)}</span>
         <span className="grow"><b>Capteurs</b><small>{connected ? `${connected} connecté${connected > 1 ? 's' : ''}` : 'Aucun connecté'}</small></span>
-        <Icon name="chevron" />
+        <span className="sicons">{KINDS.map(k => <span key={k} className={`st-${statusOf(k)}`} title={`${LABEL[k]} : ${STATE_TEXT[statusOf(k)]}`}><Icon name={ICON[k]} size={22} /></span>)}</span>
+        <Icon name="chevron" size={20} />
       </button>
 
       {open && (

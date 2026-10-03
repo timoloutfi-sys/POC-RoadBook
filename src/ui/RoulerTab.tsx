@@ -13,7 +13,7 @@ const Check = ({ s, t, sm }: { s: 'ok' | 'ko' | 'wa'; t: string; sm?: string }) 
 )
 
 export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
-  const { route, points, sections, wheel, set } = useStore()
+  const { route, points, sections } = useStore()
   const [, bump] = useState(0)
   const [opts, setOpts] = useState(ride.simOpts)
   const [xfer, setXfer] = useState('')
@@ -34,7 +34,6 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
 
       <h2 className="h2">Capteurs</h2>
       <SensorsBlock />
-      <Field label="Circonférence de roue (mm)" hint="2146 mm = pneu 700 × 30"><Num value={wheel} min={1000} max={3000} onChange={v => v && set({ wheel: v })} /></Field>
 
       <h2 className="h2">Sortie</h2>
       <div className="stack">

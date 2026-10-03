@@ -144,7 +144,7 @@ details.fold > div { padding-bottom: 16px; }
 .sensors-block { margin-bottom: 12px; width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 14px; min-height: 64px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; cursor: pointer; }
 .sensors-block b { display: block; }
 .sensors-block small, .srow small { display: block; color: var(--muted); font-size: 14px; }
-.sicons { display: flex; gap: 14px; }
+.sicons { display: flex; gap: 12px; }
 .sicons span, .srow > span:first-child { display: grid; place-items: center; }
 .st-off { color: var(--muted); } .st-on { color: var(--ok); } .st-wait { color: var(--accent-fg); } .st-bad { color: var(--danger); }
 .st-wait svg { animation: pulse-ic 1.2s ease-in-out infinite; }
