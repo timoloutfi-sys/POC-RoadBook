@@ -32,9 +32,15 @@ export class SensorHub {
 
   connected = (k: SensorKind) => this.sensors[k]?.state === 'connecté'
 
-  async connect(kind: SensorKind) {
+  /**
+   * `all` : liste tous les appareils Bluetooth à portée, par leur nom. Utile quand un capteur
+   * n'annonce pas son type (le filtre normal le cache). On choisit alors l'appareil à la main.
+   */
+  async connect(kind: SensorKind, all = false) {
     if (!navigator.bluetooth) throw new Error('Bluetooth indisponible : utilise Chrome sur Android.')
-    const dev = await navigator.bluetooth.requestDevice({ filters: [{ services: [SENSORS[kind].svc] }] })
+    const dev = await navigator.bluetooth.requestDevice(all
+      ? { acceptAllDevices: true, optionalServices: ['cycling_power', 'heart_rate', 'cycling_speed_and_cadence'] }
+      : { filters: [{ services: [SENSORS[kind].svc] }] })
     const prev = this.sensors[kind]
     if (prev && prev.dev !== dev) this.disconnect(kind)
     this.sensors[kind] = { dev, name: dev.name || SENSORS[kind].n, state: 'connexion…', manual: false }

@@ -6,6 +6,7 @@ import { exportPlan, importPlan } from '../storage/transfer'
 import { pickConfig, useStore } from '../storage/store'
 import { Field, Num } from './fields'
 import { Icon } from './icons'
+import { Sheet } from './Sheet'
 import { toast } from './toast'
 
 const Check = ({ s, t, sm }: { s: 'ok' | 'ko' | 'wa'; t: string; sm?: string }) => (
@@ -24,9 +25,10 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   }, [])
   const bt = bluetoothAvailable(), geo = 'geolocation' in navigator, wl = 'wakeLock' in navigator
   const upd = (p: Partial<typeof opts>) => { const o = { ...opts, ...p }; ride.simOpts = o; setOpts(o) }
-  const connect = async (k: SensorKind) => {
-    try { await ride.hub.connect(k) } catch (e) {
-      if (e instanceof DOMException && e.name === 'NotFoundError') return
+  const [lost, setLost] = useState(false)
+  const connect = async (k: SensorKind, all = false) => {
+    try { await ride.hub.connect(k, all) } catch (e) {
+      if (e instanceof DOMException && e.name === 'NotFoundError') { if (e.message.includes('Services')) toast(`Cet appareil n'envoie pas la ${SENSORS[k].n.toLowerCase()} en Bluetooth.`); return }
       toast(e instanceof DOMException && e.name === 'SecurityError' ? 'Bluetooth bloqué dans cette page : ouvre-la en HTTPS.' : `Connexion impossible : ${e instanceof Error ? e.message : e}`)
     }
   }
@@ -54,7 +56,21 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
           ) : <button key={k} className="btn" disabled={!bt} onClick={() => void connect(k)}><Icon name="plus" size={20} />Capteur de {SENSORS[k].n.toLowerCase()}</button>
         })}
       </div>
+      <button className="btn ghost" style={{ marginTop: 4 }} onClick={() => setLost(true)} disabled={!bt}>Capteur introuvable ?</button>
       <Field label="Circonférence de roue (mm)" hint="2146 mm = pneu 700 × 30"><Num value={wheel} min={1000} max={3000} onChange={v => v && set({ wheel: v })} /></Field>
+
+      {lost && (
+        <Sheet title="Capteur introuvable" onClose={() => setLost(false)}>
+          <ul className="why" style={{ marginBottom: 16 }}>
+            <li>Le téléphone lit le <b>Bluetooth</b>, pas l'ANT+. Il faut un capteur double (ANT+ et Bluetooth).</li>
+            <li>Réveille-le : pédale, ou mouille la ceinture.</li>
+            <li>Libère-le : un capteur est souvent limité à une connexion Bluetooth. Passe ton Bryton en ANT+ pour ce capteur.</li>
+          </ul>
+          <div className="stack">
+            {(Object.keys(SENSORS) as SensorKind[]).map(k => <button key={k} className="btn" onClick={() => { setLost(false); void connect(k, true) }}>Chercher tous les appareils : {SENSORS[k].n.toLowerCase()}</button>)}
+          </div>
+        </Sheet>
+      )}
 
       <h2 className="h2">Sortie</h2>
       <div className="stack">
