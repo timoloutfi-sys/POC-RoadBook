@@ -50,10 +50,20 @@ export class SensorHub {
     catch (e) { const s = this.sensors[kind]; if (s) s.state = 'échec de connexion'; this.onChange(); throw e }
   }
 
+  /** La première connexion GATT échoue souvent sur Android : on réessaie une fois avant d'abandonner. */
   private async attach(kind: SensorKind) {
     const s = this.sensors[kind]!
-    const srv = await s.dev.gatt!.connect()
-    const ch = await (await srv.getPrimaryService(SENSORS[kind].svc)).getCharacteristic(SENSORS[kind].chr)
+    let ch: BluetoothRemoteGATTCharacteristic | undefined
+    for (let attempt = 0; attempt < 3 && !ch; attempt++) {
+      try {
+        if (attempt) await new Promise(r => setTimeout(r, 900))
+        const srv = await s.dev.gatt!.connect()
+        ch = await (await srv.getPrimaryService(SENSORS[kind].svc)).getCharacteristic(SENSORS[kind].chr)
+      } catch (e) {
+        if (attempt === 2 || (e instanceof DOMException && e.name === 'NotFoundError')) throw e
+      }
+    }
+    if (!ch) throw new Error('Connexion impossible')
     ch.addEventListener('characteristicvaluechanged', e => this.onData(kind, (e.target as BluetoothRemoteGATTCharacteristic).value!))
     await ch.startNotifications()
     s.state = 'connecté'
@@ -128,4 +138,33 @@ export class SensorHub {
     if (now - this.ts.cad > 3000) this.vals.cad = (this.connected('cad') || this.connected('power')) && this.crankSeen ? 0 : null
     if (now - this.ts.spd > 3000) this.vals.spd = (this.connected('spd') || this.connected('cad')) && this.wheelSeen ? 0 : null
   }
+}
+
+/** Services Bluetooth utiles à lire pour le diagnostic, avec leur nom lisible. */
+const KNOWN: Record<string, string> = {
+  heart_rate: 'Fréquence cardiaque', cycling_power: 'Puissance', cycling_speed_and_cadence: 'Vitesse et cadence',
+  battery_service: 'Batterie', device_information: "Informations de l'appareil", running_speed_and_cadence: 'Course à pied',
+  fitness_machine: 'Home-trainer',
+}
+
+export interface Inspection { name: string; services: string[]; usable: string[] }
+
+/**
+ * Diagnostic : on choisit n'importe quel appareil Bluetooth à portée, on s'y connecte et on liste ce qu'il envoie.
+ * Si aucune mesure utile n'apparaît, le capteur ne peut pas servir au téléphone (ANT+ seul ou mal réveillé).
+ */
+export async function inspectDevice(): Promise<Inspection> {
+  if (!navigator.bluetooth) throw new Error('Bluetooth indisponible : utilise Chrome sur Android.')
+  const dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: Object.keys(KNOWN) as BluetoothServiceUUID[] })
+  const srv = await dev.gatt!.connect()
+  let list: BluetoothRemoteGATTService[] = []
+  try { list = await srv.getPrimaryServices() } finally { try { dev.gatt!.disconnect() } catch { /* déjà coupé */ } }
+  const names = list.map(s => KNOWN[Object.keys(KNOWN).find(k => BluetoothUUID.getService(k) === s.uuid) ?? ''] ?? s.uuid)
+  const usable = ['Fréquence cardiaque', 'Puissance', 'Vitesse et cadence'].filter(n => names.includes(n))
+  return { name: dev.name || 'Appareil sans nom', services: names, usable }
+}
+
+/** Le Bluetooth du téléphone est-il allumé ? Null si le navigateur ne sait pas le dire. */
+export async function bluetoothOn(): Promise<boolean | null> {
+  try { return (await navigator.bluetooth?.getAvailability?.()) ?? null } catch { return null }
 }

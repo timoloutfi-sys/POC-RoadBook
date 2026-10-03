@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { nf1 } from '../core/format'
 import { ride, type RideSource } from '../ride/controller'
-import { SENSORS, bluetoothAvailable, type SensorKind } from '../sensors/ble'
+import { SENSORS, bluetoothAvailable, bluetoothOn, inspectDevice, type Inspection, type SensorKind } from '../sensors/ble'
 import { exportPlan, importPlan } from '../storage/transfer'
 import { pickConfig, useStore } from '../storage/store'
 import { Field, Num } from './fields'
@@ -26,6 +26,14 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   const bt = bluetoothAvailable(), geo = 'geolocation' in navigator, wl = 'wakeLock' in navigator
   const upd = (p: Partial<typeof opts>) => { const o = { ...opts, ...p }; ride.simOpts = o; setOpts(o) }
   const [lost, setLost] = useState(false)
+  const [btOn, setBtOn] = useState<boolean | null>(null)
+  const [diag, setDiag] = useState<Inspection | 'wait' | 'none' | null>(null)
+  useEffect(() => { void bluetoothOn().then(setBtOn) }, [lost])
+  const runDiag = async () => {
+    setDiag('wait')
+    try { setDiag(await inspectDevice()) }
+    catch (e) { if (e instanceof DOMException && e.name === 'NotFoundError') setDiag('none'); else { setDiag(null); toast(`Diagnostic impossible : ${e instanceof Error ? e.message : e}`) } }
+  }
   const connect = async (k: SensorKind, all = false) => {
     try { await ride.hub.connect(k, all) } catch (e) {
       if (e instanceof DOMException && e.name === 'NotFoundError') { if (e.message.includes('Services')) toast(`Cet appareil n'envoie pas la ${SENSORS[k].n.toLowerCase()} en Bluetooth.`); return }
@@ -37,7 +45,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
     <>
       <div>
         {route ? <Check s="ok" t={`Parcours : ${route.name}`} sm={`${nf1(route.total / 1000)} km, ${points.length} points, ${sections.length} sections`} /> : <Check s="wa" t="Aucun parcours chargé" />}
-        {bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}
+        {bt && btOn === false ? <Check s="ko" t="Bluetooth éteint" sm="Allume-le, ainsi que la position, dans les réglages du téléphone" /> : bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}
         {geo ? <Check s="ok" t="Position GPS disponible" /> : <Check s="ko" t="Position indisponible" />}
         {wl ? <Check s="ok" t="Écran maintenu allumé pendant la sortie" /> : <Check s="wa" t="Maintien de l'écran non pris en charge" sm="Désactive la mise en veille du téléphone" />}
       </div>
@@ -61,11 +69,19 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
 
       {lost && (
         <Sheet title="Capteur introuvable" onClose={() => setLost(false)}>
-          <ul className="why" style={{ marginBottom: 16 }}>
-            <li>Le téléphone lit le <b>Bluetooth</b>, pas l'ANT+. Il faut un capteur double (ANT+ et Bluetooth).</li>
-            <li>Réveille-le : pédale, ou mouille la ceinture.</li>
-            <li>Libère-le : un capteur est souvent limité à une connexion Bluetooth. Passe ton Bryton en ANT+ pour ce capteur.</li>
-          </ul>
+          <button className="btn primary big" onClick={() => void runDiag()} disabled={diag === 'wait'}>{diag === 'wait' ? 'Connexion…' : 'Tester un capteur'}</button>
+          {diag && diag !== 'wait' && (
+            <div style={{ margin: '12px 0' }}>
+              {diag === 'none' ? (
+                <p className="notice">Aucun appareil trouvé. Éteins ton compteur Bryton, réveille le capteur (pédale, ceinture mouillée), puis réessaie. Toujours rien : le capteur est en ANT+ seulement.</p>
+              ) : diag.usable.length ? (
+                <p><b style={{ color: 'var(--ok)' }}>✓ {diag.name}</b> envoie : {diag.usable.join(', ').toLowerCase()}. Il est utilisable : connecte-le depuis la liste des capteurs.</p>
+              ) : (
+                <p className="notice"><b>{diag.name}</b> ne donne aucune mesure en Bluetooth{diag.services.length ? ` (il n'envoie que : ${diag.services.join(', ').toLowerCase()})` : ''}. Il ne servira pas au téléphone.</p>
+              )}
+            </div>
+          )}
+          <p className="muted" style={{ margin: '12px 0', fontSize: 14 }}>Le téléphone lit le Bluetooth, pas l'ANT+. Allume aussi la position du téléphone (Android en a besoin pour chercher).</p>
           <div className="stack">
             {(Object.keys(SENSORS) as SensorKind[]).map(k => <button key={k} className="btn" onClick={() => { setLost(false); void connect(k, true) }}>Chercher tous les appareils : {SENSORS[k].n.toLowerCase()}</button>)}
           </div>
