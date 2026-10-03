@@ -9,7 +9,9 @@ import { useStore } from '../storage/store'
 import { effectiveFtp, effectiveLthr } from '../strategy/rider'
 import { targetAt, type EffortSource } from '../strategy/target'
 import { buildData, type WidgetData } from './data'
+import { gapOf, nextStopOf, plannedKjAt, type PlanProgress } from './progress'
 import { eleAt, recorder } from './recorder'
+import { timeline, type TimelineRow } from '../strategy/timeline'
 import { signal } from './signal'
 
 export type RideSource = 'live' | 'sim'
@@ -28,6 +30,8 @@ class Ride {
   gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, idx: 0, off: false, err: null }
   private pBuf: number[] = []
   private movD = 0
+  private kj = 0
+  private planCache: { res: unknown; rows: TimelineRow[]; etas: { km: number; t: number }[] } | null = null
   private hrHist: number[] = []
   private timer: ReturnType<typeof setInterval> | null = null
   private watchId: number | null = null
@@ -86,6 +90,23 @@ class Ride {
     try { screen.orientation?.unlock?.() } catch { /* ignoré */ }
   }
 
+  /** Avancement par rapport au plan (null en sortie libre ou sans plan). */
+  private progress(km: number, elapsedS: number): PlanProgress | null {
+    const c = rideState(), res = useStore.getState().planResult
+    if (!c.route || !res || !c.plan) return null
+    if (this.planCache?.res !== res) {
+      const t0 = new Date(c.plan.start), ok = !isNaN(t0.valueOf())
+      const rows = timeline({ route: c.route, res, points: c.points, marks: c.sections.filter(s => s.mark), start: ok ? t0 : null })
+      this.planCache = { res, rows, etas: ok ? rows.filter(r => r.at).map(r => ({ km: r.km, t: (r.at!.valueOf() - t0.valueOf()) / 1000 })) : [] }
+    }
+    const ftp = effectiveFtp(c.rider)
+    return {
+      nextStop: nextStopOf(this.planCache.rows, km), gapS: gapOf(this.planCache.etas, km, elapsedS),
+      kj: this.src === 'live' && this.source() === 'power' && this.kjSeen ? this.kj : null, kjPlan: plannedKjAt(res, ftp, km),
+    }
+  }
+  private kjSeen = false
+
   /** Rappels affichés pendant la sortie (pour « rappels tenus »). */
   remindersShown() {
     const msgs = new Set(rideState().periodic.map(p => p.msg))
@@ -95,7 +116,7 @@ class Ride {
   /** Remet la sortie à zéro ; une sortie enregistrée mais pas close est conservée telle quelle. */
   newRide() {
     if (recorder.active) void recorder.finish(undefined, this.remindersShown()).then(r => { if (r?.summary && (r.summary.moving < 60 || r.summary.km < 0.1)) void getLibrary()?.removeRide(r.id) })
-    this.live = newRun(); this.gps.idx = 0; this.pBuf = []; this.movD = 0; this.hrHist = []
+    this.live = newRun(); this.gps.idx = 0; this.pBuf = []; this.movD = 0; this.hrHist = []; this.kj = 0; this.kjSeen = false
     this.sim = newSim()
   }
 
@@ -131,6 +152,7 @@ class Ride {
     let tgt: 0 | 1 | 2 = 0
     if (speed > 0.8) {
       st.t++; this.movD += speed
+      if (hub.vals.power != null) { this.kj += hub.vals.power / 1000; this.kjSeen = true }
       if (st.t % 5 === 0 && hub.vals.hr != null) { this.hrHist.push(hub.vals.hr); if (this.hrHist.length > 120) this.hrHist.shift() }
       const c = rideState(), ctx = this.ctx()
       const tg = targetAt(route, c.sections, c.base, effectiveFtp(c.rider), effectiveLthr(c.rider), st.d, st.t / 3600)
@@ -141,7 +163,7 @@ class Ride {
     } else smoothSev(st, {})
     recorder.sample({
       t: Date.now(), km: st.d / 1000, speed, power: this.pBuf.length ? avg10(this.pBuf, 0) : null, hr: hub.vals.hr ?? null,
-      cad: hub.vals.cad ?? null, ele: eleAt(route, st.d), moving: speed > 0.8, tgt,
+      cad: hub.vals.cad ?? null, ele: eleAt(route, st.d), lat: gpsFresh ? g.lat : null, lon: gpsFresh ? g.lon : null, moving: speed > 0.8, tgt,
     })
   }
 
@@ -170,7 +192,7 @@ class Ride {
     const at = await recorder.resume(r)
     if (!at) return
     this.live = newRun(); this.live.d = at.km * 1000; this.live.t = at.moving
-    this.movD = this.live.d; this.gps.idx = Math.round(this.live.d / STEP); this.pBuf = []; this.hrHist = []
+    this.movD = this.live.d; this.kj = at.kj; this.kjSeen = at.kj > 0; this.gps.idx = Math.round(this.live.d / STEP); this.pBuf = []; this.hrHist = []
   }
 
   data(now = new Date()): WidgetData {
@@ -178,11 +200,12 @@ class Ride {
     const banner = st.banner && performance.now() < st.banner.until ? st.banner : null
     if (this.src === 'sim') {
       const s = this.sim
-      return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: s,
+      return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: s, plan: this.progress(s.d / 1000, s.t),
         power: avg10(s.buf, s.p), hr: s.hr, cad: s.cad, speed: s.v * 3.6, vAvg: s.t > 60 ? (s.d / s.t) * 3.6 : 28, hrHist: s.hrHist, now, banner })
     }
     const v = this.hub.vals, g = this.gps, fresh = performance.now() - g.ts < 10000
-    return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: st,
+    const elapsed = recorder.ride ? (Date.now() - recorder.ride.start) / 1000 : st.t
+    return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: st, plan: this.progress(st.d / 1000, elapsed),
       power: this.pBuf.length ? avg10(this.pBuf, 0) : null, hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
       vAvg: st.t > 60 ? (this.movD / st.t) * 3.6 : 28, hrHist: this.hrHist, now, banner })
   }

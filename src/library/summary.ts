@@ -5,10 +5,12 @@ const finite = (x: number) => Number.isFinite(x)
 /** Concatène les morceaux d'une sortie en colonnes continues. */
 export function columns(chunks: RideChunk[]) {
   const n = chunks.reduce((a, c) => a + c.t.length, 0)
-  const out = { n, t: new Float64Array(n), km: new Float32Array(n), speed: new Float32Array(n), power: new Float32Array(n), hr: new Float32Array(n), cad: new Float32Array(n), ele: new Float32Array(n), moving: new Uint8Array(n), tgt: new Uint8Array(n) }
+  const out = { n, t: new Float64Array(n), km: new Float32Array(n), speed: new Float32Array(n), power: new Float32Array(n), hr: new Float32Array(n), cad: new Float32Array(n), ele: new Float32Array(n), lat: new Float64Array(n).fill(NaN), lon: new Float64Array(n).fill(NaN), moving: new Uint8Array(n), tgt: new Uint8Array(n) }
   let o = 0
   for (const c of chunks) {
     for (const k of ['t', 'km', 'speed', 'power', 'hr', 'cad', 'ele', 'moving', 'tgt'] as const) (out[k] as Float32Array).set(c[k] as Float32Array, o)
+    if (c.lat) out.lat.set(c.lat, o)
+    if (c.lon) out.lon.set(c.lon, o)
     o += c.t.length
   }
   return out

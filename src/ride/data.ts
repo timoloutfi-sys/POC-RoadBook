@@ -1,5 +1,6 @@
 import { nextReminder, type Banner, type RunState } from '../alerts/engine'
 import type { Periodic } from '../alerts/types'
+import type { PlanProgress } from './progress'
 import { clamp } from '../core/format'
 import type { Route } from '../route/route'
 import { effectiveFtp, effectiveLthr, type Rider } from '../strategy/rider'
@@ -35,6 +36,8 @@ export interface WidgetData {
   arrival: Date | null
   /** FC seuil inconnue : impossible de donner une cible cardio. */
   noLthr: boolean
+  /** Avancement par rapport au plan ; null en sortie libre. */
+  plan: PlanProgress | null
 }
 
 export function upcoming(points: RoutePoint[], sections: Section[], km: number, n: number): Upcoming[] {
@@ -63,6 +66,7 @@ export interface Inputs {
   hrHist: number[]
   now: Date
   banner: Banner | null
+  plan?: PlanProgress | null
 }
 
 export function buildData(i: Inputs): WidgetData {
@@ -90,6 +94,7 @@ export function buildData(i: Inputs): WidgetData {
     fuel: nextReminder(run, i.periodic),
     hrHist: i.hrHist, sev: run.sev, banner: i.banner, now: i.now, arrival: eta,
     noLthr: i.source === 'hr' && !lthr,
+    plan: i.plan ?? null,
   }
 }
 
@@ -103,6 +108,7 @@ export function previewData(source: EffortSource = 'power'): WidgetData {
     next: [{ kind: 'eau', name: "Point d'eau", km: 31.3 }, { kind: 'montee', name: 'Montée 1', km: 36.7 }, { kind: 'danger', name: 'Descente technique', km: 41.2 }],
     fuel: { s: 12 * 60, msg: 'Mange' }, hrHist: [140, 142, 141, 144, 146, 145, 147, 148, 147, 148], sev: {}, banner: null,
     now: new Date(2026, 5, 21, 14, 30), arrival: new Date(2026, 5, 21, 19, 5), noLthr: false,
+    plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790 },
   }
 }
 

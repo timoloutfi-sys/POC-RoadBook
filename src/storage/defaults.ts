@@ -5,7 +5,7 @@ import type { SensorKind } from '../sensors/ble'
 import { defaultPlanCfg, type PlanCfg } from '../strategy/plan'
 import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
 
-export type WidgetKind = 'effort' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time' | 'clock'
+export type WidgetKind = 'effort' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time' | 'clock' | 'stop' | 'gap' | 'cum'
 export interface WidgetItem { id: string; k: WidgetKind; x: number; y: number; w: number; h: number }
 
 export const COLS = 6
@@ -14,11 +14,12 @@ export const ROWS = 3
 export const WIDGETS: Record<WidgetKind, string> = {
   effort: 'Effort', target: 'Cible', hr: 'FC', cad: 'Cadence', speed: 'Vitesse',
   next: 'Prochain événement', profile: 'Profil à venir', fuel: 'Rappel', dist: 'Distance', time: 'Temps', clock: 'Heure et arrivée',
+  stop: 'Prochain arrêt', gap: 'Écart au plan', cum: 'Effort vs plan',
 }
 
 type Tpl = [WidgetKind, number, number, number, number][]
 export const TEMPLATES: Record<'ultra' | 'clm' | 'tri', { n: string; items: Tpl }> = {
-  ultra: { n: 'Ultra', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['dist', 4, 2, 2, 1]] },
+  ultra: { n: 'Ultra', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['gap', 4, 2, 2, 1]] },
   clm: { n: 'Contre-la-montre', items: [['effort', 0, 0, 3, 2], ['speed', 3, 0, 3, 1], ['cad', 3, 1, 1, 1], ['hr', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
   tri: { n: 'Triathlon', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 3, 1], ['time', 3, 2, 3, 1]] },
 }

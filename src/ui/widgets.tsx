@@ -134,6 +134,46 @@ function FuelW({ d }: { d: WidgetData }) {
   return <><div className="lab wrap">{d.fuel.msg}</div><div className="val y"><small>dans</small> {when}</div></>
 }
 
+function StopW({ d, sz }: { d: WidgetData; sz: Size }) {
+  const n = d.plan?.nextStop
+  if (!d.plan) return <><div className="lab">Prochain arrêt</div><div className="val">--</div></>
+  if (!n) return <><div className="lab">Prochain arrêt</div><div className="sub">Aucun prévu</div></>
+  if (sz === 'S') return <><div className="lab">Arrêt</div><div className="val">{nf1(n.kmAway)}<small>km</small></div></>
+  return (
+    <>
+      <div className="lab">Prochain arrêt</div>
+      <div className="nx first"><span className="nm">{n.name}</span></div>
+      <div className="sub"><b className="acc">{nf1(n.kmAway)} km</b>{n.at && <span className="dim"> · vers {hhmm(n.at)}</span>}{sz === 'L' && n.stopMin > 0 && <span className="dim"> · {n.stopMin} min</span>}</div>
+    </>
+  )
+}
+
+function GapW({ d, sz }: { d: WidgetData; sz: Size }) {
+  const g = d.plan?.gapS
+  if (g == null) return <><div className="lab">Écart au plan</div><div className="val">--</div></>
+  const m = Math.round(g / 60), st = Math.abs(m) < 5 ? 'ok' : m > 0 ? 'hi' : 'lo'
+  return (
+    <>
+      <div className="lab">Écart au plan</div>
+      <div className={`val st-${st}`}>{m === 0 ? '0' : `${m > 0 ? '+' : '−'}${Math.abs(m)}`}<small>min</small></div>
+      {sz !== 'S' && <div className={`sub st-${st}`}>{Math.abs(m) < 2 ? 'Dans les temps' : m > 0 ? 'En retard' : 'En avance'}</div>}
+    </>
+  )
+}
+
+function CumW({ d, sz }: { d: WidgetData; sz: Size }) {
+  const p = d.plan
+  if (!p || p.kj == null || !p.kjPlan) return <><div className="lab">Effort vs plan</div><div className="val">--</div>{sz !== 'S' && <div className="sub">{p ? 'Capteur de puissance requis' : 'Sans plan'}</div>}</>
+  const pct = Math.round((p.kj / p.kjPlan - 1) * 100), st = pct > 8 ? 'hi' : pct < -8 ? 'lo' : 'ok'
+  return (
+    <>
+      <div className="lab">Effort vs plan</div>
+      <div className={`val st-${st}`}>{pct > 0 ? '+' : pct < 0 ? '−' : ''}{Math.abs(pct)}<small>%</small></div>
+      {sz !== 'S' && <div className="sub dim">{nf0(p.kj)} / {nf0(p.kjPlan)} kJ</div>}
+    </>
+  )
+}
+
 export function Widget({ k, sz, d }: { k: WidgetItem['k']; sz: Size; d: WidgetData }) {
   switch (k) {
     case 'effort': return <EffortW d={d} sz={sz} />
@@ -141,6 +181,9 @@ export function Widget({ k, sz, d }: { k: WidgetItem['k']; sz: Size; d: WidgetDa
     case 'next': return <NextW d={d} sz={sz} />
     case 'profile': return <ProfileW d={d} sz={sz} />
     case 'fuel': return <FuelW d={d} />
+    case 'stop': return <StopW d={d} sz={sz} />
+    case 'gap': return <GapW d={d} sz={sz} />
+    case 'cum': return <CumW d={d} sz={sz} />
     case 'hr': return <><div className="lab">FC</div><div className="val">{d.hr == null ? '--' : nf0(d.hr)}<small>bpm</small></div>{sz !== 'S' && <Spark arr={d.hrHist} />}</>
     case 'cad': return <><div className="lab">Cadence</div><div className="val">{d.cad == null ? '--' : nf0(d.cad)}<small>rpm</small></div></>
     case 'speed': return <><div className="lab">Vitesse</div><div className="val">{nf1(d.speed)}<small>km/h</small></div></>

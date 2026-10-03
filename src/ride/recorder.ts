@@ -9,7 +9,7 @@ import { timeline } from '../strategy/timeline'
 import type { RoutePoint } from '../strategy/types'
 import { rideState } from './scope'
 
-export interface Sample { t: number; km: number; speed: number; power: number | null; hr: number | null; cad: number | null; ele: number | null; moving: boolean; tgt: 0 | 1 | 2 }
+export interface Sample { t: number; km: number; speed: number; power: number | null; hr: number | null; cad: number | null; ele: number | null; lat?: number | null; lon?: number | null; moving: boolean; tgt: 0 | 1 | 2 }
 
 const FLUSH = 30
 const STOP_AFTER = 20
@@ -77,7 +77,7 @@ class Recorder {
   }
 
   /** Reprend une sortie restée ouverte ; renvoie où elle en était. */
-  async resume(r: Ride): Promise<{ km: number; moving: number } | null> {
+  async resume(r: Ride): Promise<{ km: number; moving: number; kj: number } | null> {
     const lib = getLibrary()
     if (!lib) return null
     const chunks = await lib.chunks(r.id)
@@ -86,7 +86,7 @@ class Recorder {
     this.pts = (r.planSnapshot?.points ?? []).filter(p => !p.gen).sort((a, b) => a.km - b.km)
     this.passed = this.pts.filter(p => p.km <= sum.km).length
     useLibrary.setState({ unfinished: null })
-    return { km: sum.km, moving: sum.moving }
+    return { km: sum.km, moving: sum.moving, kj: sum.kcal ?? 0 }
   }
 
   event(e: Omit<RideEvent, 't'>) { if (this.ride) this.ride.events.push({ t: Date.now(), ...e }) }
@@ -114,6 +114,7 @@ class Recorder {
     const chunk: RideChunk = {
       rideId: ride.id, seq, t: Float64Array.from(b, s => s.t), km: f32(s => s.km), speed: f32(s => s.speed),
       power: f32(s => s.power), hr: f32(s => s.hr), cad: f32(s => s.cad), ele: f32(s => s.ele),
+      lat: Float64Array.from(b, s => s.lat ?? NaN), lon: Float64Array.from(b, s => s.lon ?? NaN),
       moving: Uint8Array.from(b, s => (s.moving ? 1 : 0)), tgt: Uint8Array.from(b, s => s.tgt),
     }
     this.queue = this.queue.then(async () => { await lib.appendChunk(chunk); await lib.saveRide(ride) }).catch(() => {})

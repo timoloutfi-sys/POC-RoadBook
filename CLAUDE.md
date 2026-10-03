@@ -52,6 +52,7 @@ Code dans `src/` :
 - `strategy/timeline.ts` : le road book dans l’ordre du parcours avec l’heure d’arrivée à chaque ligne ; les arrêts prévus (`RoutePoint.stop`) remplacent l’estimation générique des arrêts (`plannedStops` dans `sync.ts`).
 - `ride/recorder.ts` : enregistrement des sorties en direct (1 Hz, morceaux de 30 s dans IndexedDB, événements arrêts, passages, rappels), reprise après arrêt de Chrome, écran de fin (`ui/RideEnd.tsx`). `library/summary.ts` calcule les chiffres de la sortie. Les simulations ne sont pas enregistrées.
 - `library/analysis.ts` : analyse d’une sortie (road book réalisé, zones réel contre prévu, dérive, courbe) et pastille de conformité ; `ui/SortiesTab.tsx` (liste, détail) et `ui/RideChart.tsx`.
+- `ride/progress.ts` : avancement par rapport au plan pour les widgets « prochain arrêt », « écart au plan », « effort vs plan ». `library/gpxExport.ts` : export GPX d’une sortie (positions, FC, cadence, puissance). L’export FIT n’existe pas encore.
 - `sim/` : coureur virtuel.
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.

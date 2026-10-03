@@ -9,7 +9,9 @@ import { HR_ZONES, POWER_ZONES } from '../strategy/zones'
 import { Icon } from './icons'
 import { RideChart } from './RideChart'
 import { SummaryList } from './RideEnd'
+import { rideToGpx } from '../library/gpxExport'
 import { Sheet } from './Sheet'
+import { toast } from './toast'
 
 const dateOf = (t: number) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 const clock = (s: number | null) => (s == null ? '–' : fdur(Math.abs(s)))
@@ -77,6 +79,19 @@ function RideDetail({ id, onBack }: { id: string; onBack: () => void }) {
   const zmax = Math.max(1, ...a.zones.real, ...(a.zones.plan ?? []))
   const planned = s && ride.planSnapshot ? plannedAt(ride.planSnapshot.etas, s.km) : null
   const rename = async () => { const lib = getLibrary(); if (lib) { await lib.saveRide({ ...ride, name: name.trim() || ride.name }); setD({ ride: { ...ride, name: name.trim() || ride.name }, a }); setMenu(null) } }
+  const exportGpx = async () => {
+    const lib = getLibrary()
+    const gpx = lib ? rideToGpx(ride, await lib.chunks(ride.id)) : null
+    setMenu(null)
+    if (!gpx) { toast('Pas de position enregistrée pour cette sortie.'); return }
+    const file = new File([gpx], `${ride.name.replace(/[^\p{L}\p{N}]+/gu, '-')}.gpx`, { type: 'application/gpx+xml' })
+    try {
+      if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: ride.name }); return }
+    } catch { /* partage annulé : on télécharge */ }
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(file); a.download = file.name; a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+  }
   const remove = async () => { await getLibrary()?.removeRide(ride.id); onBack() }
 
   return (
@@ -159,6 +174,7 @@ function RideDetail({ id, onBack }: { id: string; onBack: () => void }) {
               <label className="field"><span>Nom</span><input value={name} onChange={e => setName(e.target.value)} /></label>
               <div className="stack" style={{ marginTop: 12 }}>
                 <button className="btn primary" disabled={!name.trim()} onClick={() => void rename()}>Renommer</button>
+                <button className="btn" onClick={() => void exportGpx()}>Exporter (GPX)</button>
                 <button className="btn danger" onClick={() => setMenu('delete')}>Supprimer</button>
               </div>
             </>

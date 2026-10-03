@@ -69,6 +69,9 @@ export interface RideChunk {
   hr: Float32Array
   cad: Float32Array
   ele: Float32Array
+  /** Position GPS (degrés) ; NaN sans signal. Absent sur les sorties enregistrées avant l'export. */
+  lat?: Float64Array
+  lon?: Float64Array
   moving: Uint8Array
   /** Effort dans la cible : 0 sans cible, 1 dedans, 2 dehors. */
   tgt: Uint8Array
