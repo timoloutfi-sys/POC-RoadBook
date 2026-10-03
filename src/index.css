@@ -140,3 +140,14 @@ details.fold > div { padding-bottom: 16px; }
 
 .undo { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .undo .btn { min-height: 40px; }
+
+.sensors-block { margin-bottom: 12px; width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 14px; min-height: 64px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; cursor: pointer; }
+.sensors-block b { display: block; }
+.sensors-block small, .srow small { display: block; color: var(--muted); font-size: 14px; }
+.sicons { display: flex; gap: 14px; }
+.sicons span, .srow > span:first-child { display: grid; place-items: center; }
+.st-off { color: var(--muted); } .st-on { color: var(--ok); } .st-wait { color: var(--accent-fg); } .st-bad { color: var(--danger); }
+.st-wait svg { animation: pulse-ic 1.2s ease-in-out infinite; }
+@keyframes pulse-ic { 50% { opacity: .35; } }
+.srow { display: flex; align-items: center; gap: 12px; padding: 12px 0; min-height: 64px; }
+.srow .btn { min-height: 44px; padding: 0 14px; }

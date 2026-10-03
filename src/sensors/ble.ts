@@ -41,11 +41,30 @@ export class SensorHub {
     const dev = await navigator.bluetooth.requestDevice(all
       ? { acceptAllDevices: true, optionalServices: ['cycling_power', 'heart_rate', 'cycling_speed_and_cadence'] }
       : { filters: [{ services: [SENSORS[kind].svc] }] })
+    await this.register(kind, dev)
+  }
+
+  /**
+   * Reconnecte un capteur déjà enregistré. Chrome peut le retrouver sans rien demander ;
+   * sinon on n'affiche que cet appareil dans la liste, par son nom : un seul geste.
+   */
+  async reconnect1(kind: SensorKind, saved: { id: string; name: string }) {
+    if (!navigator.bluetooth) throw new Error('Bluetooth indisponible : utilise Chrome sur Android.')
+    try {
+      const known = (await navigator.bluetooth.getDevices?.()) ?? []
+      const dev = known.find(d => d.id === saved.id)
+      if (dev) { await this.register(kind, dev); return }
+    } catch { /* getDevices indisponible ou appareil absent : on passe par la liste */ }
+    const dev = await navigator.bluetooth.requestDevice({ filters: [{ name: saved.name }], optionalServices: [SENSORS[kind].svc] })
+    await this.register(kind, dev)
+  }
+
+  private async register(kind: SensorKind, dev: BluetoothDevice) {
     const prev = this.sensors[kind]
     if (prev && prev.dev !== dev) this.disconnect(kind)
     this.sensors[kind] = { dev, name: dev.name || SENSORS[kind].n, state: 'connexion…', manual: false }
     this.onChange()
-    dev.addEventListener('gattserverdisconnected', () => this.reconnect(kind, dev))
+    dev.addEventListener('gattserverdisconnected', () => void this.reconnect(kind, dev))
     try { await this.attach(kind) }
     catch (e) { const s = this.sensors[kind]; if (s) s.state = 'échec de connexion'; this.onChange(); throw e }
   }

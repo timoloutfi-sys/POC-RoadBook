@@ -1,6 +1,7 @@
 import type { AlertRule, Periodic } from '../alerts/types'
 import { uid } from '../core/format'
 import { defaultRider, type Rider } from '../strategy/rider'
+import type { SensorKind } from '../sensors/ble'
 import { defaultPlanCfg, type PlanCfg } from '../strategy/plan'
 import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
 
@@ -55,6 +56,8 @@ export interface Config {
   rideTheme: RideTheme
   /** Plan de course choisi dans l'onglet Plan ; null tant que rien n'est choisi. */
   plan: PlanCfg | null
+  /** Capteurs déjà connectés une fois : on les retrouve sans refaire toute la recherche. */
+  sensors: Partial<Record<SensorKind, { id: string; name: string }>>
   /** Le profil coureur a été rempli une première fois. */
   onboarded: boolean
 }
@@ -64,7 +67,7 @@ export const defaultConfig = (): Config => {
   return {
     rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
     alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
-    screens: [main], activeScreen: main.id, rideTheme: 'auto', plan: null, onboarded: false,
+    screens: [main], activeScreen: main.id, rideTheme: 'auto', plan: null, sensors: {}, onboarded: false,
   }
 }
 
