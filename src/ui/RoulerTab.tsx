@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { nf1 } from '../core/format'
 import { ride, type RideSource } from '../ride/controller'
 import { bluetoothAvailable, bluetoothOn } from '../sensors/ble'
+import { useLibrary } from '../library/session'
 import { exportPlan, importPlan } from '../storage/transfer'
 import { pickConfig, useStore } from '../storage/store'
 import { Field, Num } from './fields'
@@ -13,7 +14,8 @@ const Check = ({ s, t, sm }: { s: 'ok' | 'ko' | 'wa'; t: string; sm?: string }) 
 )
 
 export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
-  const { route, points, sections } = useStore()
+  const { route, points, libre, set } = useStore()
+  const { list, current, open } = useLibrary()
   const [, bump] = useState(0)
   const [opts, setOpts] = useState(ride.simOpts)
   const [xfer, setXfer] = useState('')
@@ -25,8 +27,15 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   const resume = ride.hasRide && ride.src === 'live'
   return (
     <>
+      <Field label="Road book">
+        <select value={libre ? 'libre' : current?.id ?? 'libre'} onChange={e => { if (e.target.value === 'libre') set({ libre: true }); else void open(e.target.value, false) }}>
+          {list.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+          <option value="libre">Sortie libre</option>
+        </select>
+        <span className="hint">{libre || !route ? 'Sans parcours ni plan : tes alertes et rappels s’appliquent.' : `${nf1(route.total / 1000)} km · ${points.length} points`}</span>
+      </Field>
+
       <div>
-        {route ? <Check s="ok" t={`Parcours : ${route.name}`} sm={`${nf1(route.total / 1000)} km, ${points.length} points, ${sections.length} sections`} /> : <Check s="wa" t="Aucun parcours chargé" />}
         {bt && btOn === false ? <Check s="ko" t="Bluetooth éteint" sm="Allume-le, ainsi que la position, dans les réglages du téléphone" /> : bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}
         {geo ? <Check s="ok" t="Position GPS disponible" /> : <Check s="ko" t="Position indisponible" />}
         {wl ? <Check s="ok" t="Écran maintenu allumé pendant la sortie" /> : <Check s="wa" t="Maintien de l'écran non pris en charge" sm="Désactive la mise en veille du téléphone" />}
@@ -51,7 +60,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
             <Field label="Départ au km"><Num value={opts.startKm} min={0} onChange={v => upd({ startKm: v ?? 0 })} /></Field>
             <Field label="Capteurs"><select value={opts.noPower ? 'hr' : 'power'} onChange={e => upd({ noPower: e.target.value === 'hr' })}><option value="power">Avec puissance</option><option value="hr">Cardio seul</option></select></Field>
           </div>
-          <button className="btn" disabled={!route} onClick={() => onStart('sim')}>{route ? 'Lancer la répétition' : 'Charge un parcours pour répéter'}</button>
+          <button className="btn" disabled={!route || libre} onClick={() => onStart('sim')}>{route && !libre ? 'Lancer la répétition' : 'Choisis un road book pour répéter'}</button>
         </div>
       </details>
 

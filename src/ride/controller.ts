@@ -1,6 +1,7 @@
 import { ackReminder, emit, evalRun, newRun, smoothSev, type EvalContext, type RunState } from '../alerts/engine'
 import { matchRoute } from '../gps/match'
 import { STEP } from '../route/route'
+import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
 import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
 import { useStore } from '../storage/store'
@@ -39,7 +40,7 @@ class Ride {
   }
 
   private ctx(): EvalContext {
-    const c = useStore.getState()
+    const c = rideState()
     return { alerts: c.alerts, points: c.points, sections: c.sections, periodic: c.periodic, maxPerHour: c.maxPerHour, source: this.source(), now: performance.now() }
   }
 
@@ -48,7 +49,7 @@ class Ride {
   get run(): RunState { return this.src === 'live' ? this.live : this.sim }
 
   async start(src: RideSource) {
-    const cfg = useStore.getState()
+    const cfg = rideState()
     this.src = src
     this.hub.wheelCirc = cfg.wheel
     this.hub.onLost = k => { if (emit(this.live, this.ctx(), 'critique', `Capteur ${SENSORS[k].n.toLowerCase()} perdu`)) signal('critique') }
@@ -99,7 +100,7 @@ class Ride {
     if (sp == null || !isFinite(sp)) sp = 0
     g.speed = g.ts ? g.speed * 0.4 + sp * 0.6 : sp
     g.lat = c.latitude; g.lon = c.longitude; g.acc = c.accuracy; g.ts = performance.now(); g.tsRaw = pos.timestamp; g.err = null
-    const route = useStore.getState().route
+    const route = rideState().route
     if (route) {
       const m = matchRoute(route, c.latitude, c.longitude, g.idx)
       g.off = m.off
@@ -110,7 +111,7 @@ class Ride {
   private tickLive() {
     const st = this.live, g = this.gps, hub = this.hub, now = performance.now()
     hub.expire(now)
-    const route = useStore.getState().route
+    const route = rideState().route
     const gpsFresh = g.ts > 0 && now - g.ts < 10000
     const sv = hub.vals.spd
     const speed = sv != null ? sv : gpsFresh ? g.speed : 0
@@ -119,7 +120,7 @@ class Ride {
     if (speed > 0.8) {
       st.t++; this.movD += speed
       if (st.t % 5 === 0 && hub.vals.hr != null) { this.hrHist.push(hub.vals.hr); if (this.hrHist.length > 120) this.hrHist.shift() }
-      const c = useStore.getState(), ctx = this.ctx()
+      const c = rideState(), ctx = this.ctx()
       const tg = targetAt(route, c.sections, c.base, effectiveFtp(c.rider), effectiveLthr(c.rider), st.d, st.t / 3600)
       const sigs = evalRun(st, ctx, tg, { power: avg10(this.pBuf, NaN) || null, hr: hub.vals.hr, cad: (hub.vals.cad ?? 0) > 0 ? hub.vals.cad : null, speed: speed * 3.6 })
       sigs.forEach(signal)
@@ -127,7 +128,7 @@ class Ride {
   }
 
   private tickSim() {
-    const c = useStore.getState(), route = c.route
+    const c = rideState(), route = c.route
     if (!route || this.sim.done) return
     const ftp = effectiveFtp(c.rider), lthr = effectiveLthr(c.rider) ?? Math.round(ftp * 0.7)
     const ctx = this.ctx()
@@ -141,10 +142,10 @@ class Ride {
   }
 
   /** « Fait » : valide le dernier rappel. */
-  ack() { ackReminder(this.run, useStore.getState().periodic, performance.now()) }
+  ack() { ackReminder(this.run, rideState().periodic, performance.now()) }
 
   data(now = new Date()): WidgetData {
-    const c = useStore.getState(), st = this.run, source = this.source()
+    const c = rideState(), st = this.run, source = this.source()
     const banner = st.banner && performance.now() < st.banner.until ? st.banner : null
     if (this.src === 'sim') {
       const s = this.sim

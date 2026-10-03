@@ -3,6 +3,7 @@ import { fdur, nf0, nf1 } from '../core/format'
 import { exportRoadBook, parseRoadBookFile } from '../library/transfer'
 import { useLibrary } from '../library/session'
 import type { RoadBookMeta } from '../library/types'
+import { useStore } from '../storage/store'
 import { parseGPX } from '../route/gpx'
 import { buildRoute, type Route } from '../route/route'
 import { Icon } from './icons'
@@ -44,6 +45,7 @@ function Detail({ onRide }: { onRide: () => void }) {
 
 export function RoadBooksTab({ onRide }: { onRide: () => void }) {
   const { ready, list, current, detail, open, create, duplicate, rename, remove, load } = useLibrary()
+  const libre = useStore(s => s.libre)
   const file = useRef<HTMLInputElement>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [menu, setMenu] = useState<RoadBookMeta | null>(null)
@@ -99,7 +101,7 @@ export function RoadBooksTab({ onRide }: { onRide: () => void }) {
                   <Spark v={m.prof} />
                   <b>{m.name}</b>
                   <span>{nf1(m.km)} km · {nf0(m.dplus)} m D+{m.estH ? ` · ${fdur(m.estH * 3600)}` : ''}</span>
-                  <small>{current?.id === m.id ? 'Sélectionné · ' : ''}modifié le {when(m.updated)}</small>
+                  <small>{current?.id === m.id && !libre ? 'Sélectionné · ' : ''}modifié le {when(m.updated)}</small>
                 </button>
                 <button className="iconbtn" aria-label={`Actions de ${m.name}`} onClick={() => setMenu(m)}><Icon name="more" /></button>
               </li>

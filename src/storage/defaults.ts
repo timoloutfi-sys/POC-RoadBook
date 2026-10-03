@@ -62,6 +62,8 @@ export interface Config {
   onboarded: boolean
   /** Road book choisi dans Rouler : son id, « libre » pour une sortie libre, null tant que rien n'est choisi. */
   activeRoadbook: string | null
+  /** Sortie libre : ni parcours ni plan, seulement les alertes et rappels globaux. */
+  libre: boolean
   /** Le travail en cours a été repris dans la bibliothèque de road books. */
   libraryMigrated: boolean
 }
@@ -72,7 +74,7 @@ export const defaultConfig = (): Config => {
     rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
     alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
     screens: [main], activeScreen: main.id, rideTheme: 'auto', plan: null, sensors: {}, onboarded: false,
-    activeRoadbook: null, libraryMigrated: false,
+    activeRoadbook: null, libre: false, libraryMigrated: false,
   }
 }
 

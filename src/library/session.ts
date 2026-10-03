@@ -17,7 +17,7 @@ interface Session {
   detail: boolean
   setDetail: (d: boolean) => void
   create: (name: string, src: { route: Route } | { demo: true } | { file: RoadBook; route: Route | null }) => Promise<void>
-  open: (id: string) => Promise<void>
+  open: (id: string, detail?: boolean) => Promise<void>
   duplicate: (id: string) => Promise<void>
   rename: (id: string, name: string) => Promise<void>
   /** Supprime et renvoie de quoi annuler. */
@@ -31,7 +31,7 @@ const refresh = async () => { if (lib) useLibrary.setState({ list: await lib.lis
 /** Charge un road book dans l'espace de travail. */
 function apply(rb: RoadBook, route: Route | null) {
   savedRoute = route
-  useStore.setState({ route, sections: rb.sections, points: rb.points, base: rb.base, plan: rb.plan, activeRoadbook: rb.id, libraryMigrated: true })
+  useStore.setState({ route, sections: rb.sections, points: rb.points, base: rb.base, plan: rb.plan, activeRoadbook: rb.id, libre: false, libraryMigrated: true })
   useLibrary.setState({ current: rb })
 }
 
@@ -42,9 +42,9 @@ export const useLibrary = create<Session>((set, get) => ({
     const rb = await lib?.getRoadBook(id)
     return rb && lib ? { rb, route: await lib.getRoute(id) } : null
   },
-  open: async id => {
+  open: async (id, detail = true) => {
     const r = await get().load(id)
-    if (r) { apply(r.rb, r.route); set({ detail: true }) }
+    if (r) { apply(r.rb, r.route); set({ detail }) }
   },
   create: async (name, src) => {
     if (!lib) return
