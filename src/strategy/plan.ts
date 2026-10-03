@@ -88,6 +88,8 @@ export interface PlanResult {
   /** Secondes par zone de puissance (Z1 à Z7). */
   zt: number[]
   ratio: Float32Array
+  /** Secondes de roulage écoulées à chaque échantillon (un tous les STEP mètres), sans arrêts. */
+  cumT: Float64Array
   /** Minutes effectivement placées et minutes proposées par défaut, par zone de bloc. */
   placed: Record<BlockZone, number>
   defaults: Record<BlockZone, number>
@@ -443,7 +445,7 @@ export function computePlan(inp: PlanInput): PlanResult {
   if (stops) why.push(`Arrêts estimés : ${hrs(stops / 60)} (ravitaillements, pauses${nights.length && H > 16 ? ', repos de nuit' : ''}).`)
 
   return {
-    H, total: H + stops / 60, stops, arrive: okStart ? eta(n - 1) : null, vavg: L / H, np: res.np, IF, tss, kj: res.kj, zt, ratio,
+    H, total: H + stops / 60, stops, arrive: okStart ? eta(n - 1) : null, vavg: L / H, np: res.np, IF, tss, kj: res.kj, zt, ratio, cumT: res.cumT,
     range, arriveRange: okStart ? [arriveAt(range[0]), arriveAt(range[1])] : null,
     pavgW: (res.kj * 1000) / res.t, npW: res.np * F, kcal: res.kj, carbsTotal: Math.round(carbs * H), carbsPerHour: carbs, waterTotal: Math.round(wph * H * 10) / 10,
     placed: { 2: Math.round(placed[2] / 60), 3: Math.round(placed[3] / 60), 4: Math.round(placed[4] / 60) },

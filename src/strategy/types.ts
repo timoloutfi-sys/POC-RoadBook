@@ -8,6 +8,8 @@ export interface RoutePoint {
   text: string
   /** Annonce, en km avant le point. */
   avant: number
+  /** Arrêt prévu à ce point, en minutes ; remplace l'estimation générique des arrêts. */
+  stop?: number
   /** Généré par le plan (remplacé à chaque nouveau plan). */
   gen?: boolean
 }

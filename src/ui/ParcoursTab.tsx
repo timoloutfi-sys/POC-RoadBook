@@ -1,19 +1,24 @@
 import { useRef, useState } from 'react'
-import { nf0, nf1, uid } from '../core/format'
+import { fdur, hhmm, nf0, nf1, uid } from '../core/format'
 import { parseGPX } from '../route/gpx'
-import { buildRoute, findClimbs, sectionStats } from '../route/route'
+import { buildRoute, findClimbs } from '../route/route'
 import { POINT_TYPES, type RoutePoint, type Section } from '../strategy/types'
 import { useStore } from '../storage/store'
-import { MarkForm, PointForm, statsLine } from './forms'
+import { timeline } from '../strategy/timeline'
+import { MarkForm, PointForm } from './forms'
 import { Icon } from './icons'
 import { ProfileChart } from './ProfileChart'
 import { Sheet } from './Sheet'
 import { toast } from './toast'
 
+const when = (d: Date, start: Date | null) =>
+  start && d.toDateString() !== start.toDateString() ? `${d.toLocaleDateString('fr-FR', { weekday: 'short' })} ${hhmm(d)}` : hhmm(d)
+
 type Editing = { kind: 'point'; v: RoutePoint; isNew: boolean } | { kind: 'section'; v: Section; isNew: boolean }
 
 export function ParcoursTab() {
-  const { route, points, sections, set, setRoute, loadDemo } = useStore()
+  const { route, points, sections, set, setRoute, loadDemo, plan } = useStore()
+  const res = useStore(s => s.planResult)
   const file = useRef<HTMLInputElement>(null)
   const [err, setErr] = useState('')
   const [edit, setEdit] = useState<Editing | null>(null)
@@ -47,7 +52,9 @@ export function ParcoursTab() {
     </>
   )
 
-  const sorted = [...points].sort((a, b) => a.km - b.km)
+  const t0 = plan?.start ? new Date(plan.start) : null
+  const start = res && t0 && !isNaN(t0.valueOf()) ? t0 : null
+  const rows = timeline({ route, res: res ?? { cumT: new Float64Array(route.n), H: 1, stops: 0 }, points, marks, start })
   return (
     <>
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 4 }}>
@@ -64,28 +71,32 @@ export function ParcoursTab() {
         onMove={(id, km) => set({ points: points.map(x => (x.id === id ? { ...x, km } : x)) })}
         onTapPoint={id => { const v = points.find(x => x.id === id); if (v) setEdit({ kind: 'point', v, isNew: false }) }} />
 
-      <h2 className="h2">Points · {points.length}</h2>
+      <h2 className="h2">Road book · {points.filter(p => !p.gen).length + marks.length}</h2>
       <ul className="list">
-        {sorted.map(p => (
-          <li key={p.id}><button className="item" onClick={() => setEdit({ kind: 'point', v: p, isNew: false })}>
-            <Icon name={p.type} /><span className="km">km {nf1(p.km)}</span><span className="t">{p.text || POINT_TYPES[p.type].n}</span>
-          </button></li>
-        ))}
-        {!sorted.length && <li className="muted" style={{ padding: '12px 0' }}>Aucun point.</li>}
+        {rows.map(r => {
+          const pt = r.kind === 'point' ? points.find(x => x.id === r.id) : undefined
+          const mk = r.kind === 'mark' ? sections.find(x => x.id === r.id) : undefined
+          const info = [r.at && when(r.at, start), r.gapS ? `+${fdur(r.gapS)}` : '', r.stop ? `arrêt ${r.stop} min` : ''].filter(Boolean).join(' · ')
+          const body = (
+            <>
+              <Icon name={r.icon} /><span className="km">{mk ? `${nf1(mk.a)}–${nf1(mk.b)}` : `km ${nf1(r.km)}`}</span>
+              <span className="t">{r.label || (pt ? POINT_TYPES[pt.type].n : '')}{info && <small>{info}</small>}</span>
+              {r.night && <Icon name="night" size={18} />}
+            </>
+          )
+          return (
+            <li key={r.id}>
+              {pt || mk
+                ? <button className="item" onClick={() => setEdit(pt ? { kind: 'point', v: pt, isNew: false } : { kind: 'section', v: mk!, isNew: false })}>{body}</button>
+                : <div className="item" style={{ cursor: 'default' }}>{body}</div>}
+            </li>
+          )
+        })}
       </ul>
-      <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newPoint(0))}><Icon name="plus" size={20} />Ajouter un point</button>
-
-      <h2 className="h2">Repères · {marks.length}</h2>
-      <ul className="list">
-        {marks.map(m => (
-          <li key={m.id}><button className="item" onClick={() => setEdit({ kind: 'section', v: m, isNew: false })}>
-            <Icon name={m.kind === 'montee' ? 'montee' : 'route'} /><span className="km">{nf1(m.a)}–{nf1(m.b)}</span>
-            <span className="t">{m.name}<small>{statsLine(sectionStats(route, m.a, m.b))}</small></span>
-          </button></li>
-        ))}
-        {!marks.length && <li className="muted" style={{ padding: '12px 0' }}>Aucun repère.</li>}
-      </ul>
-      <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newMark(0))}><Icon name="plus" size={20} />Ajouter un repère</button>
+      <div className="row" style={{ marginTop: 8 }}>
+        <button className="btn grow" onClick={() => setEdit(newPoint(0))}><Icon name="plus" size={20} />Point</button>
+        <button className="btn grow" onClick={() => setEdit(newMark(0))}><Icon name="plus" size={20} />Repère</button>
+      </div>
       {input}
 
       {here != null && (

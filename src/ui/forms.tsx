@@ -36,6 +36,9 @@ export function PointForm({ initial, isNew, onSave, onDelete, onClose, maxKm }: 
       <Field label="Message affiché">
         <input value={p.text} maxLength={80} placeholder="Ex. station 24 h/24, remplir les 2 bidons" onChange={e => setP({ ...p, text: e.target.value })} />
       </Field>
+      <Field label="Arrêt prévu (min)" hint="Décale les heures d'arrivée suivantes">
+        <Num value={p.stop ?? null} min={0} step={5} placeholder="Aucun" onChange={v => setP({ ...p, stop: v ? Math.round(v) : undefined })} />
+      </Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
     </form>
   )
