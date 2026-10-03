@@ -6,7 +6,7 @@ import { Db } from './db'
 import { Library } from './library'
 import { roadBookFromConfig } from './migrate'
 import { duplicateRoadBook, newRoadBook } from './roadbooks'
-import type { RoadBook, RoadBookMeta } from './types'
+import type { Ride, RoadBook, RoadBookMeta } from './types'
 
 interface Session {
   ready: boolean
@@ -15,6 +15,8 @@ interface Session {
   current: RoadBook | null
   /** Affiche le détail du road book courant plutôt que la liste. */
   detail: boolean
+  /** Sortie restée ouverte (Chrome fermé en route) : à reprendre ou à terminer. */
+  unfinished: Ride | null
   setDetail: (d: boolean) => void
   create: (name: string, src: { route: Route } | { demo: true } | { file: RoadBook; route: Route | null }) => Promise<void>
   open: (id: string, detail?: boolean) => Promise<void>
@@ -28,6 +30,7 @@ interface Session {
 }
 
 let lib: Library | null = null
+export const getLibrary = () => lib
 const refresh = async () => { if (lib) useLibrary.setState({ list: await lib.list() }) }
 
 /** Charge un road book dans l'espace de travail. */
@@ -38,7 +41,7 @@ function apply(rb: RoadBook, route: Route | null) {
 }
 
 export const useLibrary = create<Session>((set, get) => ({
-  ready: false, list: [], current: null, detail: false,
+  ready: false, list: [], current: null, detail: false, unfinished: null,
   setDetail: detail => set({ detail }),
   patch: async p => {
     const cur = get().current
@@ -132,6 +135,8 @@ export async function startLibrary() {
     if (rb) { useLibrary.setState({ current: rb }); useStore.setState({ activeRoadbook: rb.id, libraryMigrated: true }) }
     else useStore.setState({ activeRoadbook: null, libraryMigrated: true })
     await refresh()
+    const open = (await lib.listRides()).find(r => !r.end && r.kind !== 'simu')
+    if (open) useLibrary.setState({ unfinished: open })
     startAutosave()
   } catch { /* IndexedDB indisponible : l'appli reste sur l'espace de travail local */ }
   useLibrary.setState({ ready: true })

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ride, type RideSource } from './ride/controller'
+import { recorder } from './ride/recorder'
+import type { Ride, RideSummary } from './library/types'
+import { RideEnd } from './ui/RideEnd'
 import { useLibrary } from './library/session'
 import { useStore } from './storage/store'
 import { EcranTab } from './ui/EcranTab'
@@ -8,7 +11,7 @@ import { ProfileSheet } from './ui/ProfileSheet'
 import { RideView } from './ui/RideView'
 import { RoadBooksTab } from './ui/RoadBooksTab'
 import { RoulerTab } from './ui/RoulerTab'
-import { Toaster } from './ui/toast'
+import { Toaster, toast } from './ui/toast'
 
 const TABS: { id: string; n: string; icon: IconName }[] = [
   { id: 'roadbooks', n: 'Road books', icon: 'route' },
@@ -29,7 +32,14 @@ export default function App() {
     if (!ride.hasRide && !st.libre && sc && st.screens.some(x => x.id === sc)) st.set({ activeScreen: sc })
     setRiding(true); await ride.start(src)
   }
-  const exit = () => { ride.stop(); setRiding(false) }
+  const [end, setEnd] = useState<{ ride: Ride; summary: RideSummary } | null>(null)
+  const exit = async () => {
+    ride.stop(); setRiding(false)
+    if (ride.src !== 'live' || !recorder.active) return
+    const p = await recorder.preview(ride.remindersShown())
+    if (p && p.summary.moving >= 60 && p.summary.km >= 0.1) setEnd(p)
+    else { await recorder.discard(); ride.newRide() }
+  }
 
   return (
     <div className="app">
@@ -46,7 +56,13 @@ export default function App() {
         {TABS.map(t => <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}><Icon name={t.icon} />{t.n}</button>)}
       </nav>
       {(settings || !onboarded) && <ProfileSheet first={!onboarded} onClose={() => setSettings(false)} />}
-      {riding && <RideView onExit={exit} />}
+      {riding && <RideView onExit={() => void exit()} />}
+      {end && (
+        <RideEnd ride={end.ride} summary={end.summary}
+          onSave={async name => { await recorder.finish(name, ride.remindersShown()); ride.newRide(); setEnd(null); toast('Sortie enregistrée.') }}
+          onResume={() => { setEnd(null); void start('live') }}
+          onDelete={async () => { await recorder.discard(); ride.newRide(); setEnd(null) }} />
+      )}
       <Toaster />
     </div>
   )

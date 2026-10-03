@@ -50,7 +50,8 @@ export interface Ride {
   roadbookId?: string
   roadbookName?: string
   /** Copie figée du plan au départ, pour comparer même si le road book change ensuite. */
-  planSnapshot?: { sections: Section[]; points: RoutePoint[]; plan: PlanCfg | null; etas: { id: string; t: number }[] }
+  planSnapshot?: { sections: Section[]; points: RoutePoint[]; plan: PlanCfg | null; /** Temps prévu (s depuis le départ, arrêts compris) à chaque ligne du road book. */
+    etas: { km: number; t: number }[] }
   riderSnapshot: Pick<Rider, 'ftp' | 'mass' | 'cda' | 'lthr'> & { unit: 'power' | 'hr' }
   summary: RideSummary | null
   events: RideEvent[]
@@ -60,7 +61,8 @@ export interface Ride {
 export interface RideChunk {
   rideId: string
   seq: number
-  t0: number
+  /** Heure de chaque mesure, ms depuis 1970. */
+  t: Float64Array
   km: Float32Array
   speed: Float32Array
   power: Float32Array
@@ -68,4 +70,6 @@ export interface RideChunk {
   cad: Float32Array
   ele: Float32Array
   moving: Uint8Array
+  /** Effort dans la cible : 0 sans cible, 1 dedans, 2 dehors. */
+  tgt: Uint8Array
 }

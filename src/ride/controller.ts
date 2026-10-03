@@ -1,4 +1,5 @@
 import { ackReminder, emit, evalRun, newRun, smoothSev, type EvalContext, type RunState } from '../alerts/engine'
+import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
 import { STEP } from '../route/route'
 import { rideState } from './scope'
@@ -8,6 +9,7 @@ import { useStore } from '../storage/store'
 import { effectiveFtp, effectiveLthr } from '../strategy/rider'
 import { targetAt, type EffortSource } from '../strategy/target'
 import { buildData, type WidgetData } from './data'
+import { eleAt, recorder } from './recorder'
 import { signal } from './signal'
 
 export type RideSource = 'live' | 'sim'
@@ -57,6 +59,7 @@ class Ride {
       if (!cfg.route) return
       if (this.sim.done || this.sim.t === 0) { this.sim = newSim(); this.sim.d = this.simOpts.startKm * 1000 }
     }
+    if (src === 'live' && !recorder.active) await recorder.begin()
     this.running = true
     this.stopTimer()
     try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' }) } catch { /* plein écran refusé */ }
@@ -83,7 +86,15 @@ class Ride {
     try { screen.orientation?.unlock?.() } catch { /* ignoré */ }
   }
 
+  /** Rappels affichés pendant la sortie (pour « rappels tenus »). */
+  remindersShown() {
+    const msgs = new Set(rideState().periodic.map(p => p.msg))
+    return this.live.log.filter(l => msgs.has(l.msg)).length
+  }
+
+  /** Remet la sortie à zéro ; une sortie enregistrée mais pas close est conservée telle quelle. */
   newRide() {
+    if (recorder.active) void recorder.finish(undefined, this.remindersShown()).then(r => { if (r?.summary && (r.summary.moving < 60 || r.summary.km < 0.1)) void getLibrary()?.removeRide(r.id) })
     this.live = newRun(); this.gps.idx = 0; this.pBuf = []; this.movD = 0; this.hrHist = []
     this.sim = newSim()
   }
@@ -117,14 +128,21 @@ class Ride {
     const speed = sv != null ? sv : gpsFresh ? g.speed : 0
     if (!gpsFresh && sv != null && route) st.d = Math.min(route.total, st.d + sv)
     if (hub.vals.power != null) { this.pBuf.push(hub.vals.power); if (this.pBuf.length > 10) this.pBuf.shift() } else this.pBuf = []
+    let tgt: 0 | 1 | 2 = 0
     if (speed > 0.8) {
       st.t++; this.movD += speed
       if (st.t % 5 === 0 && hub.vals.hr != null) { this.hrHist.push(hub.vals.hr); if (this.hrHist.length > 120) this.hrHist.shift() }
       const c = rideState(), ctx = this.ctx()
       const tg = targetAt(route, c.sections, c.base, effectiveFtp(c.rider), effectiveLthr(c.rider), st.d, st.t / 3600)
+      const val = ctx.source === 'power' ? avg10(this.pBuf, NaN) || null : hub.vals.hr, band = ctx.source === 'power' ? tg.power : tg.hr
+      if (val != null && band && st.t - st.targetSince >= (ctx.source === 'hr' ? 120 : 0)) tgt = val > band.max || val < band.min ? 2 : 1
       const sigs = evalRun(st, ctx, tg, { power: avg10(this.pBuf, NaN) || null, hr: hub.vals.hr, cad: (hub.vals.cad ?? 0) > 0 ? hub.vals.cad : null, speed: speed * 3.6 })
       sigs.forEach(signal)
     } else smoothSev(st, {})
+    recorder.sample({
+      t: Date.now(), km: st.d / 1000, speed, power: this.pBuf.length ? avg10(this.pBuf, 0) : null, hr: hub.vals.hr ?? null,
+      cad: hub.vals.cad ?? null, ele: eleAt(route, st.d), moving: speed > 0.8, tgt,
+    })
   }
 
   private tickSim() {
@@ -142,7 +160,18 @@ class Ride {
   }
 
   /** « Fait » : valide le dernier rappel. */
-  ack() { ackReminder(this.run, rideState().periodic, performance.now()) }
+  ack() {
+    const ok = ackReminder(this.run, rideState().periodic, performance.now())
+    if (ok && this.src === 'live') recorder.event({ type: 'reminder', km: this.live.d / 1000, ok: true })
+  }
+
+  /** Reprend une sortie restée ouverte après un arrêt de Chrome. */
+  async restore(r: import('../library/types').Ride) {
+    const at = await recorder.resume(r)
+    if (!at) return
+    this.live = newRun(); this.live.d = at.km * 1000; this.live.t = at.moving
+    this.movD = this.live.d; this.gps.idx = Math.round(this.live.d / STEP); this.pBuf = []; this.hrHist = []
+  }
 
   data(now = new Date()): WidgetData {
     const c = rideState(), st = this.run, source = this.source()

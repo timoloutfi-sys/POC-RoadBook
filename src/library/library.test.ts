@@ -15,7 +15,7 @@ const ride = (id: string, roadbookId: string | undefined, start: number): Ride =
   riderSnapshot: { ftp: 240, mass: 82, cda: 0.32, lthr: null, unit: 'power' }, summary: null, events: [],
 })
 const chunk = (rideId: string, seq: number): RideChunk => ({
-  rideId, seq, t0: seq * 30, km: new Float32Array([seq]), speed: new Float32Array([30]), power: new Float32Array([200]),
+  rideId, seq, t: new Float64Array([seq * 30000]), tgt: new Uint8Array([1]), km: new Float32Array([seq]), speed: new Float32Array([30]), power: new Float32Array([200]),
   hr: new Float32Array([140]), cad: new Float32Array([85]), ele: new Float32Array([50]), moving: new Uint8Array([1]),
 })
 

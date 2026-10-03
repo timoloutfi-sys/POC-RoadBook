@@ -50,6 +50,7 @@ Code dans `src/` :
 - `library/` : bibliothèque de road books et de sorties dans IndexedDB (`Db`, `Library`), écarts aux alertes par road book, reprise du travail en cours (`roadBookFromConfig`). Branchée à l’onglet Road books via `library/session.ts` (espace de travail = road book courant, enregistré automatiquement). Spec : `docs/SPEC-roadbooks.md`.
 - `ride/scope.ts` : `rideState()`, l’état vu par la sortie, avec les écarts du road book aux alertes et rappels (en sortie libre : ni parcours, ni repères, ni plan, cibles de base par défaut).
 - `strategy/timeline.ts` : le road book dans l’ordre du parcours avec l’heure d’arrivée à chaque ligne ; les arrêts prévus (`RoutePoint.stop`) remplacent l’estimation générique des arrêts (`plannedStops` dans `sync.ts`).
+- `ride/recorder.ts` : enregistrement des sorties en direct (1 Hz, morceaux de 30 s dans IndexedDB, événements arrêts, passages, rappels), reprise après arrêt de Chrome, écran de fin (`ui/RideEnd.tsx`). `library/summary.ts` calcule les chiffres de la sortie. Les simulations ne sont pas enregistrées.
 - `sim/` : coureur virtuel.
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.
