@@ -10,10 +10,12 @@ import './index.css'
 import './ui/device.css'
 import App from './App.tsx'
 import { requestPersist } from './library/db'
+import { startLibrary } from './library/session'
 import { startPlanSync } from './strategy/sync'
 
 startPlanSync()
 void requestPersist()
+void startLibrary()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

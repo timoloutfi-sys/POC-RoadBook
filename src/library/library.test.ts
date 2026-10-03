@@ -5,7 +5,7 @@ import { defaultConfig } from '../storage/defaults'
 import { buildRoute, demoPoints } from '../route/route'
 import { Db } from './db'
 import { Library } from './library'
-import { duplicateRoadBook, effectiveAlerts, newRoadBook, resetOverride, setOverride } from './roadbooks'
+import { duplicateRoadBook, effectiveAlerts, metaOf, newRoadBook, resetOverride, setOverride } from './roadbooks'
 import { roadBookFromConfig } from './migrate'
 import type { Ride, RideChunk } from './types'
 
@@ -117,5 +117,21 @@ describe('migration', () => {
     expect(m.rb.points).toBe(cfg.points)
     expect(m.route).toBe(route)
     expect(roadBookFromConfig(cfg, null)!.rb.name).toBe('Mon road book')
+  })
+})
+
+describe('fichier d’un road book', () => {
+  it('se relit à l’identique, tracé compris', async () => {
+    const { exportRoadBook, parseRoadBookFile } = await import('./transfer')
+    const rb = newRoadBook('RAP'); rb.points = [{ id: 'p', type: 'eau', km: 5, text: 'x', avant: 1 }]
+    const back = parseRoadBookFile(exportRoadBook(rb, route))
+    expect(back.rb).toEqual(rb)
+    expect(back.route!.total).toBeCloseTo(route.total, 0)
+    expect(() => parseRoadBookFile('{}')).toThrow()
+  })
+  it('donne une miniature de 40 points', () => {
+    const m = metaOf(newRoadBook('x'), route)
+    expect(m.prof).toHaveLength(40)
+    expect(Math.max(...m.prof)).toBe(100)
   })
 })

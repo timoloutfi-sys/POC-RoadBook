@@ -25,7 +25,11 @@ export interface RoadBook {
 }
 
 /** Ce que la liste affiche, sans charger le tracé. */
-export interface RoadBookMeta { id: string; name: string; km: number; dplus: number; estH: number | null; updated: number }
+export interface RoadBookMeta {
+  id: string; name: string; km: number; dplus: number; estH: number | null; updated: number
+  /** Profil d'altitude réduit (0 à 100) pour la miniature de la carte. */
+  prof: number[]
+}
 
 export type RideKind = 'roadbook' | 'libre' | 'simu'
 

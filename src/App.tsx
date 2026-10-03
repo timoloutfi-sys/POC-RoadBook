@@ -3,23 +3,21 @@ import { ride, type RideSource } from './ride/controller'
 import { useStore } from './storage/store'
 import { EcranTab } from './ui/EcranTab'
 import { Icon, type IconName } from './ui/icons'
-import { ParcoursTab } from './ui/ParcoursTab'
-import { PlanTab } from './ui/PlanTab'
 import { ProfileSheet } from './ui/ProfileSheet'
 import { RideView } from './ui/RideView'
+import { RoadBooksTab } from './ui/RoadBooksTab'
 import { RoulerTab } from './ui/RoulerTab'
 import { Toaster } from './ui/toast'
 
 const TABS: { id: string; n: string; icon: IconName }[] = [
-  { id: 'parcours', n: 'Road book', icon: 'route' },
-  { id: 'plan', n: 'Cibles', icon: 'plan' },
-  { id: 'ecran', n: 'Écran', icon: 'screen' },
+  { id: 'roadbooks', n: 'Road books', icon: 'route' },
   { id: 'rouler', n: 'Rouler', icon: 'ride' },
+  { id: 'ecran', n: 'Écrans', icon: 'screen' },
 ]
-const TITLES: Record<string, string> = { parcours: 'Road book', plan: 'Cibles', ecran: 'Écrans de course', rouler: 'Rouler' }
+const TITLES: Record<string, string> = { roadbooks: 'Road books', rouler: 'Rouler', ecran: 'Écrans de course' }
 
 export default function App() {
-  const [tab, setTab] = useState('parcours')
+  const [tab, setTab] = useState('roadbooks')
   const [riding, setRiding] = useState(false)
   const [settings, setSettings] = useState(false)
   const onboarded = useStore(s => s.onboarded)
@@ -35,8 +33,7 @@ export default function App() {
         <button className="iconbtn" aria-label="Profil et réglages" onClick={() => setSettings(true)}><Icon name="settings" /></button>
       </header>
       <main>
-        {tab === 'parcours' && <ParcoursTab />}
-        {tab === 'plan' && <PlanTab />}
+        {tab === 'roadbooks' && <RoadBooksTab onRide={() => setTab('rouler')} />}
         {tab === 'ecran' && <EcranTab />}
         {tab === 'rouler' && <RoulerTab onStart={start} />}
       </main>
