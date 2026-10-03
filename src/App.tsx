@@ -10,15 +10,17 @@ import { Icon, type IconName } from './ui/icons'
 import { ProfileSheet } from './ui/ProfileSheet'
 import { RideView } from './ui/RideView'
 import { RoadBooksTab } from './ui/RoadBooksTab'
+import { SortiesTab } from './ui/SortiesTab'
 import { RoulerTab } from './ui/RoulerTab'
 import { Toaster, toast } from './ui/toast'
 
 const TABS: { id: string; n: string; icon: IconName }[] = [
   { id: 'roadbooks', n: 'Road books', icon: 'route' },
   { id: 'rouler', n: 'Rouler', icon: 'ride' },
+  { id: 'sorties', n: 'Sorties', icon: 'history' },
   { id: 'ecran', n: 'Écrans', icon: 'screen' },
 ]
-const TITLES: Record<string, string> = { roadbooks: 'Road books', rouler: 'Rouler', ecran: 'Écrans de course' }
+const TITLES: Record<string, string> = { roadbooks: 'Road books', rouler: 'Rouler', sorties: 'Sorties', ecran: 'Écrans de course' }
 
 export default function App() {
   const [tab, setTab] = useState('roadbooks')
@@ -49,6 +51,7 @@ export default function App() {
       </header>
       <main>
         {tab === 'roadbooks' && <RoadBooksTab onRide={() => setTab('rouler')} />}
+        {tab === 'sorties' && <SortiesTab />}
         {tab === 'ecran' && <EcranTab />}
         {tab === 'rouler' && <RoulerTab onStart={start} />}
       </main>

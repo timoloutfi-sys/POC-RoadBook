@@ -10,6 +10,7 @@ import { Icon } from './icons'
 import { ParcoursTab } from './ParcoursTab'
 import { PlanTab } from './PlanTab'
 import { RoadBookSettings } from './RoadBookSettings'
+import { SortiesTab } from './SortiesTab'
 import { Sheet } from './Sheet'
 import { toast } from './toast'
 import type { RoadBook } from '../library/types'
@@ -26,7 +27,7 @@ function Spark({ v }: { v: number[] }) {
 
 function Detail({ onRide }: { onRide: () => void }) {
   const { current, setDetail } = useLibrary()
-  const [sub, setSub] = useState<'parcours' | 'cibles' | 'reglages'>('parcours')
+  const [sub, setSub] = useState<'parcours' | 'cibles' | 'reglages' | 'sorties'>('parcours')
   if (!current) return null
   return (
     <>
@@ -38,8 +39,9 @@ function Detail({ onRide }: { onRide: () => void }) {
         <button role="tab" aria-pressed={sub === 'parcours'} onClick={() => setSub('parcours')}>Parcours</button>
         <button role="tab" aria-pressed={sub === 'cibles'} onClick={() => setSub('cibles')}>Cibles</button>
         <button role="tab" aria-pressed={sub === 'reglages'} onClick={() => setSub('reglages')}>Réglages</button>
+        <button role="tab" aria-pressed={sub === 'sorties'} onClick={() => setSub('sorties')}>Sorties</button>
       </div>
-      {sub === 'parcours' ? <ParcoursTab /> : sub === 'cibles' ? <PlanTab /> : <RoadBookSettings />}
+      {sub === 'parcours' ? <ParcoursTab /> : sub === 'cibles' ? <PlanTab /> : sub === 'reglages' ? <RoadBookSettings /> : <SortiesTab roadbookId={current.id} />}
       <div className="rb-cta"><button className="btn primary big" onClick={onRide}><Icon name="ride" size={22} />Rouler avec</button></div>
     </>
   )

@@ -50,7 +50,7 @@ export interface Ride {
   roadbookId?: string
   roadbookName?: string
   /** Copie figée du plan au départ, pour comparer même si le road book change ensuite. */
-  planSnapshot?: { sections: Section[]; points: RoutePoint[]; plan: PlanCfg | null; /** Temps prévu (s depuis le départ, arrêts compris) à chaque ligne du road book. */
+  planSnapshot?: { sections: Section[]; points: RoutePoint[]; base: BaseRules; plan: PlanCfg | null; /** Temps prévu (s depuis le départ, arrêts compris) à chaque ligne du road book. */
     etas: { km: number; t: number }[] }
   riderSnapshot: Pick<Rider, 'ftp' | 'mass' | 'cda' | 'lthr'> & { unit: 'power' | 'hr' }
   summary: RideSummary | null

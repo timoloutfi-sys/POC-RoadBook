@@ -58,7 +58,7 @@ class Recorder {
       const t0 = new Date(c.plan.start)
       const rows = timeline({ route: c.route, res, points: c.points, marks: c.sections.filter(s => s.mark), start: isNaN(t0.valueOf()) ? null : t0 })
       snapshot = {
-        sections: c.sections, points: c.points, plan: c.plan,
+        sections: c.sections, points: c.points, base: c.base, plan: c.plan,
         etas: rows.filter(r => r.at).map(r => ({ km: r.km, t: (r.at!.valueOf() - t0.valueOf()) / 1000 })),
       }
     }

@@ -15,7 +15,7 @@ export function SummaryList({ s }: { s: RideSummary }) {
   if (s.deltaArrival != null) rows.push(['Écart au plan', Math.abs(s.deltaArrival) < 60 ? 'dans les temps' : gap(s.deltaArrival), Math.abs(s.deltaArrival) < 300 ? 'ok' : Math.abs(s.deltaArrival) < 900 ? 'wa' : 'ko'])
   if (s.remindersTotal) rows.push(['Rappels tenus', `${Math.min(s.remindersDone, s.remindersTotal)} sur ${s.remindersTotal}`])
   return (
-    <dl className="kv">
+    <dl className="sumlist">
       {rows.map(([k, v, t]) => <div key={k}><dt>{k}</dt><dd className={t}>{v}</dd></div>)}
     </dl>
   )
