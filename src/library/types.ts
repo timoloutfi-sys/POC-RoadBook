@@ -44,6 +44,8 @@ export interface RoadBookMeta {
   kind?: 'sortie' | 'course'
   /** Un tracé existe (faux pour une course en attente de son GPX). */
   hasRoute?: boolean
+  /** Nombre d'arrêts prévus aux points. */
+  stops?: number
 }
 
 export type RideKind = 'roadbook' | 'libre' | 'simu'

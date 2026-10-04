@@ -20,7 +20,9 @@ const sgn = (s: number) => `${s >= 0 ? '+' : '−'}${fdur(Math.abs(s))}`
 /** Liste des sorties, toutes ou celles d'un road book. */
 export function SortiesTab({ roadbookId }: { roadbookId?: string }) {
   const [rides, setRides] = useState<Ride[] | null>(null)
-  const [open, setOpen] = useState<string | null>(null)
+  const pending = useLibrary(s => s.rideToOpen)
+  const [open, setOpen] = useState<string | null>(pending)
+  useEffect(() => { if (pending) useLibrary.getState().setRideToOpen(null) }, [pending])
   const { list } = useLibrary()
   const [filter, setFilter] = useState('')
   const load = useCallback(() => { void getLibrary()?.listRides(roadbookId).then(r => setRides(r.filter(x => x.end && x.kind !== 'simu'))) }, [roadbookId])

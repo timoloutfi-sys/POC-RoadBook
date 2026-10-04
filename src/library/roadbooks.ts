@@ -20,7 +20,7 @@ export function metaOf(rb: RoadBook, route: Route | null, estH: number | null = 
   const real = route && !route.synthetic ? route : null
   return {
     id: rb.id, name: rb.name, km: real ? real.total / 1000 : rb.est?.km ?? 0, dplus: real ? Math.round(real.dplus) : rb.est?.dplus ?? 0,
-    estH, updated: rb.updated, prof: profile(real), when: rb.when, kind: rb.kind ?? 'sortie', hasRoute: !!real,
+    estH, updated: rb.updated, prof: profile(real), when: rb.when, kind: rb.kind ?? 'sortie', hasRoute: !!real, stops: rb.points.filter(p => !p.gen && (p.stop ?? 0) > 0).length,
   }
 }
 

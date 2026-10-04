@@ -9,6 +9,7 @@ import { buildRoute, type Route } from '../route/route'
 import { Icon } from './icons'
 import { ParcoursTab } from './ParcoursTab'
 import { PlanTab } from './PlanTab'
+import { NoGpx } from './NoGpx'
 import { RoadBookSettings } from './RoadBookSettings'
 import { SortiesTab } from './SortiesTab'
 import { Sheet } from './Sheet'
@@ -26,8 +27,8 @@ function Spark({ v }: { v: number[] }) {
 }
 
 function Detail({ onRide }: { onRide: () => void }) {
-  const { current, setDetail } = useLibrary()
-  const [sub, setSub] = useState<'parcours' | 'cibles' | 'reglages' | 'sorties'>('parcours')
+  const { current, setDetail, sub, setSub } = useLibrary()
+  const noGpx = useStore(s => !!s.route?.synthetic)
   if (!current) return null
   return (
     <>
@@ -41,8 +42,8 @@ function Detail({ onRide }: { onRide: () => void }) {
         <button role="tab" aria-pressed={sub === 'reglages'} onClick={() => setSub('reglages')}>Réglages</button>
         <button role="tab" aria-pressed={sub === 'sorties'} onClick={() => setSub('sorties')}>Sorties</button>
       </div>
-      {sub === 'parcours' ? <ParcoursTab /> : sub === 'cibles' ? <PlanTab /> : sub === 'reglages' ? <RoadBookSettings /> : <SortiesTab roadbookId={current.id} />}
-      <div className="rb-cta"><button className="btn primary big" onClick={onRide}><Icon name="ride" size={22} />Rouler avec</button></div>
+      {sub === 'parcours' ? (noGpx ? <NoGpx /> : <ParcoursTab />) : sub === 'cibles' ? <PlanTab /> : sub === 'reglages' ? <RoadBookSettings /> : <SortiesTab roadbookId={current.id} />}
+      <div className="rb-cta"><button className="btn primary big" onClick={onRide}><Icon name="ride" size={22} />{noGpx ? 'Rouler en sortie libre' : 'Rouler avec'}</button></div>
     </>
   )
 }
@@ -104,7 +105,7 @@ export function RoadBooksTab({ onRide }: { onRide: () => void }) {
                 <button className="rb-open" onClick={() => void open(m.id)}>
                   <Spark v={m.prof} />
                   <b>{m.name}</b>
-                  <span>{nf1(m.km)} km · {nf0(m.dplus)} m D+{m.estH ? ` · ${fdur(m.estH * 3600)}` : ''}</span>
+                  <span>{nf1(m.km)} km · {nf0(m.dplus)} m D+{m.estH ? ` · ${fdur(m.estH * 3600)}` : ''}{m.hasRoute === false ? ' · GPX à venir' : ''}</span>
                   <small>{current?.id === m.id && !libre ? 'Sélectionné · ' : ''}modifié le {when(m.updated)}</small>
                 </button>
                 <button className="iconbtn" aria-label={`Actions de ${m.name}`} onClick={() => setMenu(m)}><Icon name="more" /></button>

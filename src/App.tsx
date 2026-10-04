@@ -11,19 +11,19 @@ import { ProfileSheet } from './ui/ProfileSheet'
 import { RideView } from './ui/RideView'
 import { RoadBooksTab } from './ui/RoadBooksTab'
 import { SortiesTab } from './ui/SortiesTab'
-import { RoulerTab } from './ui/RoulerTab'
+import { HomeTab } from './ui/HomeTab'
 import { Toaster, toast } from './ui/toast'
 
 const TABS: { id: string; n: string; icon: IconName }[] = [
+  { id: 'home', n: 'Accueil', icon: 'home' },
   { id: 'roadbooks', n: 'Road books', icon: 'route' },
-  { id: 'rouler', n: 'Rouler', icon: 'ride' },
   { id: 'sorties', n: 'Sorties', icon: 'history' },
   { id: 'ecran', n: 'Écrans', icon: 'screen' },
 ]
-const TITLES: Record<string, string> = { roadbooks: 'Road books', rouler: 'Rouler', sorties: 'Sorties', ecran: 'Écrans de course' }
+const TITLES: Record<string, string> = { home: 'Accueil', roadbooks: 'Road books', sorties: 'Sorties', ecran: 'Écrans de course' }
 
 export default function App() {
-  const [tab, setTab] = useState('roadbooks')
+  const [tab, setTab] = useState('home')
   const [riding, setRiding] = useState(false)
   const [settings, setSettings] = useState(false)
   const onboarded = useStore(s => s.onboarded)
@@ -50,10 +50,10 @@ export default function App() {
         <button className="iconbtn" aria-label="Profil et réglages" onClick={() => setSettings(true)}><Icon name="settings" /></button>
       </header>
       <main>
-        {tab === 'roadbooks' && <RoadBooksTab onRide={() => setTab('rouler')} />}
+        {tab === 'home' && <HomeTab go={setTab} onStart={start} />}
+        {tab === 'roadbooks' && <RoadBooksTab onRide={() => void start('live')} />}
         {tab === 'sorties' && <SortiesTab />}
         {tab === 'ecran' && <EcranTab />}
-        {tab === 'rouler' && <RoulerTab onStart={start} />}
       </main>
       <nav className="nav" aria-label="Sections">
         {TABS.map(t => <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => setTab(t.id)}><Icon name={t.icon} />{t.n}</button>)}

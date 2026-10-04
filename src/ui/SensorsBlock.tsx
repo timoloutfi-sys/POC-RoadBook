@@ -7,13 +7,13 @@ import { Icon, type IconName } from './icons'
 import { Sheet } from './Sheet'
 import { toast } from './toast'
 
-const KINDS: SensorKind[] = ['hr', 'power', 'cad', 'spd']
-const ICON: Record<SensorKind, IconName> = { power: 'bolt', hr: 'heart', cad: 'cadence', spd: 'speed' }
-const LABEL: Record<SensorKind, string> = { power: 'Puissance', hr: 'Cardio', cad: 'Cadence', spd: 'Vitesse' }
+export const KINDS: SensorKind[] = ['hr', 'power', 'cad', 'spd']
+export const ICON: Record<SensorKind, IconName> = { power: 'bolt', hr: 'heart', cad: 'cadence', spd: 'speed' }
+export const LABEL: Record<SensorKind, string> = { power: 'Puissance', hr: 'Cardio', cad: 'Cadence', spd: 'Vitesse' }
 type Status = 'off' | 'on' | 'wait' | 'bad'
 
 /** Gris : pas connecté · vert : connecté · orange : en cours · rouge : problème. */
-function statusOf(k: SensorKind): Status {
+export function statusOf(k: SensorKind): Status {
   const s = ride.hub.sensors[k]?.state
   return s === 'connecté' ? 'on' : s === 'connexion…' || s === 'reconnexion…' ? 'wait' : s === 'perdu' || s === 'échec de connexion' ? 'bad' : 'off'
 }

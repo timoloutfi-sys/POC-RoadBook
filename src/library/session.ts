@@ -21,9 +21,12 @@ interface Session {
   setDetail: (d: boolean) => void
   /** Sous-onglet du road book ouvert. */
   sub: 'parcours' | 'cibles' | 'reglages' | 'sorties'
+  /** Sortie à ouvrir dans l'onglet Sorties (depuis l'accueil). */
+  rideToOpen: string | null
+  setRideToOpen: (id: string | null) => void
   setSub: (s: Session['sub']) => void
   /** Crée une course sans GPX et en fait l'objectif. */
-  createCourse: (p: { name: string; when: string; km: number; dplus: number; terrain: Terrain }) => Promise<void>
+  createCourse: (p: { name: string; when: string; km: number; dplus: number; terrain: Terrain; route?: Route }) => Promise<void>
   /** Attache le GPX d'une course qui l'attendait : cibles, date, rappels et notes restent. */
   attachRoute: (route: Route) => Promise<void>
   create: (name: string, src: { route: Route } | { demo: true } | { file: RoadBook; route: Route | null }) => Promise<void>
@@ -52,14 +55,15 @@ function apply(rb: RoadBook, stored: Route | null) {
 }
 
 export const useLibrary = create<Session>((set, get) => ({
-  ready: false, list: [], current: null, detail: false, unfinished: null, sub: 'parcours',
+  ready: false, list: [], current: null, detail: false, unfinished: null, sub: 'parcours', rideToOpen: null,
+  setRideToOpen: rideToOpen => set({ rideToOpen }),
   setDetail: detail => set({ detail }),
   setSub: sub => set({ sub }),
   createCourse: async p => {
     if (!lib) return
-    const rb = { ...newRoadBook(p.name), kind: 'course' as const, when: p.when, est: { km: p.km, dplus: p.dplus, terrain: p.terrain } }
-    await lib.saveRoadBook(rb, null)
-    apply(rb, null)
+    const rb = { ...newRoadBook(p.name), kind: 'course' as const, when: p.when, est: p.route ? undefined : { km: p.km, dplus: p.dplus, terrain: p.terrain } }
+    await lib.saveRoadBook(rb, p.route ?? null)
+    apply(rb, p.route ?? null)
     useStore.setState({ goalId: rb.id })
     set({ detail: false })
     await refresh()

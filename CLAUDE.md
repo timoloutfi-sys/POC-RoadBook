@@ -33,7 +33,7 @@ L'ancien générateur `computePlan` n'est volontairement pas porté : il est rem
 
 ## Orientation produit (à lire en premier)
 
-Voir `PRODUCT.md`. L'outil prépare puis fait tenir un plan : **road book** (points, repères, rappels, heures d'arrivée) et **cibles à soi** (base + max en montée + par tronçon). L'algorithme **suggère** (bouton « Suggérer un plan », qui demande l'intention : course/ultra, endurance, tempo, seuil, VO2max, progressive) mais n'applique rien tout seul et ne remplace jamais le travail du coureur ; l'annulation est toujours possible. Onglets : Road books (liste, puis Parcours / Cibles / Réglages / Sorties) · Rouler · Sorties · Écrans. À venir : liste chronologique du road book avec heures d'arrivée et « arrêt prévu » ; widgets de course « prochain arrêt », « écart au plan », « effort cumulé vs plan ».
+Voir `PRODUCT.md`. L'outil prépare puis fait tenir un plan : **road book** (points, repères, rappels, heures d'arrivée) et **cibles à soi** (base + max en montée + par tronçon). L'algorithme **suggère** (bouton « Suggérer un plan », qui demande l'intention : course/ultra, endurance, tempo, seuil, VO2max, progressive) mais n'applique rien tout seul et ne remplace jamais le travail du coureur ; l'annulation est toujours possible. Onglets : Accueil · Road books (liste, puis Parcours / Cibles / Réglages / Sorties) · Sorties · Écrans. L'Accueil montre la prochaine sortie (dans les 7 jours) ou l'objectif avec son compte à rebours, le bouton Rouler, l'état des capteurs (feuille « Avant de partir »), la dernière sortie. Un road book a un type (sortie ou course) et une date de départ ; l'objectif est une course datée (`goalId`). Une course peut être créée sans GPX : estimation sur un parcours fictif (`route/synthetic.ts`, `strategy/estimate.ts`), sortie libre avec ses cibles tant que le GPX manque. Specs : `docs/SPEC-roadbooks.md`, `docs/SPEC-accueil.md`.
 
 ## Architecture
 
@@ -53,6 +53,7 @@ Code dans `src/` :
 - `ride/recorder.ts` : enregistrement des sorties en direct (1 Hz, morceaux de 30 s dans IndexedDB, événements arrêts, passages, rappels), reprise après arrêt de Chrome, écran de fin (`ui/RideEnd.tsx`). `library/summary.ts` calcule les chiffres de la sortie. Les simulations ne sont pas enregistrées.
 - `library/analysis.ts` : analyse d’une sortie (road book réalisé, zones réel contre prévu, dérive, courbe) et pastille de conformité ; `ui/SortiesTab.tsx` (liste, détail) et `ui/RideChart.tsx`.
 - `ride/progress.ts` : avancement par rapport au plan pour les widgets « prochain arrêt », « écart au plan », « effort vs plan ». `library/gpxExport.ts` : export GPX d’une sortie (positions, FC, cadence, puissance). L’export FIT n’existe pas encore.
+- `library/goal.ts` : objectif, prochaine sortie, compte à rebours, cible du bouton Rouler. `ui/HomeTab.tsx` (accueil), `ui/GoalFlow.tsx` (fixer un objectif, nouvelle course), `ui/NoGpx.tsx` (course en attente de son GPX).
 - `sim/` : coureur virtuel.
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.

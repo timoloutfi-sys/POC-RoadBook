@@ -148,7 +148,6 @@ export function PlanTab() {
       <details className="fold">
         <summary>Options</summary>
         <div>
-          <Field label="Départ"><input type="datetime-local" value={plan.start} onChange={e => setPlan({ start: e.target.value })} /></Field>
           <div className="cols2">
             <Field label="Arrêts (min)"><Num value={plan.stops} min={0} step={5} placeholder="Auto" onChange={v => setPlan({ stops: v })} /></Field>
             <Field label="Eau emportée (L)"><Num value={plan.water} min={0} step={0.25} onChange={v => setPlan({ water: v ?? 0 })} /></Field>

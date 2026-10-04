@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { nf1 } from '../core/format'
 import { ride, type RideSource } from '../ride/controller'
 import { bluetoothAvailable, bluetoothOn } from '../sensors/ble'
-import { finalize } from '../ride/recorder'
 import { useLibrary } from '../library/session'
 import { exportPlan, importPlan } from '../storage/transfer'
 import { pickConfig, useStore } from '../storage/store'
@@ -16,7 +15,7 @@ const Check = ({ s, t, sm }: { s: 'ok' | 'ko' | 'wa'; t: string; sm?: string }) 
 
 export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   const { route, points, libre, set } = useStore()
-  const { list, current, open, unfinished } = useLibrary()
+  const { list, current, open } = useLibrary()
   const [, bump] = useState(0)
   const [opts, setOpts] = useState(ride.simOpts)
   const [xfer, setXfer] = useState('')
@@ -28,21 +27,6 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   const resume = ride.hasRide && ride.src === 'live'
   return (
     <>
-      {unfinished && (
-        <div className="notice" role="status">
-          <b>Sortie interrompue</b>
-          <p style={{ margin: '4px 0 8px' }}>{unfinished.name}</p>
-          <div className="row">
-            <button className="btn primary" onClick={async () => {
-              if (unfinished.roadbookId) await open(unfinished.roadbookId, false)
-              set({ libre: !unfinished.roadbookId })
-              await ride.restore(unfinished); onStart('live')
-            }}>Reprendre</button>
-            <button className="btn" onClick={async () => { await finalize(unfinished); toast('Sortie enregistrée.') }}>Terminer</button>
-          </div>
-        </div>
-      )}
-
       <Field label="Road book">
         <select value={libre ? 'libre' : current?.id ?? 'libre'} onChange={e => { if (e.target.value === 'libre') set({ libre: true }); else void open(e.target.value, false) }}>
           {list.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
