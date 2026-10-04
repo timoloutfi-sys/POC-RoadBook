@@ -4,6 +4,9 @@ import type { BaseRules, RoutePoint, Section } from '../strategy/types'
 import type { Rider } from '../strategy/rider'
 
 /** Écarts d'un road book aux alertes et rappels par défaut (id du défaut → champs modifiés). */
+/** Parcours sans GPX : distance, dénivelé et terrain saisis. */
+export interface Estimate { km: number; dplus: number; terrain: 'plat' | 'vallonne' | 'montagne' }
+
 export interface Overrides {
   alerts: Record<string, Partial<AlertRule>>
   periodic: Record<string, Partial<Periodic>>
@@ -22,6 +25,14 @@ export interface RoadBook {
   /** Écran de départ ; absent = écran actif par défaut. */
   startScreen?: string
   overrides: Overrides
+  /** Sortie ou course ; absent = sortie. */
+  kind?: 'sortie' | 'course'
+  /** Date et heure de départ prévues (heure locale, « 2027-04-10T06:00 »). */
+  when?: string
+  /** Course sans GPX : estimation à partir de ces valeurs, ignorée dès qu'un tracé existe. */
+  est?: Estimate
+  /** Notes libres (ravitos annoncés, règlement, matériel). */
+  notes?: string
 }
 
 /** Ce que la liste affiche, sans charger le tracé. */
@@ -29,6 +40,10 @@ export interface RoadBookMeta {
   id: string; name: string; km: number; dplus: number; estH: number | null; updated: number
   /** Profil d'altitude réduit (0 à 100) pour la miniature de la carte. */
   prof: number[]
+  when?: string
+  kind?: 'sortie' | 'course'
+  /** Un tracé existe (faux pour une course en attente de son GPX). */
+  hasRoute?: boolean
 }
 
 export type RideKind = 'roadbook' | 'libre' | 'simu'

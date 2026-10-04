@@ -16,6 +16,8 @@ export class Library {
   /** Enregistre un road book ; le tracé n'est réécrit que s'il est fourni. */
   async saveRoadBook(rb: RoadBook, route?: Route | null, estH: number | null = null) {
     const prev = await this.db.get<Entry>('roadbooks', rb.id)
+    // Un parcours fictif (course sans GPX) n'est jamais enregistré comme tracé.
+    if (route?.synthetic) route = null
     const r = route === undefined ? await this.getRoute(rb.id) : route
     const next = { ...rb, updated: Date.now() }
     await this.db.put('roadbooks', rb.id, { rb: next, meta: metaOf(next, r, estH ?? prev?.meta.estH ?? null) } satisfies Entry)

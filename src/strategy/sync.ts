@@ -1,3 +1,4 @@
+import { useLibrary } from '../library/session'
 import { useStore } from '../storage/store'
 import { computePlan, defaultPlanCfg } from './plan'
 import { effectiveFtp, effortUnit } from './rider'
@@ -16,7 +17,7 @@ export function startPlanSync() {
   const run = () => {
     const s = useStore.getState()
     if (!s.route) { if (s.planResult) useStore.setState({ planResult: null }); return }
-    if (!s.plan) { useStore.setState({ plan: defaultPlanCfg() }); return }
+    if (!s.plan) { const when = useLibrary.getState().current?.when; useStore.setState({ plan: { ...defaultPlanCfg(), ...(when ? { start: when } : {}) } }); return }
     const stops = plannedStops(s.points)
     const r = computePlan({ route: s.route, body: s.rider, ftp: effectiveFtp(s.rider), unit: effortUnit(s.rider), cfg: stops ? { ...s.plan, stops } : s.plan })
     useStore.setState({ planResult: r })

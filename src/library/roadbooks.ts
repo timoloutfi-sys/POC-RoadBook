@@ -7,7 +7,7 @@ import type { Overrides, RoadBook, RoadBookMeta } from './types'
 export const emptyOverrides = (): Overrides => ({ alerts: {}, periodic: {} })
 
 export function newRoadBook(name: string, now = Date.now()): RoadBook {
-  return { id: uid(), name, created: now, updated: now, sections: [], points: [], base: defaultBase(), plan: null, overrides: emptyOverrides() }
+  return { id: uid(), name, created: now, updated: now, sections: [], points: [], base: defaultBase(), plan: null, overrides: emptyOverrides(), kind: 'sortie' }
 }
 
 /** Copie indépendante (nouvel id), pour une variante. */
@@ -17,7 +17,11 @@ export function duplicateRoadBook(rb: RoadBook, now = Date.now()): RoadBook {
 }
 
 export function metaOf(rb: RoadBook, route: Route | null, estH: number | null = null): RoadBookMeta {
-  return { id: rb.id, name: rb.name, km: route ? route.total / 1000 : 0, dplus: route ? Math.round(route.dplus) : 0, estH, updated: rb.updated, prof: profile(route) }
+  const real = route && !route.synthetic ? route : null
+  return {
+    id: rb.id, name: rb.name, km: real ? real.total / 1000 : rb.est?.km ?? 0, dplus: real ? Math.round(real.dplus) : rb.est?.dplus ?? 0,
+    estH, updated: rb.updated, prof: profile(real), when: rb.when, kind: rb.kind ?? 'sortie', hasRoute: !!real,
+  }
 }
 
 /** Valeur effective : le défaut global, avec les écarts de ce road book par-dessus. */

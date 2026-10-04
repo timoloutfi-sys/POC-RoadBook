@@ -21,6 +21,8 @@ export interface Route {
   grade: Float32Array
   /** Dénivelé positif lissé, en mètres. */
   dplus: number
+  /** Parcours fictif construit pour une estimation (course sans GPX) : jamais enregistré ni affiché comme un tracé. */
+  synthetic?: boolean
 }
 
 export interface Climb { i0: number; i1: number; a: number; b: number; len: number; avg: number; gain: number }

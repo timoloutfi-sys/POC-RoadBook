@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { buildRoute, demoPoints, type Route } from '../route/route'
+import { syntheticRoute, type Terrain } from '../route/synthetic'
 import { useStore } from '../storage/store'
 import { defaultBase } from '../strategy/types'
 import { Db } from './db'
@@ -18,6 +19,13 @@ interface Session {
   /** Sortie restée ouverte (Chrome fermé en route) : à reprendre ou à terminer. */
   unfinished: Ride | null
   setDetail: (d: boolean) => void
+  /** Sous-onglet du road book ouvert. */
+  sub: 'parcours' | 'cibles' | 'reglages' | 'sorties'
+  setSub: (s: Session['sub']) => void
+  /** Crée une course sans GPX et en fait l'objectif. */
+  createCourse: (p: { name: string; when: string; km: number; dplus: number; terrain: Terrain }) => Promise<void>
+  /** Attache le GPX d'une course qui l'attendait : cibles, date, rappels et notes restent. */
+  attachRoute: (route: Route) => Promise<void>
   create: (name: string, src: { route: Route } | { demo: true } | { file: RoadBook; route: Route | null }) => Promise<void>
   open: (id: string, detail?: boolean) => Promise<void>
   duplicate: (id: string) => Promise<void>
@@ -25,7 +33,7 @@ interface Session {
   /** Supprime et renvoie de quoi annuler. */
   remove: (id: string) => Promise<() => Promise<void>>
   /** Modifie le road book courant (réglages propres) et l'enregistre. */
-  patch: (p: Partial<Pick<RoadBook, 'overrides' | 'startScreen'>>) => Promise<void>
+  patch: (p: Partial<Pick<RoadBook, 'overrides' | 'startScreen' | 'when' | 'kind' | 'est' | 'notes'>>) => Promise<void>
   load: (id: string) => Promise<{ rb: RoadBook; route: Route | null } | null>
 }
 
@@ -34,19 +42,39 @@ export const getLibrary = () => lib
 const refresh = async () => { if (lib) useLibrary.setState({ list: await lib.list() }) }
 
 /** Charge un road book dans l'espace de travail. */
-function apply(rb: RoadBook, route: Route | null) {
+function apply(rb: RoadBook, stored: Route | null) {
+  // Une course en attente de son GPX est estimée sur un parcours fictif.
+  const route = stored ?? (rb.est ? syntheticRoute(rb.name, rb.est) : null)
   savedRoute = route
-  useStore.setState({ route, sections: rb.sections, points: rb.points, base: rb.base, plan: rb.plan, activeRoadbook: rb.id, libre: false, libraryMigrated: true })
+  const plan = rb.plan && rb.when ? { ...rb.plan, start: rb.when } : rb.plan
+  useStore.setState({ route, sections: rb.sections, points: rb.points, base: rb.base, plan, activeRoadbook: rb.id, libre: false, libraryMigrated: true })
   useLibrary.setState({ current: rb })
 }
 
 export const useLibrary = create<Session>((set, get) => ({
-  ready: false, list: [], current: null, detail: false, unfinished: null,
+  ready: false, list: [], current: null, detail: false, unfinished: null, sub: 'parcours',
   setDetail: detail => set({ detail }),
+  setSub: sub => set({ sub }),
+  createCourse: async p => {
+    if (!lib) return
+    const rb = { ...newRoadBook(p.name), kind: 'course' as const, when: p.when, est: { km: p.km, dplus: p.dplus, terrain: p.terrain } }
+    await lib.saveRoadBook(rb, null)
+    apply(rb, null)
+    useStore.setState({ goalId: rb.id })
+    set({ detail: false })
+    await refresh()
+  },
+  attachRoute: async route => {
+    useStore.setState({ route })
+    await get().patch({ est: undefined })
+  },
   patch: async p => {
     const cur = get().current
     if (!cur || !lib) return
     set({ current: { ...cur, ...p } })
+    if (p.est && useStore.getState().route?.synthetic) useStore.setState({ route: syntheticRoute(cur.name, p.est) })
+    // La date de départ du road book est aussi celle du plan (heures d'arrivée, nuit).
+    if (p.when) useStore.setState(s => (s.plan ? { plan: { ...s.plan, start: p.when! } } : {}))
     const saved = await lib.saveRoadBook({ ...cur, ...p })
     const now = get().current
     if (now?.id === saved.id) set({ current: { ...now, updated: saved.updated } })
@@ -58,7 +86,7 @@ export const useLibrary = create<Session>((set, get) => ({
   },
   open: async (id, detail = true) => {
     const r = await get().load(id)
-    if (r) { apply(r.rb, r.route); set({ detail }) }
+    if (r) { apply(r.rb, r.route); set({ detail, sub: 'parcours' }) }
   },
   create: async (name, src) => {
     if (!lib) return
