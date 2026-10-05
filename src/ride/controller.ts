@@ -2,7 +2,8 @@ import { ackReminder, emit, newRun, type EvalContext, type RunState } from '../a
 import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
 import { bundleOf } from './bundle'
-import { newEngine, tick, type EngineState } from './engine'
+import { defaultMetricCfg } from './metrics'
+import { eat, newEngine, tick, type EngineState } from './engine'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
 import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
@@ -43,6 +44,8 @@ class Ride {
     if (noPower) return 'hr'
     return !this.hub.connected('power') && this.hub.connected('hr') ? 'hr' : 'power'
   }
+
+  private metricCfg() { const b = bundleOf(rideState()); return defaultMetricCfg(b.ftp, b.lthr, b.mass) }
 
   private ctx(): EvalContext {
     const c = rideState()
@@ -114,7 +117,7 @@ class Ride {
   /** Remet la sortie à zéro ; une sortie enregistrée mais pas close est conservée telle quelle. */
   newRide() {
     if (recorder.active) void recorder.finish(undefined, this.remindersShown()).then(r => { if (r?.summary && (r.summary.moving < 60 || r.summary.km < 0.1)) void getLibrary()?.removeRide(r.id) })
-    this.eng = newEngine(newRun(), 0, rideState().route?.total); this.gps.pos = 0
+    this.eng = newEngine(newRun(), 0, rideState().route?.total, this.metricCfg()); this.gps.pos = 0
     this.sim = newSim()
   }
 
@@ -171,6 +174,7 @@ class Ride {
   /** « Fait » : valide le dernier rappel. */
   ack() {
     const ok = ackReminder(this.run, rideState().periodic, performance.now())
+    if (ok && this.src === 'live') { const g = rideState().periodic.find(p => p.id === this.live.lastPerId)?.grams; if (g) eat(this.eng, g) }
     if (ok && this.src === 'live') recorder.event({ type: 'reminder', km: this.live.d / 1000, ok: true })
   }
 
@@ -178,7 +182,7 @@ class Ride {
   async restore(r: import('../library/types').Ride) {
     const at = await recorder.resume(r)
     if (!at) return
-    this.eng = newEngine(newRun(), at.km * 1000, rideState().route?.total)
+    this.eng = newEngine(newRun(), at.km * 1000, rideState().route?.total, this.metricCfg())
     this.live.t = at.moving; this.eng.kj = at.kj; this.eng.kjSeen = at.kj > 0; this.gps.pos = this.live.d
   }
 

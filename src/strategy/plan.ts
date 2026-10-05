@@ -445,7 +445,7 @@ export function computePlan(inp: PlanInput): PlanResult {
     why.push(c ? `${c} recharge${c > 1 ? 's' : ''} d'eau à prévoir (${nf1(cfg.water)} L, autonomie ${nf1(auto)} h).` : `Pas de recharge d'eau nécessaire avec ${nf1(cfg.water)} L.`)
   }
   const periodic: Periodic[] = []
-  if (carbs > 0) { periodic.push({ id: uid(), auto: true, on: true, every: 20, msg: `Mange ~${Math.round(carbs / 3)} g de glucides`, prio: 'action' }); why.push(`${carbs} g de glucides par heure, soit ${nf0(carbs * H)} g au total.`) }
+  if (carbs > 0) { periodic.push({ id: uid(), auto: true, on: true, every: 20, msg: `Mange ~${Math.round(carbs / 3)} g de glucides`, prio: 'action', grams: Math.round(carbs / 3) }); why.push(`${carbs} g de glucides par heure, soit ${nf0(carbs * H)} g au total.`) }
   if (H > 1) periodic.push({ id: uid(), auto: true, on: true, every: 15, msg: 'Bois ~150 ml', prio: 'info' })
 
   // Fourchette : position et route plus ou moins favorables, forme du jour ±.

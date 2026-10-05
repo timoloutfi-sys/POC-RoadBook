@@ -39,6 +39,11 @@ describe('moteur de sortie', () => {
     tick(e, b, { power: 150, hr: 120, cad: 80, speed: 8, fix: 2000, source: 'power' }, 0)
     expect(e.run.d).toBe(2008)
   })
+  it('alimente les calculs de réserves à chaque seconde', () => {
+    const { e } = replay()
+    expect(e.m.zones.reduce((a, b) => a + b, 0)).toBe(600)
+    expect(e.m.carbBurned).toBeGreaterThan(20); expect(e.m.wbal).toBeLessThanOrEqual(e.cfg.wprime)
+  })
   it('garde des tampons bornés', () => {
     const { e } = replay()
     expect(e.pBuf.length).toBeLessThanOrEqual(10); expect(e.hrHist.length).toBeLessThanOrEqual(120)

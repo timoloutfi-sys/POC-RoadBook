@@ -3,6 +3,7 @@ import { evalRun, smoothSev, type EvalContext, type RunState } from '../alerts/e
 import { targetAt, type EffortSource, type Target } from '../strategy/target'
 import type { Prio } from '../strategy/types'
 import type { RideBundle } from './bundle'
+import { defaultMetricCfg, newLapOf, newMetrics, stepMetrics, type LapStats, type MetricCfg, type Metrics } from './metrics'
 import { Position } from './position'
 
 /**
@@ -21,6 +22,9 @@ export interface EngineState {
   kjSeen: boolean
   /** FC toutes les 5 s en mouvement (10 min). */
   hrHist: number[]
+  /** Réserves, zones, dérive, glucides, tour. */
+  m: Metrics
+  cfg: MetricCfg
 }
 
 export interface Measures {
@@ -44,10 +48,16 @@ export interface TickOut {
   signals: Prio[]
 }
 
-export function newEngine(run: RunState, d = 0, total?: number): EngineState {
+export function newEngine(run: RunState, d = 0, total?: number, cfg: MetricCfg = defaultMetricCfg(240, null, 80)): EngineState {
   const pos = new Position(total); pos.reset(d, total); run.d = d
-  return { run, pos, pBuf: [], movD: d, kj: 0, kjSeen: false, hrHist: [] }
+  return { run, pos, pBuf: [], movD: d, kj: 0, kjSeen: false, hrHist: [], m: newMetrics(cfg), cfg }
 }
+
+/** « Fait » sur un rappel de nutrition : ajoute ses grammes de glucides. */
+export const eat = (s: EngineState, grams: number) => { s.m.carbEaten += grams }
+
+/** Nouveau tour : renvoie les moyennes du tour terminé. */
+export const lap = (s: EngineState): LapStats => newLapOf(s.m)
 
 /** Une seconde de sortie : position, tampons, cible, alertes. `now` en ms (durée des bandeaux). */
 export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): TickOut {
@@ -67,6 +77,7 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   const val = m.source === 'power' ? p10 : m.hr, band = m.source === 'power' ? target.power : target.hr
   let tgt: 0 | 1 | 2 = 0
   if (val != null && band && st.t - st.targetSince >= (m.source === 'hr' ? 120 : 0)) tgt = val > band.max || val < band.min ? 2 : 1
+  stepMetrics(s.m, s.cfg, { power: m.power, hr: m.hr, cad: (m.cad ?? 0) > 0 ? m.cad : null, speed: m.speed, t: st.t, band, val, source: m.source })
   const signals = evalRun(st, ctx, target, { power: p10, hr: m.hr, cad: (m.cad ?? 0) > 0 ? m.cad : null, speed: m.speed * 3.6 })
   return { moving: true, tgt, power, target, signals }
 }

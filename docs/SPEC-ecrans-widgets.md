@@ -74,7 +74,7 @@ Contrainte transverse : cible matérielle de `CLAUDE.md`. On prépare sur le té
 | **Punch** (W′bal) | Skiba, forme différentielle. CP = FTP, W′ = 18 kJ (réglable). Dépense au-dessus de CP ; recharge en dessous avec τ = 546·e^(−0,01·(CP − P)) + 316. En %. |
 | **Endurance** | 100 % moins la baisse due au travail : fonction des kJ/kg cumulés pondérés par l'intensité et de la durée, cohérente avec `durability`. Estimation, à calibrer sur les sorties. |
 | **Dérive cardiaque** | Rapport FC / puissance (moyenne glissante 10 min, seulement en effort stable). Comparé à la référence des 20 premières minutes après échauffement. En %, limite 5 %. Demande puissance et FC. |
-| **Glucides brûlés** | kJ × part de glucides selon l'intensité (table préparée à partir de % FTP : ~50 % à 60 % de la FTP, ~80 % à 85 %, 100 % au-dessus du seuil) / (4,18 kJ/kcal × 4 kcal/g) / rendement. ± 20 %. Sans capteur de puissance : estimés depuis la FC. |
+| **Glucides brûlés** | kJ × part de glucides selon l'intensité (table préparée à partir de % FTP : 25 % jusqu'à 40 % de la FTP, 40 % à 60 %, 65 % à 85 %, 85 % à 100 %, 100 % à partir de 130 %) / (4,18 kJ/kcal × 4 kcal/g) / rendement. ± 20 %. Sans capteur de puissance : estimés depuis la FC. |
 | **Glucides mangés** | « Fait » d'un rappel = quantité du rappel (nouveau champ `grams`, eau en `ml`). |
 | **Temps par zone** | Compteurs Z1 à Z5+ (au-dessus de 106 % de FTP). Zone en cours et depuis quand. |
 | **Dans la cible** | Compteurs sous, dans et au-dessus de la cible (secondes en mouvement). |

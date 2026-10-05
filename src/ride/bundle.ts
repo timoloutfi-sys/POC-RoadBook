@@ -22,13 +22,15 @@ export interface RideBundle {
   maxPerHour: number
   ftp: number
   lthr: number | null
+  /** Masse du coureur (kg). */
+  mass: number
 }
 
 /** Paquet de la sortie à partir de l'état préparé (`rideState()` : road book courant, ou sortie libre). */
 export function bundleOf(c: ReturnType<typeof rideState>): RideBundle {
   return {
     v: BUNDLE_VERSION, route: c.route, sections: c.sections, points: c.points, base: c.base,
-    alerts: c.alerts, periodic: c.periodic, maxPerHour: c.maxPerHour, ftp: effectiveFtp(c.rider as Rider), lthr: effectiveLthr(c.rider as Rider),
+    alerts: c.alerts, periodic: c.periodic, maxPerHour: c.maxPerHour, ftp: effectiveFtp(c.rider as Rider), lthr: effectiveLthr(c.rider as Rider), mass: c.rider.mass,
   }
 }
 

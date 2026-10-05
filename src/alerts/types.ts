@@ -20,7 +20,9 @@ export interface AlertRule {
   msg: string
 }
 
-export interface Periodic { id: string; on: boolean; every: number; msg: string; prio: Prio; auto?: boolean }
+export interface Periodic { id: string; on: boolean; every: number; msg: string; prio: Prio; auto?: boolean
+  /** Glucides (g) comptés quand on valide le rappel. */
+  grams?: number }
 
 export const METRICS: Record<Metric, { n: string; l: string; u: string }> = {
   effort: { n: "l'effort (puissance, ou FC sans capteur)", l: 'Effort', u: '' },
