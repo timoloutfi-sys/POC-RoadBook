@@ -83,6 +83,15 @@ C'est le cœur de l'appli : chaque estimation doit être réaliste. Tests de ré
 - **Données de comparaison : seulement des efforts en solo.** Pas de sorties ou courses en peloton (l'abri fausse le modèle : jusqu'à −30 % de puissance sur le plat). Ultras sans abri (Race Across, BRM en solo), contre-la-montre, records de l'heure, montées faites seul ; les montées de course pro ne servent que sur forte pente (> 6 %), où l'abri compte peu.
 - Repères validés : 200 W, CdA 0,32 → 32–33 km/h ; CLM 300 W, CdA 0,24 → 43 km/h ; Alpe d'Huez à 4 W/kg → 55–62 min ; ultra 500 km, FTP 240 → 19–23 h de roulage, 22–27 h au total.
 
+## Cible matérielle (à garder en tête dès maintenant)
+
+À terme : **on prépare tout sur le téléphone** (appli native, aujourd'hui la web app), puis on **envoie un paquet au boîtier du vélo** (type ESP32, écran memory LCD, GPS, Bluetooth), qui **fonctionne seul, sans réseau** pendant la sortie et renvoie l'enregistrement au téléphone ensuite. On ne code pas le boîtier maintenant, mais tout doit rester compatible :
+
+- **Préparation (téléphone)** : lecture du GPX, modèle physique, plan et suggestions, heures d'arrivée, montées, profils réduits, heures du soleil. Résultat = un **paquet de sortie** compact (tableaux tous les 50 m : altitude, pente, cible ; listes de points, montées, rappels ; temps et énergie prévus par km).
+- **Exécution (boîtier)** : uniquement des calculs **incrémentaux, à mémoire bornée, sans réseau**, faisables en virgule fixe : lissages, zones, temps par zone, dans la cible, Punch (W′bal), Endurance, dérive cardiaque, glucides, tour, écart au plan et arrivée (lecture du prévu), recalage GPS local, alertes, rappels, enregistrement. Aucun optimiseur ni simulation physique pendant la sortie.
+- **Widgets** : définis par leurs données et leurs règles de mise en page (tailles autorisées), pas par le DOM ; lisibles sans animation et avec peu de couleurs (texte ou forme en plus de la couleur).
+- **Analyse** des sorties : sur le téléphone.
+
 ## Points d'attention
 
 - **Web Bluetooth** : Chrome sur Android uniquement pour le POC. HTTPS obligatoire (GitHub Pages).
