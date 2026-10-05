@@ -1,7 +1,8 @@
-import { ackReminder, emit, evalRun, newRun, smoothSev, type EvalContext, type RunState } from '../alerts/engine'
+import { ackReminder, emit, newRun, type EvalContext, type RunState } from '../alerts/engine'
 import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
-import { Position } from './position'
+import { bundleOf } from './bundle'
+import { newEngine, tick, type EngineState } from './engine'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
 import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
@@ -24,16 +25,13 @@ class Ride {
   src: RideSource = 'live'
   running = false
   hub = new SensorHub()
-  live: RunState = newRun()
+  eng: EngineState = newEngine(newRun())
+  private fixPending: number | null = null
+  get live(): RunState { return this.eng.run }
   sim: SimState = newSim()
   simOpts: SimOptions = { speed: 60, behavior: 0.3, startKm: 0, noPower: false }
-  private pos = new Position()
   gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, pos: 0, off: false, err: null }
-  private pBuf: number[] = []
-  private movD = 0
-  private kj = 0
   private planCache: { res: unknown; rows: TimelineRow[]; etas: { km: number; t: number }[] } | null = null
-  private hrHist: number[] = []
   private timer: ReturnType<typeof setInterval> | null = null
   private watchId: number | null = null
   private wake: WakeLockSentinel | null = null
@@ -103,10 +101,9 @@ class Ride {
     const ftp = effectiveFtp(c.rider)
     return {
       nextStop: nextStopOf(this.planCache.rows, km), gapS: gapOf(this.planCache.etas, km, elapsedS),
-      kj: this.src === 'live' && this.source() === 'power' && this.kjSeen ? this.kj : null, kjPlan: plannedKjAt(res, ftp, km),
+      kj: this.src === 'live' && this.source() === 'power' && this.eng.kjSeen ? this.eng.kj : null, kjPlan: plannedKjAt(res, ftp, km),
     }
   }
-  private kjSeen = false
 
   /** Rappels affichés pendant la sortie (pour « rappels tenus »). */
   remindersShown() {
@@ -117,7 +114,7 @@ class Ride {
   /** Remet la sortie à zéro ; une sortie enregistrée mais pas close est conservée telle quelle. */
   newRide() {
     if (recorder.active) void recorder.finish(undefined, this.remindersShown()).then(r => { if (r?.summary && (r.summary.moving < 60 || r.summary.km < 0.1)) void getLibrary()?.removeRide(r.id) })
-    this.live = newRun(); this.gps.pos = 0; this.pos.reset(0, rideState().route?.total); this.pBuf = []; this.movD = 0; this.hrHist = []; this.kj = 0; this.kjSeen = false
+    this.eng = newEngine(newRun(), 0, rideState().route?.total); this.gps.pos = 0
     this.sim = newSim()
   }
 
@@ -137,34 +134,23 @@ class Ride {
     if (route) {
       const m = matchRoute(route, c.latitude, c.longitude, g.pos)
       g.off = m.offRoute
-      if (!m.offRoute) { g.pos = m.pos; this.pos.fix(m.pos) }
+      if (!m.offRoute) { g.pos = m.pos; this.fixPending = m.pos }
     }
   }
 
   private tickLive() {
-    const st = this.live, g = this.gps, hub = this.hub, now = performance.now()
+    const g = this.gps, hub = this.hub, now = performance.now(), st = this.live
     hub.expire(now)
     const route = rideState().route
     const gpsFresh = g.ts > 0 && now - g.ts < 10000
     const sv = hub.vals.spd
     const speed = sv != null ? sv : gpsFresh ? g.speed : 0
-    if (route) st.d = this.pos.step(1, speed)
-    if (hub.vals.power != null) { this.pBuf.push(hub.vals.power); if (this.pBuf.length > 10) this.pBuf.shift() } else this.pBuf = []
-    let tgt: 0 | 1 | 2 = 0
-    if (speed > 0.8) {
-      st.t++; this.movD += speed
-      if (hub.vals.power != null) { this.kj += hub.vals.power / 1000; this.kjSeen = true }
-      if (st.t % 5 === 0 && hub.vals.hr != null) { this.hrHist.push(hub.vals.hr); if (this.hrHist.length > 120) this.hrHist.shift() }
-      const c = rideState(), ctx = this.ctx()
-      const tg = targetAt(route, c.sections, c.base, effectiveFtp(c.rider), effectiveLthr(c.rider), st.d, st.t / 3600)
-      const val = ctx.source === 'power' ? avg10(this.pBuf, NaN) || null : hub.vals.hr, band = ctx.source === 'power' ? tg.power : tg.hr
-      if (val != null && band && st.t - st.targetSince >= (ctx.source === 'hr' ? 120 : 0)) tgt = val > band.max || val < band.min ? 2 : 1
-      const sigs = evalRun(st, ctx, tg, { power: avg10(this.pBuf, NaN) || null, hr: hub.vals.hr, cad: (hub.vals.cad ?? 0) > 0 ? hub.vals.cad : null, speed: speed * 3.6 })
-      sigs.forEach(signal)
-    } else smoothSev(st, {})
+    const out = tick(this.eng, bundleOf(rideState()), { power: hub.vals.power ?? null, hr: hub.vals.hr ?? null, cad: hub.vals.cad ?? null, speed, fix: this.fixPending, source: this.source() }, now)
+    this.fixPending = null
+    out.signals.forEach(signal)
     recorder.sample({
-      t: Date.now(), km: st.d / 1000, speed, power: this.pBuf.length ? avg10(this.pBuf, 0) : null, hr: hub.vals.hr ?? null,
-      cad: hub.vals.cad ?? null, ele: eleAt(route, st.d), lat: gpsFresh ? g.lat : null, lon: gpsFresh ? g.lon : null, moving: speed > 0.8, tgt,
+      t: Date.now(), km: st.d / 1000, speed, power: out.power, hr: hub.vals.hr ?? null,
+      cad: hub.vals.cad ?? null, ele: eleAt(route, st.d), lat: gpsFresh ? g.lat : null, lon: gpsFresh ? g.lon : null, moving: out.moving, tgt: out.tgt,
     })
   }
 
@@ -192,8 +178,8 @@ class Ride {
   async restore(r: import('../library/types').Ride) {
     const at = await recorder.resume(r)
     if (!at) return
-    this.live = newRun(); this.live.d = at.km * 1000; this.live.t = at.moving
-    this.movD = this.live.d; this.kj = at.kj; this.kjSeen = at.kj > 0; this.gps.pos = this.live.d; this.pos.reset(this.live.d, rideState().route?.total); this.pBuf = []; this.hrHist = []
+    this.eng = newEngine(newRun(), at.km * 1000, rideState().route?.total)
+    this.live.t = at.moving; this.eng.kj = at.kj; this.eng.kjSeen = at.kj > 0; this.gps.pos = this.live.d
   }
 
   data(now = new Date()): WidgetData {
@@ -207,8 +193,8 @@ class Ride {
     const v = this.hub.vals, g = this.gps, fresh = performance.now() - g.ts < 10000
     const elapsed = recorder.ride ? (Date.now() - recorder.ride.start) / 1000 : st.t
     return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: st, plan: this.progress(st.d / 1000, elapsed),
-      power: this.pBuf.length ? avg10(this.pBuf, 0) : null, hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
-      vAvg: st.t > 60 ? (this.movD / st.t) * 3.6 : 28, hrHist: this.hrHist, now, banner })
+      power: this.eng.pBuf.length ? avg10(this.eng.pBuf, 0) : null, hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
+      vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner })
   }
 
   /** Problème à signaler à l'écran (GPS, parcours), ou null quand tout va bien. */

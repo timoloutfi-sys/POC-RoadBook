@@ -54,6 +54,7 @@ Code dans `src/` :
 - `library/analysis.ts` : analyse d’une sortie (road book réalisé, zones réel contre prévu, dérive, courbe) et pastille de conformité ; `ui/SortiesTab.tsx` (liste, détail) et `ui/RideChart.tsx`.
 - `ride/progress.ts` : avancement par rapport au plan pour les widgets « prochain arrêt », « écart au plan », « effort vs plan ». `library/gpxExport.ts` : export GPX d’une sortie (positions, FC, cadence, puissance). L’export FIT n’existe pas encore.
 - `library/goal.ts` : objectif, prochaine sortie, compte à rebours, cible du bouton Rouler. `ui/HomeTab.tsx` (accueil), `ui/GoalFlow.tsx` (fixer un objectif, nouvelle course), `ui/NoGpx.tsx` (course en attente de son GPX).
+- `ride/bundle.ts` (paquet de sortie versionné, sérialisable), `ride/engine.ts` (`tick(état, paquet, mesures, t)` : pur, sans DOM ni store, chaque seconde), `ride/position.ts` (distance fluide). Le contrôleur ne fait que lire les capteurs et appeler `tick`. Pas encore passés par le paquet : `buildData` (widgets) et `progress`.
 - `sim/` : coureur virtuel.
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.
