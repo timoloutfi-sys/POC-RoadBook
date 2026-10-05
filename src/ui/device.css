@@ -25,7 +25,7 @@
 }
 .editing .wg { cursor: grab; }
 .editing .wi { border-style: dashed; border-color: var(--d-acc); }
-.wg-del { position: absolute; top: -2px; right: -2px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--d-hi); color: #fff; display: grid; place-items: center; cursor: pointer; z-index: 3; }
+.wg-del { position: absolute; top: -2px; right: -2px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--d-hi); color: #fff; display: grid; place-items: center; cursor: pointer; z-index: 3; }
 .wg-rs { position: absolute; right: 2px; bottom: 2px; width: 26px; height: 26px; z-index: 3; background: linear-gradient(135deg, transparent 50%, var(--d-acc) 50%); border-radius: 0 0 8px 0; cursor: nwse-resize; }
 
 .lab.wrap { white-space: normal; }
@@ -127,3 +127,4 @@
 .dev.portrait.full { aspect-ratio: auto; }
 .dev.thumb.portrait, .dev.editing.portrait { aspect-ratio: 1 / 2; }
 .editing .wg:not(.sel) .wg-del, .editing .wg:not(.sel) .wg-rs { display: none; }
+.tl-climb .cl-sub .sub { white-space: normal; }

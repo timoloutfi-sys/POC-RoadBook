@@ -95,7 +95,7 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
       const prog = c.state === 'in' ? c.doneM / c.lenM : 0
       return {
         lab: c.state === 'in' ? 'Montée en cours' : 'Prochaine montée', val: nf1(c.toGoKm), unit: 'km',
-        sub: [c.state === 'in' ? 'restants' : 'avant la montée', `${nf1(c.lenM / 1000)} km · ${nf1(c.avg)} % · ${nf0(c.gainM)} m de D+`], gauge: { v: prog },
+        sub: [c.state === 'in' ? 'restants' : 'avant la montée', `${nf1(c.lenM / 1000)} km · ${nf1(c.avg)} %`, `${nf0(c.gainM)} m de D+`], gauge: { v: prog },
         steps: c.steps.map(s => ({ len: s.lenM, grade: s.grade })),
       }
     }

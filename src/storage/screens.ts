@@ -85,6 +85,25 @@ export function portraitFrom(items: WidgetItem[]): WidgetItem[] {
       if (size && size[0] === w && size[1] === h) size = null
     }
   }
+  return fillFree(out, g)
+}
+
+/** Agrandit les widgets dans les cases libres voisines (plus grande taille autorisée qui tient), pour ne pas laisser de trou. */
+export function fillFree(items: WidgetItem[], g: Grid): WidgetItem[] {
+  const out = items.map(i => ({ ...i }))
+  for (let pass = 0; pass < 6; pass++) {
+    let best: { i: number; s: [number, number]; gain: number } | null = null
+    out.forEach((it, i) => {
+      for (const [w, h] of defOf(it.k).sizes) {
+        const gain = w * h - it.w * it.h
+        if (gain <= 0 || it.x + w > g.cols || it.y + h > g.rows || overlaps(out, { x: it.x, y: it.y, w, h }, it.id)) continue
+        if (!best || gain > best.gain) best = { i, s: [w, h], gain }
+      }
+    })
+    if (!best) break
+    const b: { i: number; s: [number, number] } = best
+    out[b.i].w = b.s[0]; out[b.i].h = b.s[1]
+  }
   return out
 }
 

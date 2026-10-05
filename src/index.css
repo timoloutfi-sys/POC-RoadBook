@@ -235,7 +235,7 @@ b.ok { color: var(--ok); } b.wa { color: var(--accent-fg); } b.ko { color: var(-
 .edit-port { max-width: 280px; margin: 0 auto; }
 .sel-bar { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; margin: 10px 0; border: 1px solid var(--accent); border-radius: 12px; background: var(--surface); }
 .chips { margin: 8px 0; }
-.chip { min-height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; cursor: pointer; }
+.chip { min-height: 44px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; cursor: pointer; }
 .chip[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .cat-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .cat-head b { display: block; font-size: 17px; }

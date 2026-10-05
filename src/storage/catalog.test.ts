@@ -92,7 +92,7 @@ describe('portrait et cases vides', () => {
   })
   it('le profil large devient 3 colonnes en portrait', () => {
     const p = portraitFrom([{ id: 'a', k: 'profile', x: 0, y: 0, w: 4, h: 1 }])
-    expect([p[0].w, p[0].h]).toEqual([3, 1])
+    expect(p[0].w).toBe(3)
   })
   it('propose ce qui tient dans une case libre', () => {
     const items: WidgetItem[] = [{ id: 'a', k: 'effort', x: 0, y: 0, w: 2, h: 2 }]
