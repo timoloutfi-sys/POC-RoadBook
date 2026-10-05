@@ -20,9 +20,10 @@ export function ScaledDevice(props: Props) {
     setScale(el.clientWidth / W)
     return () => ro.disconnect()
   }, [W])
+  // La hauteur découle de la largeur (rapport fixe) : la mise en page ne dépend jamais de l'échelle calculée.
   return (
-    <div ref={box} style={{ width: '100%', height: H * scale, overflow: 'hidden', borderRadius: 10 }}>
-      <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+    <div ref={box} style={{ width: '100%', aspectRatio: `${W} / ${H}`, position: 'relative', overflow: 'hidden', borderRadius: 10, contain: 'layout paint size' }}>
+      <div style={{ position: 'absolute', left: 0, top: 0, width: W, height: H, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
         <Device {...props} className={`${props.className ?? ''} full`} />
       </div>
     </div>

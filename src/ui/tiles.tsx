@@ -168,7 +168,7 @@ export function TileView({ t, w, h }: { t: Tile; w: number; h: number }) {
       return (
         <div className={`tl tl-${shape}`}>
           <div className="lab">{t.lab}</div>
-          <div className="stack" aria-hidden="true">{t.bars.map(b => <i key={b.l} style={{ flex: Math.max(0.02, b.v), background: b.c, outline: b.now ? '2px solid var(--d-ink)' : undefined }} />)}</div>
+          <div className="zstack" aria-hidden="true">{t.bars.map(b => <i key={b.l} style={{ flex: Math.max(0.02, b.v), background: b.c, outline: b.now ? '2px solid var(--d-ink)' : undefined }} />)}</div>
           {now && <div className="sub"><b>{now.l}</b> · {now.t}</div>}
         </div>
       )
@@ -202,7 +202,7 @@ export function TileView({ t, w, h }: { t: Tile; w: number; h: number }) {
       <div className={`tl tl-${shape} pair`}>
         <div className="lab">{t.lab}</div>
         <div className="pr">{t.pair.map(p => (
-          <div className="pi" key={p.l}><span className="sub dim">{p.l}</span><b className="pv">{p.v}</b><span className="gbar" aria-hidden="true"><i style={{ width: `${pct(p.g) * 100}%` }} /></span></div>
+          <div className="pi" key={p.l}><span className="sub dim">{p.l}</span><b className="pval">{p.v}</b><span className="gbar" aria-hidden="true"><i style={{ width: `${pct(p.g) * 100}%` }} /></span></div>
         ))}</div>
       </div>
     )
