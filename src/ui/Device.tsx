@@ -2,7 +2,7 @@ import { useRef, type CSSProperties } from 'react'
 import { clamp } from '../core/format'
 import type { WidgetData } from '../ride/data'
 import { nearestSize } from '../storage/catalog'
-import { COLS, ROWS, WIDGETS, type WidgetItem } from '../storage/defaults'
+import { LANDSCAPE, WIDGETS, type Grid, type WidgetItem } from '../storage/defaults'
 import { applyRect } from '../storage/screens'
 import { Icon } from './icons'
 import { Widget, sizeOf } from './widgets'
@@ -18,13 +18,20 @@ interface Props {
   /** Mode éditeur : glisser pour déplacer, coin pour redimensionner, croix pour retirer. */
   editable?: boolean
   onChange?: (items: WidgetItem[]) => void
+  /** Grille : 6 × 3 (paysage) par défaut, 3 × 6 en portrait. */
+  grid?: Grid
+  /** Widget sélectionné dans l'éditeur, et rappels de sélection ou de case vide touchée. */
+  selected?: string | null
+  onSelect?: (id: string | null) => void
+  onEmpty?: (x: number, y: number) => void
   /** Vignette : textes minuscules, aucune interaction. */
   thumb?: boolean
   className?: string
 }
 
 /** La grille 6 × 3 d'un écran de course, avec la lueur d'alerte sur les bords et le bandeau d'annonce. */
-export function Device({ items, data, tone, editable, onChange, thumb, className }: Props) {
+export function Device({ items, data, tone, editable, onChange, thumb, className, grid = LANDSCAPE, selected, onSelect, onEmpty }: Props) {
+  const COLS = grid.cols, ROWS = grid.rows
   const root = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: string; mode: 'move' | 'resize'; sx: number; sy: number; o: WidgetItem; cw: number; ch: number } | null>(null)
 
@@ -51,14 +58,18 @@ export function Device({ items, data, tone, editable, onChange, thumb, className
       : (([w, h]) => ({ x: o.x, y: o.y, w, h }))(nearestSize(o.k, clamp(o.w + dx, 1, COLS - o.x), clamp(o.h + dy, 1, ROWS - o.y)))
     const cur = items.find(i => i.id === d.id)
     if (!cur || (cur.x === r.x && cur.y === r.y && cur.w === r.w && cur.h === r.h)) return
-    const next = applyRect(items, d.id, r)
+    const next = applyRect(items, d.id, r, grid)
     if (next) onChange(next)
   }
   const up = () => { drag.current = null }
+  const taken = (x: number, y: number) => items.some(b => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h)
 
   const style = { '--n': tone } as CSSProperties
   return (
-    <div ref={root} className={`dev${thumb ? ' thumb' : ''}${editable ? ' editing' : ''} ${className ?? ''}`} style={style} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
+    <div ref={root} className={`dev${thumb ? ' thumb' : ''}${editable ? ' editing' : ''}${COLS < ROWS ? ' portrait' : ''} ${className ?? ''}`} style={style} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
+      {editable && Array.from({ length: COLS * ROWS }, (_, i) => ({ x: i % COLS, y: Math.floor(i / COLS) })).filter(c => !taken(c.x, c.y)).map(c => (
+        <button key={`${c.x}-${c.y}`} className="cell-empty" style={{ left: `${(c.x / COLS) * 100}%`, top: `${(c.y / ROWS) * 100}%`, width: `${100 / COLS}%`, height: `${100 / ROWS}%` }} aria-label="Ajouter un widget ici" onClick={() => onEmpty?.(c.x, c.y)}>+</button>
+      ))}
       {items.map(it => {
         const sev = data.sev[it.k === 'effort' ? (data.source === 'power' ? 'power' : 'hr') : it.k === 'hr' ? 'hr' : it.k === 'cad' ? 'cad' : it.k === 'speed' ? 'speed' : 'power']
         const sty = {
@@ -66,7 +77,7 @@ export function Device({ items, data, tone, editable, onChange, thumb, className
           ...(sev && (it.k === 'effort' || it.k === 'hr' || it.k === 'cad' || it.k === 'speed') ? { '--valc': sevColor(sev.k, 1, sev.dir), '--wbg': sevColor(sev.k, 0.06 + 0.14 * sev.k, sev.dir), '--wbd': sevColor(sev.k, 0.4 + 0.4 * sev.k, sev.dir) } : {}),
         } as CSSProperties
         return (
-          <div key={it.id} className={`wg s-${sizeOf(it)}${sev && it.k !== 'target' ? ' alert' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} aria-label={WIDGETS[it.k]}>
+          <div key={it.id} className={`wg s-${sizeOf(it)}${sev && it.k !== 'target' ? ' alert' : ''}${selected === it.id ? ' sel' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} onClick={() => editable && onSelect?.(it.id)} aria-label={WIDGETS[it.k]}>
             <div className="wi"><Widget it={it} d={data} /></div>
             {editable && (
               <>

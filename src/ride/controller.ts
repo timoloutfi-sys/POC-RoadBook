@@ -3,7 +3,7 @@ import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
 import { bundleOf } from './bundle'
 import { defaultMetricCfg, metricsView } from './metrics'
-import { eat, newEngine, tick, type EngineState } from './engine'
+import { eat, lap, newEngine, tick, type EngineState } from './engine'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
 import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
@@ -69,7 +69,6 @@ class Ride {
     this.running = true
     this.stopTimer()
     try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' }) } catch { /* plein écran refusé */ }
-    try { await (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape') } catch { /* verrouillage indisponible */ }
     await this.keepAwake()
     if (src === 'live') {
       if (navigator.geolocation && this.watchId == null) {
@@ -89,7 +88,6 @@ class Ride {
     try { this.wake?.release() } catch { /* déjà libéré */ }
     this.wake = null
     try { if (document.fullscreenElement) void document.exitFullscreen() } catch { /* ignoré */ }
-    try { screen.orientation?.unlock?.() } catch { /* ignoré */ }
   }
 
   /** Avancement par rapport au plan (null en sortie libre ou sans plan). */
@@ -169,6 +167,14 @@ class Ride {
     const n = Math.max(1, Math.round(this.simOpts.speed / 10))
     for (let i = 0; i < n && !this.sim.done; i++) simStep(this.sim, P).forEach(signal)
     if (this.sim.done) emit(this.sim, ctx, 'info', 'Arrivée')
+  }
+
+  /** Nouveau tour : annonce les moyennes du tour qui se termine. */
+  newLap() {
+    if (this.src !== 'live') return
+    const l = lap(this.eng), n = this.eng.m.laps
+    const parts = [`Tour ${n}`, `${Math.floor(l.dur / 60)}:${String(l.dur % 60).padStart(2, '0')}`, l.p != null ? `${Math.round(l.p)} W` : l.hr != null ? `${Math.round(l.hr)} bpm` : `${l.v.toFixed(1).replace('.', ',')} km/h`]
+    emit(this.live, this.ctx(), 'info', parts.join(' · '))
   }
 
   /** « Fait » : valide le dernier rappel. */

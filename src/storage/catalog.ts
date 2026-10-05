@@ -84,3 +84,12 @@ export const LEGACY: Record<string, { k: WidgetKind; o?: Record<string, string |
   stop: { k: 'next', o: { stops: true } },
   cum: { k: 'gap' },
 }
+
+/** Réglages d'un widget : une liste de choix par réglage. */
+export interface OptionDef { key: string; label: string; choices: { v: string | number | boolean; l: string }[] }
+export const OPTIONS: Partial<Record<WidgetKind, OptionDef[]>> = {
+  effort: [{ key: 'wkg', label: 'Unité', choices: [{ v: false, l: 'W' }, { v: true, l: 'W/kg' }] }],
+  speed: [{ key: 'avg', label: 'Mesure', choices: [{ v: false, l: 'Instantanée' }, { v: true, l: 'Moyenne' }] }],
+  profile: [{ key: 'range', label: 'À venir', choices: [{ v: 5, l: '5 km' }, { v: 15, l: '15 km' }, { v: 25, l: '25 km' }] }],
+  next: [{ key: 'stops', label: 'Points', choices: [{ v: false, l: 'Tous' }, { v: true, l: 'Arrêts' }] }],
+}

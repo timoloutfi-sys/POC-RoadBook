@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { previewData } from '../ride/data'
 import { tileOf } from '../ui/tiles'
 import { CATALOG, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
-import { COLS, ROWS, TEMPLATES, mkLayout, normalizeItems, type WidgetItem } from './defaults'
-import { addWidget, applyRect, overlaps } from './screens'
+import { COLS, PORTRAIT, ROWS, TEMPLATES, mkLayout, normalizeItems, type WidgetItem } from './defaults'
+import { addWidget, applyRect, fitting, overlaps, portraitFrom } from './screens'
 
 describe('catalogue', () => {
   it('chaque widget a au moins une taille et son nom, et ses tailles tiennent dans la grille', () => {
@@ -74,5 +74,37 @@ describe('contenu des widgets', () => {
   it('le temps par zone marque la zone en cours', () => {
     const t = tileOf('zones', d)
     expect(t.bars!.filter(b => b.now).length).toBe(1); expect(t.bars!.length).toBe(5)
+  })
+})
+
+describe('portrait et cases vides', () => {
+  it('génère le portrait : 3 colonnes, tailles autorisées, sans chevauchement, gros widgets d’abord', () => {
+    for (const k of Object.keys(TEMPLATES) as (keyof typeof TEMPLATES)[]) {
+      const land = mkLayout(k), p = portraitFrom(land)
+      expect(p.length).toBeGreaterThan(0)
+      for (const it of p) {
+        expect(isAllowed(it.k, it.w, it.h), `${k} ${it.k}`).toBe(true)
+        expect(it.x + it.w).toBeLessThanOrEqual(PORTRAIT.cols); expect(it.y + it.h).toBeLessThanOrEqual(PORTRAIT.rows)
+        expect(overlaps(p.filter(o => o !== it), it)).toBe(false)
+      }
+      expect(p[0].w * p[0].h).toBeGreaterThanOrEqual(p[p.length - 1].w * p[p.length - 1].h)
+    }
+  })
+  it('le profil large devient 3 colonnes en portrait', () => {
+    const p = portraitFrom([{ id: 'a', k: 'profile', x: 0, y: 0, w: 4, h: 1 }])
+    expect([p[0].w, p[0].h]).toEqual([3, 1])
+  })
+  it('propose ce qui tient dans une case libre', () => {
+    const items: WidgetItem[] = [{ id: 'a', k: 'effort', x: 0, y: 0, w: 2, h: 2 }]
+    const f = fitting(items, 2, 0)
+    expect(f.find(x => x.k === 'slope')!.size).toEqual([1, 1])
+    expect(f.find(x => x.k === 'profile')!.size).toEqual([4, 2])
+    const tight = fitting([{ id: 'a', k: 'effort', x: 1, y: 0, w: 1, h: 1 }], 0, 0)
+    expect(tight.find(x => x.k === 'cad')!.size).toEqual([1, 1]) // la case voisine est prise : pas de 2×1
+  })
+  it('les tailles se contrôlent selon la grille portrait', () => {
+    const items: WidgetItem[] = [{ id: 'a', k: 'cad', x: 2, y: 0, w: 1, h: 1 }]
+    expect(applyRect(items, 'a', { x: 2, y: 0, w: 2, h: 1 }, PORTRAIT)).toBeNull()
+    expect(applyRect(items, 'a', { x: 1, y: 0, w: 2, h: 1 }, PORTRAIT)).not.toBeNull()
   })
 })

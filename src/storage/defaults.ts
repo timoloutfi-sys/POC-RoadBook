@@ -16,6 +16,10 @@ export interface WidgetItem {
 
 export const COLS = 6
 export const ROWS = 3
+/** Grille d'un écran : 6 × 3 en paysage, 3 × 6 en portrait. */
+export interface Grid { cols: number; rows: number }
+export const LANDSCAPE: Grid = { cols: COLS, rows: ROWS }
+export const PORTRAIT: Grid = { cols: ROWS, rows: COLS }
 
 type Tpl = [WidgetKind, number, number, number, number][]
 export const TEMPLATES = {
@@ -46,7 +50,13 @@ export function normalizeItems(items: WidgetItem[]): WidgetItem[] {
 }
 
 /** Un écran de course : une disposition nommée de widgets. */
-export interface ScreenDef { id: string; name: string; items: WidgetItem[] }
+export interface ScreenDef {
+  id: string; name: string
+  /** Disposition paysage (6 × 3). */
+  items: WidgetItem[]
+  /** Disposition portrait (3 × 6), générée depuis le paysage tant qu'elle n'a pas été modifiée. */
+  portrait?: WidgetItem[]
+}
 
 export type RideTheme = 'auto' | 'day' | 'night'
 

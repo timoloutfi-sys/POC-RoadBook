@@ -135,6 +135,8 @@ Contrainte transverse : cible matérielle de `CLAUDE.md`. On prépare sur le té
 
 ## 6. Éditeur d'écrans (piste A, maquettes `ecran-1` à `ecran-7`)
 
+_Réalisé (étape 6) : paysage et portrait, sélection, déplacer, agrandir aux tailles autorisées, catalogue avec recherche, catégories et aperçus, case vide, réglages, annuler. Pas encore : glisser depuis le catalogue, échange de places entre widgets de même taille, widget recouvert déplacé sur l'écran suivant, appui long sur la liste des écrans._
+
 **Disposition**
 - Un écran a deux dispositions : paysage 6 × 3 et portrait 3 × 6.
 - La sortie et l'éditeur suivent l'orientation du téléphone.

@@ -116,3 +116,14 @@
 .tl-climb .val { font-size: min(34cqh, 18cqw); }
 .tl-climb .cl-sub { min-width: 0; padding-bottom: .3em; }
 .tl-climb .steps { flex: 1; height: auto; min-height: 0; }
+
+/* Éditeur : cases vides, sélection, taille affichée. */
+.cell-empty { position: absolute; display: grid; place-items: center; border: 1px dashed color-mix(in srgb, var(--d-mut) 55%, transparent); border-radius: 8px; margin: 2px; box-sizing: border-box; background: transparent; color: var(--d-mut); font-size: 28px; cursor: pointer; z-index: 1; }
+.wg.sel .wi { border: 2px solid var(--d-acc); border-style: solid; box-shadow: 0 0 0 3px color-mix(in srgb, var(--d-acc) 35%, transparent); }
+.wg.sel { z-index: 2; }
+.ride.port { grid-template-columns: 1fr; grid-template-rows: 24px 1fr 24px; }
+.ride.port .strip.top .gauge { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--danger); opacity: .85; }
+.ride.port .dots { right: auto; left: 50%; top: auto; bottom: 34px; transform: translateX(-50%); flex-direction: row; }
+.dev.portrait.full { aspect-ratio: auto; }
+.dev.thumb.portrait, .dev.editing.portrait { aspect-ratio: 1 / 2; }
+.editing .wg:not(.sel) .wg-del, .editing .wg:not(.sel) .wg-rs { display: none; }
