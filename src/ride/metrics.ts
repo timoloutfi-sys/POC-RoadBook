@@ -179,3 +179,35 @@ export function phoneMinutesLeft(samples: [number, number][], charging: boolean)
   const slope = (first[1] - last[1]) / span
   return slope > 0 ? Math.round(last[1] / slope / 60) : null
 }
+
+/** Ce que les widgets lisent des calculs : tout est déjà arrondi et prêt à afficher. */
+export interface MetricsView {
+  /** null sans capteur de puissance. */
+  punch: number | null
+  endurance: number | null
+  /** Dérive en %, null tant que la mesure manque. */
+  drift: number | null
+  zones: number[]
+  zoneNow: number
+  zoneSince: number
+  /** Temps dans la cible en %, et secondes sous, dans et au-dessus. */
+  inTarget: number | null
+  under: number; inT: number; over: number
+  /** Glucides brûlés par heure (g), moyenne depuis le départ ; null avant 5 min. */
+  carbPerH: number | null
+  carbBurned: number; carbEaten: number; carbGap: number
+  lap: LapStats
+  lastLap: LapStats | null
+  laps: number
+}
+
+export function metricsView(m: Metrics, c: MetricCfg, hasPower: boolean, t: number): MetricsView {
+  return {
+    punch: hasPower ? punchPct(m, c) : null, endurance: hasPower || c.lthr ? endurancePct(m) : null, drift: driftPct(m),
+    zones: [...m.zones], zoneNow: m.zoneNow, zoneSince: m.zoneSince,
+    inTarget: inTargetPct(m), under: m.under, inT: m.inT, over: m.over,
+    carbPerH: t >= 300 ? Math.round((m.carbBurned / t) * 3600) : null,
+    carbBurned: Math.round(m.carbBurned), carbEaten: Math.round(m.carbEaten), carbGap: carbGap(m),
+    lap: lapNow(m), lastLap: m.lastLap, laps: m.laps,
+  }
+}

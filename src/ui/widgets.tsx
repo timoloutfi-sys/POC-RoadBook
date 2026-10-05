@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
-import { fdur, hhmm, hms, nf0, nf1 } from '../core/format'
+import { fdur, hhmm, nf0, nf1 } from '../core/format'
 import type { WidgetData, Upcoming } from '../ride/data'
 import { useStore } from '../storage/store'
 import { POINT_TYPES, type Section } from '../strategy/types'
 import { HR_ZONES, POWER_ZONES, hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
 import type { WidgetItem } from '../storage/defaults'
 import { Icon, type IconName } from './icons'
+import { TileView, tileOf } from './tiles'
 
 export type Size = 'S' | 'M' | 'L'
 export const sizeOf = (it: Pick<WidgetItem, 'w' | 'h'>): Size => ((it.w >= 3 && it.h >= 2) || it.w * it.h >= 6 ? 'L' : it.w >= 2 || it.h >= 2 ? 'M' : 'S')
@@ -15,16 +16,10 @@ const zoneColor = (d: WidgetData, z: number) => (d.source === 'power' ? POWER_ZO
 const zoneOfTarget = (d: WidgetData) => (d.source === 'power' ? d.tg.zone : hrZoneOfPowerZone(d.tg.zone))
 const evIcon = (k: Upcoming['kind']): IconName => (k === 'montee' ? 'montee' : k === 'zone' ? 'route' : (k as IconName))
 
-function Spark({ arr }: { arr: number[] }) {
-  if (arr.length < 2) return null
-  let lo = Math.min(...arr), hi = Math.max(...arr)
-  if (hi - lo < 10) { const m = (hi + lo) / 2; lo = m - 5; hi = m + 5 }
-  const pts = arr.map((v, i) => `${((i / (arr.length - 1)) * 100).toFixed(1)},${(28 - ((v - lo) / (hi - lo)) * 26).toFixed(1)}`).join(' ')
-  return <svg className="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points={pts} fill="none" stroke="currentColor" strokeWidth={2} vectorEffect="non-scaling-stroke" /></svg>
-}
-
-function EffortW({ d, sz }: { d: WidgetData; sz: Size }) {
-  const lab = d.source === 'power' ? 'Puissance' : 'Fréquence cardiaque'
+function EffortW({ d, sz, metric, wkg }: { d: WidgetData; sz: Size; metric?: 'power' | 'hr'; wkg?: boolean }) {
+  const src = metric ?? d.source
+  if (src !== d.source) d = { ...d, source: src, effort: src === 'power' ? d.power : d.hr, band: src === 'power' ? d.tg.power : d.tg.hr ?? null, noLthr: src === 'hr' && d.noLthr }
+  const lab = src === 'power' ? 'Puissance' : 'FC'
   if (d.noLthr) return <><div className="lab">{lab}</div><div className="val">{d.effort == null ? '--' : nf0(d.effort)}</div><div className="sub">Renseigne ta FC seuil</div></>
   if (d.effort == null || !isFinite(d.effort)) return <><div className="lab">{lab}</div><div className="val">--</div>{sz !== 'S' && <div className="sub">Pas de capteur</div>}</>
   const b = d.band, st = !b ? 'ok' : d.effort > b.max ? 'hi' : d.effort < b.min ? 'lo' : 'ok'
@@ -33,7 +28,7 @@ function EffortW({ d, sz }: { d: WidgetData; sz: Size }) {
   return (
     <>
       <div className="lab">{lab}</div>
-      <div className={`val st-${st}`}>{nf0(d.effort)}<small>{unit(d)}</small></div>
+      <div className={`val st-${st}`}>{wkg && d.source === 'power' ? nf1(d.effort / d.mass) : nf0(d.effort)}<small>{wkg && d.source === 'power' ? 'W/kg' : unit(d)}</small></div>
       {sz !== 'S' && b && (
         <div className="band" aria-hidden="true"><span className="bz" style={{ left: `${pc(b.min)}%`, width: `${Math.max(2, pc(b.max) - pc(b.min))}%` }} /><span className="bm" style={{ left: `${pc(d.effort)}%` }} /></div>
       )}
@@ -88,11 +83,11 @@ function NextW({ d, sz }: { d: WidgetData; sz: Size }) {
 
 
 
-function ProfileW({ d, sz }: { d: WidgetData; sz: Size }) {
+function ProfileW({ d, sz, range: opt }: { d: WidgetData; sz: Size; range?: string | number | boolean }) {
   const route = useStore(s => s.route)
   const sections = useStore(s => s.sections)
   const points = useStore(s => s.points)
-  const range = sz === 'S' ? 5 : sz === 'M' ? 15 : 25
+  const range = typeof opt === 'number' ? opt : sz === 'S' ? 5 : sz === 'M' ? 15 : 25
   const view = useMemo(() => {
     if (!route) return null
     const a = Math.min(d.km, route.total / 1000), b = Math.min(route.total / 1000, a + range)
@@ -127,18 +122,17 @@ function ProfileW({ d, sz }: { d: WidgetData; sz: Size }) {
 }
 
 
-function FuelW({ d }: { d: WidgetData }) {
+function FuelW({ d, sz }: { d: WidgetData; sz: Size }) {
   if (!d.fuel) return <><div className="lab">Rappel</div><div className="sub">Aucun rappel actif</div></>
   const s = d.fuel.s
   const when = s < 60 ? `${Math.round(s)} s` : `${Math.ceil(s / 60)} min`
-  return <><div className="lab wrap">{d.fuel.msg}</div><div className="val y"><small>dans</small> {when}</div></>
+  return <><div className="lab wrap">{d.fuel.msg}</div><div className="val y">{sz !== 'S' && <small>dans</small>} {when}</div></>
 }
 
-function StopW({ d, sz }: { d: WidgetData; sz: Size }) {
+function NextStopsW({ d, sz }: { d: WidgetData; sz: Size }) {
   const n = d.plan?.nextStop
   if (!d.plan) return <><div className="lab">Prochain arrêt</div><div className="val">--</div></>
   if (!n) return <><div className="lab">Prochain arrêt</div><div className="sub">Aucun prévu</div></>
-  if (sz === 'S') return <><div className="lab">Arrêt</div><div className="val">{nf1(n.kmAway)}<small>km</small></div></>
   return (
     <>
       <div className="lab">Prochain arrêt</div>
@@ -148,47 +142,34 @@ function StopW({ d, sz }: { d: WidgetData; sz: Size }) {
   )
 }
 
-function GapW({ d, sz }: { d: WidgetData; sz: Size }) {
+function GapW({ d, w, h }: { d: WidgetData; w: number; h: number }) {
   const g = d.plan?.gapS
   if (g == null) return <><div className="lab">Écart au plan</div><div className="val">--</div></>
   const m = Math.round(g / 60), st = Math.abs(m) < 5 ? 'ok' : m > 0 ? 'hi' : 'lo'
+  const p = d.plan, pct = p && p.kj != null && p.kjPlan ? Math.round((p.kj / p.kjPlan - 1) * 100) : null
   return (
     <>
       <div className="lab">Écart au plan</div>
       <div className={`val st-${st}`}>{m === 0 ? '0' : `${m > 0 ? '+' : '−'}${Math.abs(m)}`}<small>min</small></div>
-      {sz !== 'S' && <div className={`sub st-${st}`}>{Math.abs(m) < 2 ? 'Dans les temps' : m > 0 ? 'En retard' : 'En avance'}</div>}
+      {w * h > 1 && <div className={`sub st-${st}`}>{Math.abs(m) < 2 ? 'Dans les temps' : m > 0 ? 'En retard' : 'En avance'}</div>}
+      {w * h >= 4 && p && p.kj != null && p.kjPlan && pct != null && <div className="sub dim">Dépense {nf0(p.kj)} / {nf0(p.kjPlan)} kJ ({pct > 0 ? '+' : pct < 0 ? '−' : ''}{Math.abs(pct)} %)</div>}
     </>
   )
 }
 
-function CumW({ d, sz }: { d: WidgetData; sz: Size }) {
-  const p = d.plan
-  if (!p || p.kj == null || !p.kjPlan) return <><div className="lab">Effort vs plan</div><div className="val">--</div>{sz !== 'S' && <div className="sub">{p ? 'Capteur de puissance requis' : 'Sans plan'}</div>}</>
-  const pct = Math.round((p.kj / p.kjPlan - 1) * 100), st = pct > 8 ? 'hi' : pct < -8 ? 'lo' : 'ok'
-  return (
-    <>
-      <div className="lab">Effort vs plan</div>
-      <div className={`val st-${st}`}>{pct > 0 ? '+' : pct < 0 ? '−' : ''}{Math.abs(pct)}<small>%</small></div>
-      {sz !== 'S' && <div className="sub dim">{nf0(p.kj)} / {nf0(p.kjPlan)} kJ</div>}
-    </>
-  )
-}
+const TILES = new Set<WidgetItem['k']>(['zone', 'zones', 'intarget', 'reserve', 'punch', 'endurance', 'drift', 'carbs', 'carbgap', 'lap', 'slope', 'climb', 'arrival', 'sunset', 'time', 'dist', 'clock', 'cad', 'speed'])
 
-export function Widget({ k, sz, d }: { k: WidgetItem['k']; sz: Size; d: WidgetData }) {
-  switch (k) {
-    case 'effort': return <EffortW d={d} sz={sz} />
+export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
+  const sz = sizeOf(it), o = it.o ?? {}
+  if (TILES.has(it.k)) return <TileView t={tileOf(it.k, d, o)} w={it.w} h={it.h} />
+  switch (it.k) {
+    case 'effort': return <EffortW d={d} sz={sz} wkg={!!o.wkg} />
+    case 'hr': return <EffortW d={d} sz={sz} metric="hr" />
     case 'target': return <TargetW d={d} sz={sz} />
-    case 'next': return <NextW d={d} sz={sz} />
-    case 'profile': return <ProfileW d={d} sz={sz} />
-    case 'fuel': return <FuelW d={d} />
-    case 'stop': return <StopW d={d} sz={sz} />
-    case 'gap': return <GapW d={d} sz={sz} />
-    case 'cum': return <CumW d={d} sz={sz} />
-    case 'hr': return <><div className="lab">FC</div><div className="val">{d.hr == null ? '--' : nf0(d.hr)}<small>bpm</small></div>{sz !== 'S' && <Spark arr={d.hrHist} />}</>
-    case 'cad': return <><div className="lab">Cadence</div><div className="val">{d.cad == null ? '--' : nf0(d.cad)}<small>rpm</small></div></>
-    case 'speed': return <><div className="lab">Vitesse</div><div className="val">{nf1(d.speed)}<small>km/h</small></div></>
-    case 'dist': return <><div className="lab">Distance</div><div className="val">{nf1(d.km)}<small>km</small></div>{sz !== 'S' && <div className="sub dim">Reste {nf1(Math.max(0, d.total - d.km))} km</div>}</>
-    case 'time': return <><div className="lab">Temps de roulage</div><div className="val">{hms(d.t)}</div></>
-    case 'clock': return <><div className="lab">Heure</div><div className="val">{hhmm(d.now)}</div>{sz !== 'S' && d.arrival && <div className="sub dim">arrivée {hhmm(d.arrival)}</div>}</>
+    case 'next': return o.stops ? <NextStopsW d={d} sz={sz} /> : <NextW d={d} sz={sz} />
+    case 'profile': return <ProfileW d={d} sz={sz} range={o.range} />
+    case 'fuel': return <FuelW d={d} sz={sz} />
+    case 'gap': return <GapW d={d} w={it.w} h={it.h} />
+    default: return null
   }
 }

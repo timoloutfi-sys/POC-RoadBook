@@ -1,6 +1,7 @@
 import { useRef, type CSSProperties } from 'react'
 import { clamp } from '../core/format'
 import type { WidgetData } from '../ride/data'
+import { nearestSize } from '../storage/catalog'
 import { COLS, ROWS, WIDGETS, type WidgetItem } from '../storage/defaults'
 import { applyRect } from '../storage/screens'
 import { Icon } from './icons'
@@ -47,7 +48,7 @@ export function Device({ items, data, tone, editable, onChange, thumb, className
     const dx = Math.round((e.clientX - d.sx) / d.cw), dy = Math.round((e.clientY - d.sy) / d.ch), o = d.o
     const r = d.mode === 'move'
       ? { x: clamp(o.x + dx, 0, COLS - o.w), y: clamp(o.y + dy, 0, ROWS - o.h), w: o.w, h: o.h }
-      : { x: o.x, y: o.y, w: clamp(o.w + dx, 1, COLS - o.x), h: clamp(o.h + dy, 1, ROWS - o.y) }
+      : (([w, h]) => ({ x: o.x, y: o.y, w, h }))(nearestSize(o.k, clamp(o.w + dx, 1, COLS - o.x), clamp(o.h + dy, 1, ROWS - o.y)))
     const cur = items.find(i => i.id === d.id)
     if (!cur || (cur.x === r.x && cur.y === r.y && cur.w === r.w && cur.h === r.h)) return
     const next = applyRect(items, d.id, r)
@@ -66,7 +67,7 @@ export function Device({ items, data, tone, editable, onChange, thumb, className
         } as CSSProperties
         return (
           <div key={it.id} className={`wg s-${sizeOf(it)}${sev && it.k !== 'target' ? ' alert' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} aria-label={WIDGETS[it.k]}>
-            <div className="wi"><Widget k={it.k} sz={sizeOf(it)} d={data} /></div>
+            <div className="wi"><Widget it={it} d={data} /></div>
             {editable && (
               <>
                 <button className="wg-del" aria-label={`Retirer ${WIDGETS[it.k]}`} onPointerDown={e => e.stopPropagation()} onClick={() => onChange?.(items.filter(x => x.id !== it.id))}><Icon name="close" size={16} /></button>

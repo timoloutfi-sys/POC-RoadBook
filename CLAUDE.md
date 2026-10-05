@@ -58,6 +58,7 @@ Code dans `src/` :
 - `sim/` : coureur virtuel.
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.
+- `storage/catalog.ts` : catalogue des 26 widgets décrits par des données (groupe, tailles autorisées, besoins), tailles imposées au redimensionnement, migration des écrans enregistrés (`normalizeItems`). `ride/metrics.ts` : Punch, endurance, dérive, glucides, zones, dans la cible, tour, autonomie téléphone (incrémentaux). `ui/tiles.tsx` : contenu des widgets (`tileOf`) et mise en page selon la forme (large, haut, carré).
 - `ui/` : composants React. `Device` = grille 6 × 3 d'un écran, `widgets.tsx` = les widgets (tailles S, M, L), `RideView` = vue de course et gestes, `ScaledDevice` = aperçu fidèle à 844 px réduit, `device.css` = tons jour/nuit mélangés par `--n`.
 
 Commandes : `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Chaque push lance tests et build, puis publie sur GitHub Pages (`.github/workflows/deploy.yml`).

@@ -7,6 +7,10 @@ import { effectiveFtp, effectiveLthr, type Rider } from '../strategy/rider'
 import { targetAt, type Band, type EffortSource, type Target } from '../strategy/target'
 import type { BaseRules, PointType, RoutePoint, Section } from '../strategy/types'
 import { hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
+import { gradeAtDist } from '../route/profile'
+import { findClimbs } from '../route/route'
+import { sunTimes } from '../strategy/sun'
+import type { MetricsView } from './metrics'
 
 export interface Upcoming { kind: PointType | 'montee' | 'zone'; name: string; km: number }
 
@@ -38,6 +42,48 @@ export interface WidgetData {
   noLthr: boolean
   /** Avancement par rapport au plan ; null en sortie libre. */
   plan: PlanProgress | null
+  /** Puissance (moy. 10 s), indépendante de la source qui pilote la cible. */
+  power: number | null
+  /** Masse du coureur (kg), pour les W/kg. */
+  mass: number
+  /** Réserves, zones, dérive, glucides, tour ; null sans moteur (aperçu sans données). */
+  m: MetricsView | null
+  /** Pente sous les roues (%), null sans parcours. */
+  slope: number | null
+  climb: ClimbView | null
+  sun: { kind: 'set' | 'rise'; at: Date } | null
+}
+
+/** Montée en cours (state « in ») ou prochaine dans les 5 km (« next »). */
+export interface ClimbView { state: 'in' | 'next'; lenM: number; avg: number; gainM: number; doneM: number; toGoKm: number; steps: { lenM: number; grade: number }[] }
+
+const climbCache = new WeakMap<Route, ReturnType<typeof findClimbs>>()
+export function climbView(route: Route, km: number): ClimbView | null {
+  let cl = climbCache.get(route)
+  if (!cl) { cl = findClimbs(route); climbCache.set(route, cl) }
+  const d = km * 1000
+  const c = cl.find(x => x.b * 1000 >= d && (x.a * 1000 <= d || x.a * 1000 - d < 5000))
+  if (!c) return null
+  const a = c.a * 1000, b = c.b * 1000, p = route.profile, steps: ClimbView['steps'] = []
+  for (let x = a; x < b; ) {
+    const g = Math.round(gradeAtDist(p, x + 1)), y = Math.min(b, x + 100)
+    const last = steps[steps.length - 1]
+    if (last && last.grade === g) last.lenM += y - x; else steps.push({ lenM: y - x, grade: g })
+    x = y
+  }
+  const inside = a <= d
+  return { state: inside ? 'in' : 'next', lenM: b - a, avg: c.avg, gainM: c.gain, doneM: inside ? d - a : 0, toGoKm: inside ? (b - d) / 1000 : (a - d) / 1000, steps }
+}
+
+/** Prochain repère solaire : coucher si le soleil est encore haut, lever sinon. */
+export function sunView(route: Route, km: number, now: Date): WidgetData['sun'] {
+  const i = Math.min(route.n - 1, Math.max(0, Math.round((km * 1000) / 50)))
+  const lat = route.lat[i], lon = route.lon[i]
+  const t = sunTimes(now, lat, lon)
+  if (t.set && now < t.set && (!t.rise || now >= t.rise)) return { kind: 'set', at: t.set }
+  if (t.rise && now < t.rise) return { kind: 'rise', at: t.rise }
+  const n = sunTimes(new Date(now.valueOf() + 86400e3), lat, lon)
+  return n.rise ? { kind: 'rise', at: n.rise } : null
 }
 
 export function upcoming(points: RoutePoint[], sections: Section[], km: number, n: number): Upcoming[] {
@@ -67,6 +113,7 @@ export interface Inputs {
   now: Date
   banner: Banner | null
   plan?: PlanProgress | null
+  m?: MetricsView | null
 }
 
 export function buildData(i: Inputs): WidgetData {
@@ -95,6 +142,10 @@ export function buildData(i: Inputs): WidgetData {
     hrHist: i.hrHist, sev: run.sev, banner: i.banner, now: i.now, arrival: eta,
     noLthr: i.source === 'hr' && !lthr,
     plan: i.plan ?? null,
+    power: i.power, mass: i.rider.mass, m: i.m ?? null,
+    slope: route ? +gradeAtDist(route.profile, run.d).toFixed(1) : null,
+    climb: route ? climbView(route, km) : null,
+    sun: route ? sunView(route, km, i.now) : null,
   }
 }
 
@@ -109,6 +160,13 @@ export function previewData(source: EffortSource = 'power'): WidgetData {
     fuel: { s: 12 * 60, msg: 'Mange' }, hrHist: [140, 142, 141, 144, 146, 145, 147, 148, 147, 148], sev: {}, banner: null,
     now: new Date(2026, 5, 21, 14, 30), arrival: new Date(2026, 5, 21, 19, 5), noLthr: false,
     plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790 },
+    power: 168, mass: 78, slope: 3.2, sun: { kind: 'set', at: new Date(2026, 5, 21, 21, 55) },
+    climb: { state: 'in', lenM: 4200, avg: 6.1, gainM: 256, doneM: 1500, toGoKm: 2.7, steps: [{ lenM: 600, grade: 4 }, { lenM: 900, grade: 6 }, { lenM: 800, grade: 8 }, { lenM: 700, grade: 5 }, { lenM: 1200, grade: 7 }] },
+    m: {
+      punch: 82, endurance: 91, drift: 2.4, zones: [1200, 2900, 900, 300, 100], zoneNow: 1, zoneSince: 5100, inTarget: 68, under: 700, inT: 2900, over: 600,
+      carbPerH: 78, carbBurned: 117, carbEaten: 90, carbGap: -27,
+      lap: { dur: 840, dist: 6900, p: 171, hr: 147, cad: 86, v: 29.6 }, lastLap: { dur: 1200, dist: 9100, p: 165, hr: 144, cad: 85, v: 27.3 }, laps: 3,
+    },
   }
 }
 

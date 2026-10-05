@@ -5,26 +5,45 @@ import type { SensorKind } from '../sensors/ble'
 import { defaultPlanCfg, type PlanCfg } from '../strategy/plan'
 import { defaultBase, type BaseRules, type RoutePoint, type Section } from '../strategy/types'
 
-export type WidgetKind = 'effort' | 'target' | 'hr' | 'cad' | 'speed' | 'next' | 'profile' | 'fuel' | 'dist' | 'time' | 'clock' | 'stop' | 'gap' | 'cum'
-export interface WidgetItem { id: string; k: WidgetKind; x: number; y: number; w: number; h: number }
+import { LEGACY, WIDGETS, defOf, fitSize, type WidgetKind } from './catalog'
+
+export { WIDGETS, type WidgetKind }
+export interface WidgetItem {
+  id: string; k: WidgetKind; x: number; y: number; w: number; h: number
+  /** Réglages du widget (voir le catalogue) : plage du profil, moyenne de la vitesse, arrêts seulement… */
+  o?: Record<string, string | number | boolean>
+}
 
 export const COLS = 6
 export const ROWS = 3
 
-export const WIDGETS: Record<WidgetKind, string> = {
-  effort: 'Effort', target: 'Cible', hr: 'FC', cad: 'Cadence', speed: 'Vitesse',
-  next: 'Prochain événement', profile: 'Profil à venir', fuel: 'Rappel', dist: 'Distance', time: 'Temps', clock: 'Heure et arrivée',
-  stop: 'Prochain arrêt', gap: 'Écart au plan', cum: 'Effort vs plan',
-}
-
 type Tpl = [WidgetKind, number, number, number, number][]
-export const TEMPLATES: Record<'ultra' | 'clm' | 'tri', { n: string; items: Tpl }> = {
+export const TEMPLATES = {
   ultra: { n: 'Ultra', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['gap', 4, 2, 2, 1]] },
-  clm: { n: 'Contre-la-montre', items: [['effort', 0, 0, 3, 2], ['speed', 3, 0, 3, 1], ['cad', 3, 1, 1, 1], ['hr', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
-  tri: { n: 'Triathlon', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 3, 1], ['time', 3, 2, 3, 1]] },
-}
+  clm: { n: 'Contre-la-montre', items: [['effort', 0, 0, 2, 2], ['speed', 2, 0, 1, 1], ['cad', 3, 0, 1, 1], ['hr', 4, 0, 2, 1], ['target', 2, 1, 2, 1], ['intarget', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
+  tri: { n: 'Triathlon', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 2, 1], ['time', 2, 2, 2, 1], ['arrival', 4, 2, 2, 1]] },
+  sortie: { n: 'Sortie sans parcours', items: [['effort', 0, 0, 2, 2], ['zones', 2, 0, 2, 2], ['hr', 4, 0, 2, 1], ['cad', 4, 1, 1, 1], ['speed', 5, 1, 1, 1], ['zone', 0, 2, 2, 1], ['intarget', 2, 2, 2, 1], ['lap', 4, 2, 2, 1]] },
+  reserves: { n: 'Réserves', items: [['reserve', 0, 0, 2, 2], ['punch', 2, 0, 2, 1], ['endurance', 4, 0, 2, 1], ['drift', 2, 1, 2, 1], ['carbs', 4, 1, 2, 1], ['carbgap', 0, 2, 2, 1], ['fuel', 2, 2, 2, 1], ['hr', 4, 2, 2, 1]] },
+  montagne: { n: 'Montagne', items: [['climb', 0, 0, 4, 2], ['effort', 4, 0, 2, 2], ['profile', 0, 2, 4, 1], ['slope', 4, 2, 1, 1], ['cad', 5, 2, 1, 1]] },
+} satisfies Record<string, { n: string; items: Tpl }>
 export const mkLayout = (k: keyof typeof TEMPLATES): WidgetItem[] =>
-  TEMPLATES[k].items.map(([kind, x, y, w, h]) => ({ id: uid(), k: kind, x, y, w, h }))
+  (TEMPLATES[k].items as Tpl).map(([kind, x, y, w, h]) => ({ id: uid(), k: kind, x, y, w, h }))
+
+/**
+ * Remet les widgets d'un écran enregistré dans la forme actuelle : anciens identifiants remplacés,
+ * widgets inconnus retirés, tailles ramenées à une taille autorisée (jamais agrandies : pas de chevauchement).
+ */
+export function normalizeItems(items: WidgetItem[]): WidgetItem[] {
+  const out: WidgetItem[] = []
+  for (const it of items) {
+    const leg = LEGACY[it.k as string], k = ((it.k as string) === 'power' ? 'effort' : leg ? leg.k : it.k) as WidgetKind
+    if (!defOf(k)) continue
+    const s = fitSize(k, it.w, it.h)
+    if (!s) continue
+    out.push({ ...it, k, w: s[0], h: s[1], ...(leg?.o || it.o ? { o: { ...leg?.o, ...it.o } } : {}) })
+  }
+  return out
+}
 
 /** Un écran de course : une disposition nommée de widgets. */
 export interface ScreenDef { id: string; name: string; items: WidgetItem[] }
@@ -105,7 +124,7 @@ export function migrateConfig(c: Config & { layout?: WidgetItem[] }): Config {
   }
   out.screens = out.screens.map(sc => ({
     ...sc,
-    items: sc.items.map(it => ((it.k as string) === 'power' ? { ...it, k: 'effort' as const } : it)),
+    items: normalizeItems(sc.items),
   }))
   if (!out.screens.some(sc => sc.id === out.activeScreen)) out.activeScreen = out.screens[0].id
   delete (out as Config & { layout?: unknown }).layout

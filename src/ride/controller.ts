@@ -2,7 +2,7 @@ import { ackReminder, emit, newRun, type EvalContext, type RunState } from '../a
 import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
 import { bundleOf } from './bundle'
-import { defaultMetricCfg } from './metrics'
+import { defaultMetricCfg, metricsView } from './metrics'
 import { eat, newEngine, tick, type EngineState } from './engine'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
@@ -198,7 +198,7 @@ class Ride {
     const elapsed = recorder.ride ? (Date.now() - recorder.ride.start) / 1000 : st.t
     return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: st, plan: this.progress(st.d / 1000, elapsed),
       power: this.eng.pBuf.length ? avg10(this.eng.pBuf, 0) : null, hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
-      vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner })
+      vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner, m: metricsView(this.eng.m, this.eng.cfg, source === 'power', st.t) })
   }
 
   /** Problème à signaler à l'écran (GPS, parcours), ou null quand tout va bien. */

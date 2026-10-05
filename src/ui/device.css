@@ -81,3 +81,38 @@
 
 .dev.full { aspect-ratio: auto; height: 100%; border-radius: 0; }
 .dev.thumb.full, .dev.editing.full { --minfs: 16px; }
+
+/* Mise en page selon la forme (tl-wide / tl-tall / tl-sq). */
+.tl { display: flex; gap: 4px; min-height: 0; height: 100%; }
+.tl-wide { flex-direction: row; align-items: center; gap: 10px; }
+.tl-wide .tl-main { flex: none; max-width: 55%; }
+.tl-wide .tl-side { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.tl-tall, .tl-sq { flex-direction: column; justify-content: center; }
+.tl-sq .tl-main { text-align: center; }
+.tl-tall .tl-side, .tl-sq .tl-side { display: flex; flex-direction: column; gap: 3px; }
+.tl-sq .tl-side { align-items: center; text-align: center; }
+.tl .lab { font-size: max(var(--minfs), min(12cqh, 6cqw)); }
+.gbar { display: block; position: relative; height: max(8px, 7cqh); border-radius: 4px; background: color-mix(in srgb, var(--d-mut) 25%, transparent); overflow: hidden; width: 100%; flex: none; }
+.gbar i { position: absolute; inset: 0 auto 0 0; background: var(--d-acc); border-radius: 4px; }
+.gbar b { position: absolute; top: 0; bottom: 0; border: 2px solid var(--d-ok); border-radius: 4px; }
+.stack { display: flex; gap: 2px; height: max(10px, 22cqh); }
+.stack i { border-radius: 3px; min-width: 3px; }
+.bars { display: flex; flex-direction: column; gap: max(2px, 1.5cqh); flex: 1; justify-content: center; min-height: 0; }
+.bar { display: grid; grid-template-columns: 2.6em 1fr auto; align-items: center; gap: 6px; font-size: max(var(--minfs), min(10cqh, 5cqw)); font-family: var(--num); }
+.bar .bl { color: var(--d-mut); font-weight: 700; }
+.bar .bt { height: .8em; border-radius: 3px; background: color-mix(in srgb, var(--d-mut) 18%, transparent); overflow: hidden; }
+.bar .bt i { display: block; height: 100%; border-radius: 3px; }
+.bar.now { font-weight: 800; }
+.bar.now .bl::before { content: '▸ '; }
+.bar .bv { min-width: 3.2em; text-align: right; }
+.pair .pr { display: flex; flex: 1; gap: 12px; align-items: center; min-height: 0; }
+.tl-tall.pair .pr { flex-direction: column; align-items: stretch; gap: 8px; }
+.pair .pi { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pair .pv { font-family: var(--num); font-size: min(30cqh, 14cqw); line-height: 1; }
+.steps { display: flex; align-items: flex-end; gap: 1px; height: 38%; width: 100%; flex: none; }
+.steps i { border-radius: 2px 2px 0 0; }
+.tl-climb { flex-direction: column; gap: 4px; }
+.tl-climb .cl-top { display: flex; align-items: flex-end; gap: 14px; flex: none; }
+.tl-climb .val { font-size: min(34cqh, 18cqw); }
+.tl-climb .cl-sub { min-width: 0; padding-bottom: .3em; }
+.tl-climb .steps { flex: 1; height: auto; min-height: 0; }
