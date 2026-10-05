@@ -80,6 +80,7 @@ C'est le cœur de l'appli : chaque estimation doit être réaliste. Tests de ré
 - **Physiologie** (`strategy/realism.ts`) : intensité tenable selon la durée (1 h 97 %, 4 h 80 %, 24 h 59 % de FTP en NP), puissance réduite en altitude (Bassett : −9 % à 2000 m), plafond par montée selon sa durée (CP + W'/t, W' = 18 kJ) et marge sur la moyenne (+30 à +15 points selon la durée), baisse de 0,5 %/h après 6 h (max −12 %).
 - **Durée réelle** : ralentissements de route ouverte +2 %, arrêts estimés (0 jusqu'à 3 h, 4 min/h jusqu'à 8 h, 6 min/h jusqu'à 16 h, 9 min/h au-delà + 30 min par nuit), eau 0,5 L/h à 15 °C (+0,05 L/h par degré), fourchette affichée (CdA ±, Crr ±, forme du jour ±).
 - **Calibrage** : le profil calcule le CdA à partir d'une puissance et d'une vitesse mesurées sur le plat (`cdaFromFlat`).
+- **Données de comparaison : seulement des efforts en solo.** Pas de sorties ou courses en peloton (l'abri fausse le modèle : jusqu'à −30 % de puissance sur le plat). Ultras sans abri (Race Across, BRM en solo), contre-la-montre, records de l'heure, montées faites seul ; les montées de course pro ne servent que sur forte pente (> 6 %), où l'abri compte peu.
 - Repères validés : 200 W, CdA 0,32 → 32–33 km/h ; CLM 300 W, CdA 0,24 → 43 km/h ; Alpe d'Huez à 4 W/kg → 55–62 min ; ultra 500 km, FTP 240 → 19–23 h de roulage, 22–27 h au total.
 
 ## Points d'attention
