@@ -1,6 +1,7 @@
 import { ackReminder, emit, evalRun, newRun, smoothSev, type EvalContext, type RunState } from '../alerts/engine'
 import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
+import { Position } from './position'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
 import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
@@ -26,6 +27,7 @@ class Ride {
   live: RunState = newRun()
   sim: SimState = newSim()
   simOpts: SimOptions = { speed: 60, behavior: 0.3, startKm: 0, noPower: false }
+  private pos = new Position()
   gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, pos: 0, off: false, err: null }
   private pBuf: number[] = []
   private movD = 0
@@ -115,7 +117,7 @@ class Ride {
   /** Remet la sortie à zéro ; une sortie enregistrée mais pas close est conservée telle quelle. */
   newRide() {
     if (recorder.active) void recorder.finish(undefined, this.remindersShown()).then(r => { if (r?.summary && (r.summary.moving < 60 || r.summary.km < 0.1)) void getLibrary()?.removeRide(r.id) })
-    this.live = newRun(); this.gps.pos = 0; this.pBuf = []; this.movD = 0; this.hrHist = []; this.kj = 0; this.kjSeen = false
+    this.live = newRun(); this.gps.pos = 0; this.pos.reset(0, rideState().route?.total); this.pBuf = []; this.movD = 0; this.hrHist = []; this.kj = 0; this.kjSeen = false
     this.sim = newSim()
   }
 
@@ -135,7 +137,7 @@ class Ride {
     if (route) {
       const m = matchRoute(route, c.latitude, c.longitude, g.pos)
       g.off = m.offRoute
-      if (!m.offRoute) { g.pos = m.pos; this.live.d = m.pos }
+      if (!m.offRoute) { g.pos = m.pos; this.pos.fix(m.pos) }
     }
   }
 
@@ -146,7 +148,7 @@ class Ride {
     const gpsFresh = g.ts > 0 && now - g.ts < 10000
     const sv = hub.vals.spd
     const speed = sv != null ? sv : gpsFresh ? g.speed : 0
-    if (!gpsFresh && sv != null && route) st.d = Math.min(route.total, st.d + sv)
+    if (route) st.d = this.pos.step(1, speed)
     if (hub.vals.power != null) { this.pBuf.push(hub.vals.power); if (this.pBuf.length > 10) this.pBuf.shift() } else this.pBuf = []
     let tgt: 0 | 1 | 2 = 0
     if (speed > 0.8) {
@@ -191,7 +193,7 @@ class Ride {
     const at = await recorder.resume(r)
     if (!at) return
     this.live = newRun(); this.live.d = at.km * 1000; this.live.t = at.moving
-    this.movD = this.live.d; this.kj = at.kj; this.kjSeen = at.kj > 0; this.gps.pos = this.live.d; this.pBuf = []; this.hrHist = []
+    this.movD = this.live.d; this.kj = at.kj; this.kjSeen = at.kj > 0; this.gps.pos = this.live.d; this.pos.reset(this.live.d, rideState().route?.total); this.pBuf = []; this.hrHist = []
   }
 
   data(now = new Date()): WidgetData {
