@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { fdur, hhmm, nf0, nf1 } from '../core/format'
 import type { WidgetData, Upcoming } from '../ride/data'
 import { useStore } from '../storage/store'
@@ -55,33 +55,51 @@ const eta = (d: WidgetData, km: number) => {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`
 }
 
-function NextW({ d, sz }: { d: WidgetData; sz: Size }) {
-  const L = d.next
-  if (!L.length) return <><div className="lab">Prochain</div><div className="sub">Rien d'annoncé</div></>
+function NextW({ d, w, h, content }: { d: WidgetData; w: number; h: number; content: string }) {
+  const isNote = (e: Upcoming) => e.kind === 'note'
+  const L = d.next.filter(e => (content === 'notes' ? isNote(e) : content === 'points' ? !isNote(e) : true))
+  const lab = content === 'notes' ? 'Prochaines notes' : content === 'points' ? 'Prochains points' : 'Prochain événement'
+  if (!L.length) return <><div className="lab">{lab}</div><div className="sub dim">{content === 'notes' ? 'Aucune note à venir' : 'Rien d’annoncé'}</div></>
   const name = (e: Upcoming) => e.name || (e.kind in POINT_TYPES ? POINT_TYPES[e.kind as keyof typeof POINT_TYPES].n : 'Section')
-  if (sz === 'S') return <><div className="lab">Prochain</div><div className="val ev"><Icon name={evIcon(L[0].kind)} size={28} />{nf1(L[0].km - d.km)}<small>km</small></div></>
-  if (sz === 'M') {
+  if (h === 1 && w === 2) {
     const e = L[0]
     return (
       <>
-        <div className="lab">Prochain événement</div>
-        <div className="nx first"><Icon name={evIcon(e.kind)} size={24} /><span className="nm">{name(e)}</span></div>
+        <div className="lab">{lab}</div>
+        <div className={`nx first${isNote(e) ? ' note' : ''}`} style={{ '--l': 2 } as CSSProperties}><Icon name={evIcon(e.kind)} size={24} /><span className="nm">{name(e)}</span></div>
         <div className="sub"><b className="acc">{nf1(e.km - d.km)} km</b> <span className="dim">· dans {eta(d, e.km)}</span></div>
       </>
     )
   }
-  const rows = L
+  if (h === 1) {
+    // Large : les prochains côte à côte, autant que la largeur le permet.
+    const n = w <= 3 ? 2 : w <= 4 ? 3 : 4
+    return (
+      <>
+        <div className="lab">{lab}</div>
+        <div className="nxcols">{L.slice(0, n).map(e => (
+          <div className={`nxc${isNote(e) ? ' note' : ''}`} key={e.km + name(e)} style={{ '--l': 3 } as CSSProperties}>
+            <div className="nxh"><Icon name={evIcon(e.kind)} size={20} /><b className="acc">{nf1(e.km - d.km)} km</b></div>
+            <span className="nm">{name(e)}</span>
+          </div>
+        ))}</div>
+      </>
+    )
+  }
+  // Haut ou grand : une ligne par demi-case de hauteur ; les notes passent à la ligne.
+  const rows = h * 2 - (isNote(L[0]) ? 1 : 0), shown = Math.min(L.length, rows)
   return (
     <>
-      <div className="lab">Prochain événement</div>
-      {rows.map((e, i) => (
-        <div className={`nx${i === 0 ? ' first' : ''}`} key={e.km + name(e)}><Icon name={evIcon(e.kind)} size={22} /><span className="nm">{name(e)}</span><span className="dist">{nf1(e.km - d.km)} km</span></div>
-      ))}
+      <div className="lab">{lab}</div>
+      <div className="nxlist">{L.slice(0, rows).map((e, i) => (
+        <div className={`nx${i === 0 ? ' first' : ''}${isNote(e) ? ' note' : ''}`} key={e.km + name(e)} style={{ '--l': isNote(e) ? Math.min(8, Math.max(2, Math.floor((h * 4) / shown))) : 1 } as CSSProperties}>
+          <Icon name={evIcon(e.kind)} size={22} /><span className="nm">{name(e)}</span>
+          <span className="dist">{nf1(e.km - d.km)} km{w >= 3 && <small> · {eta(d, e.km)}</small>}</span>
+        </div>
+      ))}</div>
     </>
   )
 }
-
-
 
 function ProfileW({ d, sz, range: opt }: { d: WidgetData; sz: Size; range?: string | number | boolean }) {
   const route = useStore(s => s.route)
@@ -157,7 +175,7 @@ function GapW({ d, w, h }: { d: WidgetData; w: number; h: number }) {
   )
 }
 
-const TILES = new Set<WidgetItem['k']>(['zone', 'zones', 'intarget', 'reserve', 'punch', 'endurance', 'drift', 'carbs', 'carbgap', 'lap', 'slope', 'climb', 'arrival', 'sunset', 'time', 'dist', 'clock', 'cad', 'speed'])
+const TILES = new Set<WidgetItem['k']>(['zone', 'zones', 'intarget', 'reserve', 'punch', 'endurance', 'drift', 'carbs', 'carbgap', 'lap', 'slope', 'climb', 'arrival', 'sunset', 'time', 'dist', 'clock', 'cad', 'speed', 'sumeffort', 'sumroute', 'sumfuel'])
 
 export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
   const sz = sizeOf(it), o = it.o ?? {}
@@ -166,7 +184,7 @@ export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
     case 'effort': return <EffortW d={d} sz={sz} wkg={!!o.wkg} />
     case 'hr': return <EffortW d={d} sz={sz} metric="hr" />
     case 'target': return <TargetW d={d} sz={sz} />
-    case 'next': return o.stops ? <NextStopsW d={d} sz={sz} /> : <NextW d={d} sz={sz} />
+    case 'next': return o.stops || o.content === 'stops' ? <NextStopsW d={d} sz={sz} /> : <NextW d={d} w={it.w} h={it.h} content={String(o.content ?? 'all')} />
     case 'profile': return <ProfileW d={d} sz={sz} range={o.range} />
     case 'fuel': return <FuelW d={d} sz={sz} />
     case 'gap': return <GapW d={d} w={it.w} h={it.h} />

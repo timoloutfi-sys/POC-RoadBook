@@ -8,9 +8,9 @@ export type WidgetKind =
   | 'lap'
   | 'profile' | 'climb' | 'next' | 'slope'
   | 'gap' | 'arrival' | 'time' | 'dist' | 'clock'
-  | 'sunset'
+  | 'sunset' | 'sumeffort' | 'sumroute' | 'sumfuel'
 
-export type Group = 'Effort' | 'Réserves' | 'Entraînement' | 'Parcours' | 'Temps et plan' | 'Repères'
+export type Group = 'Effort' | 'Réserves' | 'Entraînement' | 'Parcours' | 'Temps et plan' | 'Synthèses' | 'Repères'
 export type Size = [w: number, h: number]
 
 export interface WidgetDef {
@@ -46,17 +46,20 @@ export const CATALOG: WidgetDef[] = [
   { k: 'lap', name: 'Tour', group: 'Entraînement', desc: 'Moyennes du tour en cours.', sizes: S([1, 1], [2, 1], [2, 2]) },
   { k: 'profile', name: 'Profil', group: 'Parcours', desc: 'Relief à venir avec tes points et ta position.', sizes: [...S([2, 1]), ...row(3, 6, 1), ...row(3, 6, 2)], needs: ['route'] },
   { k: 'climb', name: 'Montée', group: 'Parcours', desc: 'Montée en cours ou prochaine, par paliers de pente.', sizes: S([2, 1], [4, 1], [2, 2], [4, 2]), needs: ['route'] },
-  { k: 'next', name: 'Prochains points', group: 'Parcours', desc: 'Prochains points du road book.', sizes: S([2, 1], [2, 2]), needs: ['route'] },
+  { k: 'next', name: 'Prochains points', group: 'Parcours', desc: 'Points et notes du road book à venir.', sizes: [...S([2, 1]), ...row(3, 6, 1), ...S([2, 2]), ...row(3, 6, 2)], needs: ['route'] },
   { k: 'slope', name: 'Pente', group: 'Parcours', desc: 'Pente sous les roues.', sizes: S([1, 1]), needs: ['route'] },
   { k: 'gap', name: 'Écart au plan', group: 'Temps et plan', desc: 'Avance ou retard sur l’heure prévue.', sizes: S([1, 1], [2, 1], [2, 2]), needs: ['route'] },
   { k: 'arrival', name: 'Arrivée', group: 'Temps et plan', desc: 'Heure d’arrivée estimée.', sizes: S([1, 1], [2, 1]), needs: ['route'] },
   { k: 'time', name: 'Roulage', group: 'Temps et plan', desc: 'Temps passé en mouvement.', sizes: S([1, 1], [2, 1]) },
   { k: 'dist', name: 'Distance', group: 'Temps et plan', desc: 'Distance parcourue et restante.', sizes: S([1, 1], [2, 1]) },
   { k: 'clock', name: 'Heure', group: 'Temps et plan', desc: 'Heure actuelle.', sizes: S([1, 1], [2, 1]) },
+  { k: 'sumeffort', name: 'Synthèse effort', group: 'Synthèses', desc: 'Puissance, FC, zone, cible, réserves en une grille.', sizes: S([2, 1], [3, 1], [2, 2], [3, 2], [4, 2]) },
+  { k: 'sumroute', name: 'Synthèse parcours', group: 'Synthèses', desc: 'Distance, arrivée, écart au plan, prochains repères.', sizes: S([2, 1], [3, 1], [2, 2], [3, 2], [4, 2]), needs: ['route'] },
+  { k: 'sumfuel', name: 'Synthèse nutrition', group: 'Synthèses', desc: 'Glucides brûlés, écart, prochain rappel.', sizes: S([2, 1], [3, 1], [2, 2], [3, 2]) },
   { k: 'sunset', name: 'Coucher du soleil', group: 'Repères', desc: 'Coucher du soleil, ou lever la nuit.', sizes: S([1, 1], [2, 1]), needs: ['route'] },
 ]
 
-export const GROUPS: Group[] = ['Effort', 'Réserves', 'Entraînement', 'Parcours', 'Temps et plan', 'Repères']
+export const GROUPS: Group[] = ['Effort', 'Réserves', 'Entraînement', 'Parcours', 'Temps et plan', 'Synthèses', 'Repères']
 export const WIDGETS = Object.fromEntries(CATALOG.map(d => [d.k, d.name])) as Record<WidgetKind, string>
 export const defOf = (k: WidgetKind) => CATALOG.find(d => d.k === k)!
 
@@ -81,7 +84,7 @@ export function fitSize(k: WidgetKind, w: number, h: number): Size | null {
 
 /** Anciens identifiants, repris par les écrans déjà enregistrés. */
 export const LEGACY: Record<string, { k: WidgetKind; o?: Record<string, string | number | boolean> }> = {
-  stop: { k: 'next', o: { stops: true } },
+  stop: { k: 'next', o: { content: 'stops' } },
   cum: { k: 'gap' },
 }
 
@@ -91,5 +94,5 @@ export const OPTIONS: Partial<Record<WidgetKind, OptionDef[]>> = {
   effort: [{ key: 'wkg', label: 'Unité', choices: [{ v: false, l: 'W' }, { v: true, l: 'W/kg' }] }],
   speed: [{ key: 'avg', label: 'Mesure', choices: [{ v: false, l: 'Instantanée' }, { v: true, l: 'Moyenne' }] }],
   profile: [{ key: 'range', label: 'À venir', choices: [{ v: 5, l: '5 km' }, { v: 15, l: '15 km' }, { v: 25, l: '25 km' }] }],
-  next: [{ key: 'stops', label: 'Points', choices: [{ v: false, l: 'Tous' }, { v: true, l: 'Arrêts' }] }],
+  next: [{ key: 'content', label: 'Afficher', choices: [{ v: 'all', l: 'Points et notes' }, { v: 'points', l: 'Points' }, { v: 'notes', l: 'Notes' }, { v: 'stops', l: 'Arrêts' }] }],
 }

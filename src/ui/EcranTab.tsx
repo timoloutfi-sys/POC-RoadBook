@@ -52,7 +52,7 @@ export function EcranTab() {
     const dup = () => { const c = duplicateScreen(screen); set({ screens: [...screens, c] }); setEditId(c.id); toast('Écran dupliqué.') }
     return (
       <>
-        <ScreenEditor key={screen.id} screen={screen} isStart={isStart} onClose={onBack} />
+        <ScreenEditor key={screen.id} screen={screen} isStart={isStart} onClose={onBack} onNew={() => { onBack(); setCreating(true) }} />
         <div className="row" style={{ marginTop: 16 }}>
           <button className="btn" onClick={dup}>Dupliquer l'écran</button>
           <button className="btn" aria-label="Monter" onClick={() => set({ screens: moveScreen(screens, screen.id, -1) })}><Icon name="up" size={20} /></button>

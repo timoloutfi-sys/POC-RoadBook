@@ -110,13 +110,14 @@ Contrainte transverse : cible matérielle de `CLAUDE.md`. On prépare sur le té
 | Entraînement | Tour | 1×1 2×1 2×2 | — |
 | Parcours | Profil | 3×1→6×1, 3×2→6×2, compact 2×1 | à venir (5/15/25 km), restant, complet ; points affichés ; montées teintées |
 | | Montée | 2×1 4×1 2×2 4×2 | — |
-| | Prochains points | 2×1 2×2 | tous ou arrêts |
+| | Prochains points | 2×1 3×1 4×1 6×1 2×2 3×2 4×2 6×2 | afficher : points et notes, points, notes, arrêts |
 | | Pente | 1×1 | — |
 | Temps et plan | Écart au plan (avec la dépense contre le prévu en 2×2) | 1×1 2×1 2×2 | — |
 | | Arrivée | 1×1 2×1 | — |
 | | Roulage | 1×1 2×1 | — |
 | | Distance | 1×1 2×1 | — |
 | | Heure | 1×1 2×1 | — |
+| Synthèses | Synthèse effort, parcours, nutrition | 2×1 3×1 2×2 3×2 4×2 | — |
 | Repères | Coucher du soleil (« Lever du soleil » la nuit) | 1×1 2×1 | — |
 | | Téléphone | 1×1 2×1 | — |
 

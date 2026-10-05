@@ -137,7 +137,7 @@ export function buildData(i: Inputs): WidgetData {
     after: nextSec ? { zone: zoneOf(nextSec), name: nextSec.name } : null,
     leftS,
     hr: i.hr, cad: i.cad, speed: i.speed, km, total, t: run.t, vAvg: i.vAvg,
-    next: route ? upcoming(i.points, i.sections, km, 3) : [],
+    next: route ? upcoming(i.points, i.sections, km, 8) : [],
     fuel: nextReminder(run, i.periodic),
     hrHist: i.hrHist, sev: run.sev, banner: i.banner, now: i.now, arrival: eta,
     noLthr: i.source === 'hr' && !lthr,
@@ -156,7 +156,7 @@ export function previewData(source: EffortSource = 'power'): WidgetData {
   return {
     source, effort: source === 'power' ? 168 : 143, band, tg,
     after: { zone: 3, name: 'Montée 1' }, leftS: 11 * 60, hr: 148, cad: 86, speed: 29.4, km: 26.2, total: 152.8, t: 5400, vAvg: 28.4,
-    next: [{ kind: 'eau', name: "Point d'eau", km: 31.3 }, { kind: 'montee', name: 'Montée 1', km: 36.7 }, { kind: 'danger', name: 'Descente technique', km: 41.2 }],
+    next: [{ kind: 'eau', name: "Point d'eau", km: 31.3 }, { kind: 'montee', name: 'Montée 1', km: 36.7 }, { kind: 'danger', name: 'Descente technique', km: 41.2 }, { kind: 'note', name: 'Ravito de Nogent : ouvert 24 h/24, borne CB à gauche de la porte', km: 47.5 }],
     fuel: { s: 12 * 60, msg: 'Mange' }, hrHist: [140, 142, 141, 144, 146, 145, 147, 148, 147, 148], sev: {}, banner: null,
     now: new Date(2026, 5, 21, 14, 30), arrival: new Date(2026, 5, 21, 19, 5), noLthr: false,
     plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790 },

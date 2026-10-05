@@ -7,7 +7,7 @@ import { addWidget, applyRect, fitting, overlaps, portraitFrom } from './screens
 
 describe('catalogue', () => {
   it('chaque widget a au moins une taille et son nom, et ses tailles tiennent dans la grille', () => {
-    expect(CATALOG.length).toBe(26)
+    expect(CATALOG.length).toBe(29)
     for (const d of CATALOG) {
       expect(d.sizes.length).toBeGreaterThan(0); expect(d.name).toBeTruthy(); expect(d.desc).toBeTruthy()
       for (const [w, h] of d.sizes) { expect(w).toBeLessThanOrEqual(COLS); expect(h).toBeLessThanOrEqual(ROWS) }
@@ -50,7 +50,7 @@ describe('migration des écrans enregistrés', () => {
     ] as unknown as WidgetItem[]
     const n = normalizeItems(old)
     expect(n.map(i => i.k)).toEqual(['next', 'gap', 'effort', 'effort'])
-    expect(n[0].o).toEqual({ stops: true })
+    expect(n[0].o).toEqual({ content: 'stops' })
     expect([n[2].w, n[2].h]).toEqual([2, 2])
   })
 })

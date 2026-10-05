@@ -56,13 +56,13 @@ function Catalog({ only, onPick, onClose, src, tone }: { only?: Map<WidgetKind, 
   )
 }
 
-interface Props { screen: ScreenDef; isStart: boolean; onClose: () => void }
+interface Props { screen: ScreenDef; isStart: boolean; onClose: () => void; onNew: () => void }
 
 /**
  * Éditeur d'un écran de course, en paysage ou en portrait. Rien n'est enregistré avant « Terminé ».
  * Un toucher sélectionne, glisser déplace, le coin agrandit (tailles autorisées), une case vide propose ce qui tient.
  */
-export function ScreenEditor({ screen, isStart, onClose }: Props) {
+export function ScreenEditor({ screen, isStart, onClose, onNew }: Props) {
   const { screens, rider, set } = useStore()
   const [draft, setDraft] = useState<ScreenDef>(screen)
   const [portrait, setPortrait] = useState(false)
@@ -143,6 +143,7 @@ export function ScreenEditor({ screen, isStart, onClose }: Props) {
       </div>
       <div className="row" style={{ marginTop: 16 }}>
         {!isStart && <button className="btn" onClick={() => { set({ activeScreen: screen.id }); toast('Écran de départ défini.') }}>Écran de départ</button>}
+        <button className="btn" onClick={() => { if (!dirty || window.confirm('Abandonner les changements ?')) onNew() }}><Icon name="plus" size={20} />Nouvel écran</button>
       </div>
       {cat && (
         <Catalog only={free} src={src} tone={tone} onClose={() => setCat(null)}

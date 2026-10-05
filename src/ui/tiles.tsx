@@ -19,6 +19,8 @@ export interface Tile {
   steps?: { len: number; grade: number }[]
   /** Deux valeurs côte à côte (réserve). */
   pair?: { l: string; v: string; g: number }[]
+  /** Grille de mini-valeurs (synthèses), du plus utile au moins utile. */
+  cells?: { l: string; v: string; u?: string; st?: 'ok' | 'hi' | 'lo' }[]
   /** Texte quand il n'y a rien à montrer. */
   empty?: string
 }
@@ -109,6 +111,38 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
       const left = Math.max(0, d.sun.at.valueOf() - d.now.valueOf()) / 1000
       return { lab: d.sun.kind === 'set' ? 'Coucher du soleil' : 'Lever du soleil', val: hhmm(d.sun.at), sub: [`dans ${fdur(left)}`] }
     }
+    case 'sumeffort': {
+      const c: NonNullable<Tile['cells']> = []
+      if (d.power != null) c.push({ l: 'Puissance', v: nf0(d.power), u: 'W' })
+      if (d.hr != null) c.push({ l: 'FC', v: nf0(d.hr), u: 'bpm' })
+      if (m && m.zoneNow >= 0) c.push({ l: 'Zone', v: `Z${m.zoneNow + 1}` })
+      if (m?.inTarget != null) c.push({ l: 'Dans la cible', v: String(m.inTarget), u: '%' })
+      if (m?.punch != null) c.push({ l: 'Punch', v: String(m.punch), u: '%', st: reserveSt(m.punch) })
+      if (m?.endurance != null) c.push({ l: 'Endurance', v: String(m.endurance), u: '%', st: reserveSt(m.endurance) })
+      if (m?.drift != null) c.push({ l: 'Dérive', v: `${m.drift > 0 ? '+' : ''}${nf1(m.drift)}`, u: '%', st: m.drift >= 5 ? 'hi' : undefined })
+      if (d.cad != null) c.push({ l: 'Cadence', v: nf0(d.cad), u: 'rpm' })
+      return c.length ? { lab: 'Effort', cells: c } : { lab: 'Effort', empty: '--' }
+    }
+    case 'sumroute': {
+      const c: NonNullable<Tile['cells']> = [{ l: 'Distance', v: nf1(d.km), u: 'km' }]
+      if (d.total) c.push({ l: 'Reste', v: nf1(Math.max(0, d.total - d.km)), u: 'km' })
+      if (d.arrival) c.push({ l: 'Arrivée', v: hhmm(d.arrival) })
+      const g = d.plan?.gapS
+      if (g != null) { const mn = Math.round(g / 60); c.push({ l: 'Écart au plan', v: `${mn > 0 ? '+' : mn < 0 ? '−' : ''}${Math.abs(mn)}`, u: 'min', st: Math.abs(mn) < 5 ? 'ok' : mn > 0 ? 'hi' : 'lo' }) }
+      if (d.slope != null) c.push({ l: 'Pente', v: nf1(d.slope), u: '%' })
+      if (d.climb) c.push({ l: d.climb.state === 'in' ? 'Montée, reste' : 'Prochaine montée', v: nf1(d.climb.toGoKm), u: 'km' })
+      if (d.next[0]) c.push({ l: 'Prochain point', v: nf1(d.next[0].km - d.km), u: 'km' })
+      if (d.sun) c.push({ l: d.sun.kind === 'set' ? 'Coucher' : 'Lever', v: hhmm(d.sun.at) })
+      return { lab: 'Parcours', cells: c }
+    }
+    case 'sumfuel': {
+      const c: NonNullable<Tile['cells']> = []
+      if (m?.carbPerH != null) c.push({ l: 'Glucides / h', v: String(m.carbPerH), u: 'g' })
+      if (m) c.push({ l: 'Écart glucides', v: `${m.carbGap > 0 ? '+' : m.carbGap < 0 ? '−' : ''}${Math.abs(m.carbGap)}`, u: 'g', st: m.carbGap > -30 ? 'ok' : m.carbGap > -60 ? undefined : 'hi' })
+      if (d.fuel) c.push({ l: 'Prochain rappel', v: d.fuel.s < 60 ? `${Math.round(d.fuel.s)} s` : `${Math.ceil(d.fuel.s / 60)} min` })
+      if (m) { c.push({ l: 'Brûlés', v: String(m.carbBurned), u: 'g' }); c.push({ l: 'Mangés', v: String(m.carbEaten), u: 'g' }) }
+      return c.length ? { lab: 'Nutrition', cells: c } : { lab: 'Nutrition', empty: '--' }
+    }
     case 'time': return { lab: 'Roulage', val: hms(d.t) }
     case 'dist': return { lab: 'Distance', val: nf1(d.km), unit: 'km', sub: d.total ? [`reste ${nf1(Math.max(0, d.total - d.km))} km`] : [] }
     case 'clock': return { lab: 'Heure', val: hhmm(d.now) }
@@ -144,6 +178,20 @@ export function TileView({ t, w, h }: { t: Tile; w: number; h: number }) {
         <div className="lab">{t.lab}</div>
         <div className="bars">{t.bars.map(b => (
           <div className={`bar${b.now ? ' now' : ''}`} key={b.l}><span className="bl">{b.l}</span><span className="bt"><i style={{ width: `${Math.max(2, b.v * 100)}%`, background: b.c }} /></span><span className="bv">{roomy || shape === 'tall' ? b.t : ''}</span></div>
+        ))}</div>
+      </div>
+    )
+  }
+
+  if (t.cells) {
+    // Autant de valeurs que la place le permet, les plus utiles d'abord.
+    const cap = Math.min(9, Math.max(3, Math.round(w * h * 1.5))), cells = t.cells.slice(0, cap)
+    const cols = h === 1 ? Math.min(cells.length, w <= 2 ? 3 : 4) : w >= 3 ? 3 : 2
+    return (
+      <div className="tl tl-cells">
+        <div className="lab">{t.lab}</div>
+        <div className="cells" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>{cells.map(c => (
+          <div className="cell" key={c.l}><span className="cl">{c.l}</span><b className={c.st ? `st-${c.st}` : undefined}>{c.v}{c.u && <small>{c.u}</small>}</b></div>
         ))}</div>
       </div>
     )
