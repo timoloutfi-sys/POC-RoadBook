@@ -1,6 +1,8 @@
 import { clamp } from '../core/format'
+import { buildTrack, trackAt, type Track } from './track'
+import { buildProfile, dplusOf, eleAtDist, type Profile } from './profile'
 
-/** Pas de rééchantillonnage du parcours, en mètres. */
+/** Pas de la grille du plan, en mètres. */
 export const STEP = 50
 
 export interface RawPoint { lat: number; lon: number; ele: number }
@@ -19,8 +21,12 @@ export interface Route {
   ele: Float32Array
   /** Pente en %. */
   grade: Float32Array
-  /** Dénivelé positif lissé, en mètres. */
+  /** Dénivelé positif (hystérésis de 2 m sur le profil lissé), en mètres. */
   dplus: number
+  /** Tracé fin (position, virages, projection du GPS). */
+  track: Track
+  /** Tronçons de pente constante, à pas variable. */
+  profile: Profile
   /** Parcours fictif construit pour une estimation (course sans GPX) : jamais enregistré ni affiché comme un tracé. */
   synthetic?: boolean
 }
@@ -35,40 +41,27 @@ export function hav(lat1: number, lon1: number, lat2: number, lon2: number) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)))
 }
 
-/** Rééchantillonne tous les 50 m, lisse l'altitude et calcule les pentes. */
+/**
+ * Construit le tracé fin et le profil à pas variable, puis la grille de 50 m dont se sert le plan,
+ * alimentée par la pente exacte du profil.
+ */
 export function buildRoute(name: string, pts: RawPoint[]): Route {
   if (!pts || pts.length < 2) throw new Error('Tracé vide.')
-  const cum = new Float64Array(pts.length)
-  for (let i = 1; i < pts.length; i++) cum[i] = cum[i - 1] + hav(pts[i - 1].lat, pts[i - 1].lon, pts[i].lat, pts[i].lon)
-  const tot = cum[pts.length - 1]
-  if (tot < STEP * 4) throw new Error('Tracé trop court.')
-  const n = Math.floor(tot / STEP) + 1
-  const lat = new Float64Array(n), lon = new Float64Array(n), e0 = new Float32Array(n)
-  let j = 0
+  const track = buildTrack(pts)
+  if (track.total < STEP * 4) throw new Error('Tracé trop court.')
+  const profile = buildProfile(track)
+  const n = Math.floor(track.total / STEP) + 1
+  const lat = new Float64Array(n), lon = new Float64Array(n), e0 = new Float32Array(n), ele = new Float32Array(n), grade = new Float32Array(n)
   for (let k = 0; k < n; k++) {
-    const d = k * STEP
-    while (j < pts.length - 2 && cum[j + 1] < d) j++
-    const seg = cum[j + 1] - cum[j]
-    const f = seg > 0 ? clamp((d - cum[j]) / seg, 0, 1) : 0
-    const a = pts[j], b = pts[j + 1]
-    lat[k] = a.lat + (b.lat - a.lat) * f
-    lon[k] = a.lon + (b.lon - a.lon) * f
-    e0[k] = a.ele + (b.ele - a.ele) * f
+    const t = trackAt(track, k * STEP)
+    lat[k] = t.lat; lon[k] = t.lon; e0[k] = t.ele
+    ele[k] = eleAtDist(profile, k * STEP)
   }
-  const ele = new Float32Array(n), W = 4
   for (let k = 0; k < n; k++) {
-    let s = 0, c = 0
-    for (let q = Math.max(0, k - W); q <= Math.min(n - 1, k + W); q++) { s += e0[q]; c++ }
-    ele[k] = s / c
+    const a = Math.max(0, k * STEP - STEP / 2), b = Math.min(track.total, k * STEP + STEP / 2)
+    grade[k] = b > a ? ((eleAtDist(profile, b) - eleAtDist(profile, a)) / (b - a)) * 100 : 0
   }
-  const grade = new Float32Array(n)
-  for (let k = 0; k < n; k++) {
-    const a = Math.max(0, k - 2), b = Math.min(n - 1, k + 2)
-    grade[k] = b > a ? ((ele[b] - ele[a]) / ((b - a) * STEP)) * 100 : 0
-  }
-  let dplus = 0
-  for (let k = 1; k < n; k++) if (ele[k] > ele[k - 1]) dplus += ele[k] - ele[k - 1]
-  return { name, n, total: (n - 1) * STEP, lat, lon, e0, ele, grade, dplus }
+  return { name, n, total: (n - 1) * STEP, lat, lon, e0, ele, grade, dplus: dplusOf(profile.ele), track, profile }
 }
 
 export const idxAt = (r: Route, d: number) => clamp(Math.round(d / STEP), 0, r.n - 1)
@@ -135,7 +128,7 @@ export function findClimbs(r: Route): Climb[] {
 export function serializeRoute(r: Route) {
   return {
     name: r.name,
-    pts: Array.from({ length: r.n }, (_, i) => [+r.lat[i].toFixed(5), +r.lon[i].toFixed(5), +r.e0[i].toFixed(1)]),
+    pts: Array.from({ length: r.track.n }, (_, i) => [+r.track.lat[i].toFixed(6), +r.track.lon[i].toFixed(6), +r.track.raw[i].toFixed(1)]),
   }
 }
 export function deserializeRoute(d: { name: string; pts: number[][] }) {

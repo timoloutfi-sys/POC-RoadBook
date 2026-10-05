@@ -40,7 +40,7 @@ Voir `PRODUCT.md`. L'outil prépare puis fait tenir un plan : **road book** (poi
 Code dans `src/` :
 
 - `core/` : formats fr-FR, utilitaires, degré de nuit (`nightAmount`, fondu de 15 min).
-- `route/` : lecture GPX, rééchantillonnage tous les 50 m, lissage, pentes, montées, boucle démo.
+- `route/` : lecture GPX, tracé fin (`track.ts`, simplifié à 2,5 m / 0,5 m, projection du GPS en mètres), profil à pas variable (`profile.ts`, tronçons de pente constante de 10 à 300 m, D+ avec hystérésis de 2 m), grille de 50 m du plan alimentée par ces deux sources, montées, boucle démo. Virages lus sur le tracé fin (`geometry.ts`) ; parcours fictif plafonné à 45 km/h.
 - `physics/` : modèle physique, vitesse pour une puissance, secondes gagnées par watt.
 - `strategy/` : profil coureur (FTP et FC seuil facultatives, estimées sinon), zones puissance (7) et cardio (5), correspondance entre les deux, dérive cardiaque, cible à un point donné (`targetAt`, sections > règles de base), lever et coucher du soleil.
 - `alerts/` : moteur (`evalRun`) avec la métrique `effort` (puissance si capteur, sinon FC, avec délai de stabilisation), sévérité lissée, plafond horaire, annonces, rappels.

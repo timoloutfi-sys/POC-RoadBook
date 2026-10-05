@@ -1,5 +1,6 @@
 import { cornerSpeed } from '../physics/kinematics'
-import type { Route } from './route'
+import { STEP, type Route } from './route'
+import { trackAt } from './track'
 
 const RAD = Math.PI / 180
 
@@ -15,21 +16,28 @@ export function bearings(r: Route): Float32Array {
   return out
 }
 
+/** Vitesse maximale (m/s) d'un parcours fictif : pas de virages connus, on plafonne à 45 km/h. */
+export const SYNTHETIC_CAP = 45 / 3.6
+
 /**
- * Vitesse maximale (m/s) imposée par les virages : rayon du cercle passant par trois points
- * consécutifs (50 m d'écart), puis v = √(a·r) avec a l'accélération latérale tolérée
- * (3 m/s² pour un amateur prudent). Une ligne droite ou une courbe large ne limite rien.
+ * Vitesse maximale (m/s) imposée par les virages, lue sur le tracé fin : rayon du cercle passant par trois
+ * points à ±15 m, relevé tous les 10 m, puis v = √(a·r) avec a l'accélération latérale tolérée
+ * (3 m/s² pour un amateur prudent). Le minimum de chaque cellule de la grille est gardé.
+ * Une ligne droite ou une courbe large ne limite rien.
  */
 export function cornerCaps(r: Route, aLat = 3): Float32Array {
-  const out = new Float32Array(r.n).fill(99), k = 111320
-  const xy = (i: number) => [r.lon[i] * Math.cos(r.lat[i] * RAD) * k, r.lat[i] * k]
-  for (let i = 1; i < r.n - 1; i++) {
-    const [ax, ay] = xy(i - 1), [bx, by] = xy(i), [cx, cy] = xy(i + 1)
+  if (r.synthetic) return new Float32Array(r.n).fill(SYNTHETIC_CAP)
+  const out = new Float32Array(r.n).fill(99), k = 111320, H = 15, S = 10
+  const t = r.track, cl = Math.cos(t.lat[0] * RAD)
+  const xy = (d: number) => { const p = trackAt(t, d); return [p.lon * cl * k, p.lat * k] }
+  for (let d = H; d <= t.total - H; d += S) {
+    const [ax, ay] = xy(d - H), [bx, by] = xy(d), [cx, cy] = xy(d + H)
     const ab = Math.hypot(bx - ax, by - ay), bc = Math.hypot(cx - bx, cy - by), ca = Math.hypot(ax - cx, ay - cy)
     const area2 = Math.abs((bx - ax) * (cy - ay) - (by - ay) * (cx - ax))
     if (area2 < 1e-6) continue
-    const rad = Math.max(8, (ab * bc * ca) / (2 * area2))
-    out[i] = cornerSpeed(rad, aLat)
+    const v = cornerSpeed(Math.max(8, (ab * bc * ca) / (2 * area2)), aLat)
+    const i = Math.min(r.n - 1, Math.round(d / STEP))
+    if (v < out[i]) out[i] = v
   }
   return out
 }

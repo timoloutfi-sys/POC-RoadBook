@@ -32,7 +32,7 @@ export function syntheticRoute(name: string, est: { km: number; dplus: number; t
     for (let x = 0; x <= km + 1e-9; x += STEP_KM) pts.push({ lat: 49 + x / 111.19, lon: 2.47, ele: 120 + amp * f(x) })
     return pts
   }
-  const unit = buildRoute(name, make(1)).dplus
+  const unit = buildRoute(name, make(100)).dplus / 100
   const amp = unit > 0 ? Math.max(0, est.dplus) / unit : 0
   const route = buildRoute(name, make(amp))
   route.synthetic = true

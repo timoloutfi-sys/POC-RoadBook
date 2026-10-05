@@ -10,19 +10,19 @@ const pts = [
 const r = buildRoute('t', pts)
 
 describe('recalage GPS', () => {
-  it('trouve l’index local', () => {
-    const m = matchRoute(r, 48 + 1000 / 111320, 2.0001, 15)
-    expect(m.off).toBe(false)
-    expect(m.idx).toBe(20)
+  it('projette en mètres sur le tracé', () => {
+    const m = matchRoute(r, 48 + 1003 / 111320, 2.0001, 750)
+    expect(m.offRoute).toBe(false)
+    expect(Math.abs(m.pos - (1003 * 111195) / 111320)).toBeLessThan(0.5)
   })
   it('recherche globale au-delà de 150 m (retour sur l’autre branche)', () => {
-    const m = matchRoute(r, 48 + 1000 / 111320, 2.0136, 20)
-    expect(m.off).toBe(false)
-    expect(m.idx).toBeGreaterThan(150)
+    const m = matchRoute(r, 48 + 1000 / 111320, 2.0136, 1000)
+    expect(m.offRoute).toBe(false)
+    expect(m.pos).toBeGreaterThan(8000)
   })
-  it('hors parcours : garde le dernier index', () => {
-    const m = matchRoute(r, 48.02, 2.007, 30)
-    expect(m.off).toBe(true)
-    expect(m.idx).toBe(30)
+  it('hors parcours : garde la dernière position', () => {
+    const m = matchRoute(r, 48.02, 2.007, 1500)
+    expect(m.offRoute).toBe(true)
+    expect(m.pos).toBe(1500)
   })
 })

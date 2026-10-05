@@ -59,4 +59,17 @@ describe('repères de durée', () => {
     expect(estimateStops(5)).toBe(20)
     expect(estimateStops(20, 1)).toBeGreaterThan(180)
   })
+  it('course à intensité imposée : la puissance normalisée simulée tient la cible malgré les descentes', () => {
+    const r = hilly(150, 120, 12)
+    const p = plan(r, { ftp: 250, mass: 78, cda: 0.32 }, { mode: 'course', intensity: 78 })
+    expect(Math.abs(p.IF - 0.78)).toBeLessThan(0.02)
+  })
+  it('arrêts d’un ultra : 12 min/h au-delà de 16 h, 45 min par nuit', () => {
+    expect(estimateStops(20, 1)).toBe(20 * 12 + 45)
+  })
+  it('fourchette : au moins ±4 % sur une sortie courte', () => {
+    const a = plan(hilly(60, 20, 6), { ftp: 250, mass: 78, cda: 0.32 }, { mode: 'course' })
+    expect(a.range[0]).toBeLessThanOrEqual(a.H * 0.96)
+    expect(a.range[1]).toBeGreaterThanOrEqual(a.H * 1.04)
+  })
 })

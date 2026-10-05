@@ -1,7 +1,6 @@
 import { ackReminder, emit, evalRun, newRun, smoothSev, type EvalContext, type RunState } from '../alerts/engine'
 import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
-import { STEP } from '../route/route'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
 import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
@@ -17,7 +16,7 @@ import { signal } from './signal'
 export type RideSource = 'live' | 'sim'
 export interface SimOptions { speed: number; behavior: number; startKm: number; noPower: boolean }
 
-interface Gps { lat: number | null; lon: number | null; speed: number; acc: number | null; ts: number; tsRaw: number; idx: number; off: boolean; err: string | null }
+interface Gps { lat: number | null; lon: number | null; speed: number; acc: number | null; ts: number; tsRaw: number; pos: number; off: boolean; err: string | null }
 
 /** Sortie en cours : capteurs, GPS ou coureur virtuel, moteur d'alertes. Un seul exemplaire pour toute l'appli. */
 class Ride {
@@ -27,7 +26,7 @@ class Ride {
   live: RunState = newRun()
   sim: SimState = newSim()
   simOpts: SimOptions = { speed: 60, behavior: 0.3, startKm: 0, noPower: false }
-  gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, idx: 0, off: false, err: null }
+  gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, pos: 0, off: false, err: null }
   private pBuf: number[] = []
   private movD = 0
   private kj = 0
@@ -116,7 +115,7 @@ class Ride {
   /** Remet la sortie à zéro ; une sortie enregistrée mais pas close est conservée telle quelle. */
   newRide() {
     if (recorder.active) void recorder.finish(undefined, this.remindersShown()).then(r => { if (r?.summary && (r.summary.moving < 60 || r.summary.km < 0.1)) void getLibrary()?.removeRide(r.id) })
-    this.live = newRun(); this.gps.idx = 0; this.pBuf = []; this.movD = 0; this.hrHist = []; this.kj = 0; this.kjSeen = false
+    this.live = newRun(); this.gps.pos = 0; this.pBuf = []; this.movD = 0; this.hrHist = []; this.kj = 0; this.kjSeen = false
     this.sim = newSim()
   }
 
@@ -134,9 +133,9 @@ class Ride {
     g.lat = c.latitude; g.lon = c.longitude; g.acc = c.accuracy; g.ts = performance.now(); g.tsRaw = pos.timestamp; g.err = null
     const route = rideState().route
     if (route) {
-      const m = matchRoute(route, c.latitude, c.longitude, g.idx)
-      g.off = m.off
-      if (!m.off) { g.idx = m.idx; this.live.d = m.idx * STEP }
+      const m = matchRoute(route, c.latitude, c.longitude, g.pos)
+      g.off = m.offRoute
+      if (!m.offRoute) { g.pos = m.pos; this.live.d = m.pos }
     }
   }
 
@@ -192,7 +191,7 @@ class Ride {
     const at = await recorder.resume(r)
     if (!at) return
     this.live = newRun(); this.live.d = at.km * 1000; this.live.t = at.moving
-    this.movD = this.live.d; this.kj = at.kj; this.kjSeen = at.kj > 0; this.gps.idx = Math.round(this.live.d / STEP); this.pBuf = []; this.hrHist = []
+    this.movD = this.live.d; this.kj = at.kj; this.kjSeen = at.kj > 0; this.gps.pos = this.live.d; this.pBuf = []; this.hrHist = []
   }
 
   data(now = new Date()): WidgetData {

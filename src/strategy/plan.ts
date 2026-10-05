@@ -160,7 +160,18 @@ export function computePlan(inp: PlanInput): PlanResult {
   const courseRatio = (np: number | null, H: number) => {
     const caps = capsFor(np ?? ifForDuration(H), H)
     let ratio: Float32Array
-    if (np != null) ratio = opt({ np }, caps)
+    if (np != null) {
+      // Le modèle vise une puissance normalisée sans roue libre : la simulation (descentes, virages) en donne moins.
+      // On recale la cible jusqu'à ce que la puissance normalisée simulée atteigne celle demandée.
+      let q = np
+      ratio = opt({ np: q }, caps)
+      for (let k = 0; k < 4; k++) {
+        const got = timing(ratio).np
+        if (Math.abs(got - np) / np < 0.005) break
+        q *= np / got
+        ratio = opt({ np: q }, caps)
+      }
+    }
     else {
       const goal = (cfg.targetHours ?? 4) * 3600
       let tt = goal / ROAD_FACTOR
@@ -439,7 +450,10 @@ export function computePlan(inp: PlanInput): PlanResult {
 
   // Fourchette : position et route plus ou moins favorables, forme du jour ±.
   const bLo: Body = { ...body, cda: body.cda - 0.015, crr: (body.crr ?? CRR) - 0.0007 }, bHi: Body = { ...body, cda: body.cda + 0.02, crr: (body.crr ?? CRR) + 0.0012 }
-  const range: [number, number] = [timing(ratio, bLo, 1.02).t / 3600, timing(ratio, bHi, 0.96).t / 3600]
+  // L'incertitude grandit avec la durée : ±5 % jusqu'à 4 h, ±8 % à 12 h, ±10 % au-delà.
+  const spread = H <= 4 ? 0.05 : H >= 24 ? 0.1 : H <= 12 ? 0.05 + ((H - 4) / 8) * 0.03 : 0.08 + ((H - 12) / 12) * 0.02
+  const phys: [number, number] = [timing(ratio, bLo, 1.02).t / 3600, timing(ratio, bHi, 0.96).t / 3600]
+  const range: [number, number] = [Math.min(phys[0], H * (1 - spread)), Math.max(phys[1], H * (1 + spread))]
   const arriveAt = (h: number) => new Date(start.valueOf() + (h * 3600 + stopsS) * 1000)
   const maxAlt = Math.max(...route.ele)
   if (maxAlt > 1000) why.push(`Au-dessus de 1000 m ta puissance baisse (−${Math.round((1 - altitudePowerFactor(maxAlt)) * 100)} % au point haut, ${nf0(maxAlt)} m) : cibles ajustées.`)

@@ -33,11 +33,11 @@ export const durability = (hoursElapsed: number) => Math.max(0.88, 1 - 0.005 * M
 
 /**
  * Arrêts estimés (minutes) pour un temps de roulage donné : ravitaillements, pauses, nuit.
- * Jusqu'à 3 h aucun ; 3–8 h ≈ 4 min/h ; 8–16 h ≈ 6 min/h ; au-delà ≈ 9 min/h, + 30 min de repos par nuit.
+ * Jusqu'à 3 h aucun ; 3–8 h ≈ 4 min/h ; 8–16 h ≈ 6 min/h ; au-delà ≈ 12 min/h (ravitos, sommeil, pannes), + 45 min de repos par nuit.
  */
 export function estimateStops(movingH: number, nights = 0) {
-  const rate = movingH <= 3 ? 0 : movingH <= 8 ? 4 : movingH <= 16 ? 6 : 9
-  return Math.round(movingH * rate + (movingH > 16 ? 30 * nights : 0))
+  const rate = movingH <= 3 ? 0 : movingH <= 8 ? 4 : movingH <= 16 ? 6 : 12
+  return Math.round(movingH * rate + (movingH > 16 ? 45 * nights : 0))
 }
 
 /** Ralentissements de route ouverte (carrefours, villages, relances) : +2 % sur le temps de roulage. */

@@ -26,7 +26,7 @@ Contrainte transverse : cible matérielle de `CLAUDE.md`. On prépare sur le té
 
 **Simulation** : `simulateRide` passe de tronçon en tronçon, avec des sous-pas de 10 m au plus (inertie, freinage avant les virages).
 
-**Remplacement** : le type `Route` (pas fixe de 50 m) est remplacé partout : plan, timeline, montées, sorties, parcours fictif, analyse. Migration : les road books existants sont recalculés à partir du GPX enregistré.
+**Réalisé (étape 1, version hybride)** : `Route` porte désormais `track` (tracé fin, `route/track.ts`) et `profile` (tronçons de pente constante, `route/profile.ts`). Le **plan reste calculé sur sa grille de 50 m** (`STEP`) pour ne pas réécrire `plan.ts`, `pacing.ts` et `kinematics.ts`, mais cette grille est alimentée par la pente exacte du profil et par les vitesses de virage lues sur le tracé fin (`cornerCaps`). Le recalage GPS, les virages, le dessin, le paquet de sortie et les widgets utilisent le tracé fin et le profil. La simulation par tronçon reste possible plus tard ; elle n'est pas nécessaire pour la précision actuelle. Migration : les parcours enregistrés sont reconstruits à l'ouverture à partir de leurs points.
 
 **Tests contre une référence à 5 m**
 
