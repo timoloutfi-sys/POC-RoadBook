@@ -4,6 +4,7 @@ import { exportRoadBook, parseRoadBookFile } from '../library/transfer'
 import { useLibrary } from '../library/session'
 import type { RoadBookMeta } from '../library/types'
 import { useStore } from '../storage/store'
+import { countdown } from '../library/goal'
 import { parseGPX } from '../route/gpx'
 import { buildRoute, type Route } from '../route/route'
 import { Icon } from './icons'
@@ -18,12 +19,24 @@ import type { RoadBook } from '../library/types'
 
 type Draft = { name: string; src: { route: Route } | { demo: true } | { file: RoadBook; route: Route | null } }
 
-const when = (t: number) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 
-function Spark({ v }: { v: number[] }) {
-  if (v.length < 2) return <div className="rb-spark" />
-  const d = v.map((y, i) => `${i ? 'L' : 'M'}${(i / (v.length - 1)) * 100} ${100 - y * 0.8 - 10}`).join('')
-  return <svg className="rb-spark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden><path d={`${d}L100 100L0 100Z`} /></svg>
+/** Profil du parcours en bandeau : courbe lissée, remplissage en dégradé qui s'efface vers le bas. */
+function Spark({ v, id }: { v: number[]; id: string }) {
+  if (v.length < 2) return null
+  const W = 300, H = 40, lo = Math.min(...v), hi = Math.max(...v), span = Math.max(8, hi - lo)
+  const pts = v.map((y, i) => [(i / (v.length - 1)) * W, H - 3 - ((y - lo) / span) * (H - 10)] as const)
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`
+  for (let i = 1; i < pts.length; i++) {
+    const cx = ((pts[i - 1][0] + pts[i][0]) / 2).toFixed(1)
+    d += ` C${cx} ${pts[i - 1][1].toFixed(1)} ${cx} ${pts[i][1].toFixed(1)} ${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}`
+  }
+  return (
+    <svg className="rb-prof" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden>
+      <defs><linearGradient id={`g${id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--accent)" stopOpacity=".35" /><stop offset="1" stopColor="var(--accent)" stopOpacity="0" /></linearGradient></defs>
+      <path d={`${d} L${W} ${H} L0 ${H}Z`} fill={`url(#g${id})`} />
+      <path d={d} fill="none" stroke="var(--accent)" strokeWidth="1.8" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+    </svg>
+  )
 }
 
 function Detail({ onRide }: { onRide: () => void }) {
@@ -50,7 +63,8 @@ function Detail({ onRide }: { onRide: () => void }) {
 
 export function RoadBooksTab({ onRide }: { onRide: () => void }) {
   const { ready, list, current, detail, open, create, duplicate, rename, remove, load } = useLibrary()
-  const libre = useStore(s => s.libre)
+  const libre = useStore(s => s.libre), goalId = useStore(s => s.goalId)
+  const now = new Date()
   const file = useRef<HTMLInputElement>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [menu, setMenu] = useState<RoadBookMeta | null>(null)
@@ -103,10 +117,14 @@ export function RoadBooksTab({ onRide }: { onRide: () => void }) {
             {list.map(m => (
               <li key={m.id} className="rb-card">
                 <button className="rb-open" onClick={() => void open(m.id)}>
-                  <Spark v={m.prof} />
                   <b>{m.name}</b>
-                  <span>{nf1(m.km)} km · {nf0(m.dplus)} m D+{m.estH ? ` · ${fdur(m.estH * 3600)}` : ''}{m.hasRoute === false ? ' · GPX à venir' : ''}</span>
-                  <small>{current?.id === m.id && !libre ? 'Sélectionné · ' : ''}modifié le {when(m.updated)}</small>
+                  <span>{m.hasRoute === false ? `${nf0(m.km)} km${m.estH ? ` · ~${fdur(m.estH * 3600)} estimées` : ''}` : `${nf1(m.km)} km · ${nf0(m.dplus)} m D+${m.estH ? ` · ${fdur(m.estH * 3600)}` : ''}`}</span>
+                  <span className="rb-chips">
+                    {current?.id === m.id && !libre && <i className="chip-s">Sélectionné</i>}
+                    {goalId === m.id && m.when && countdown(m.when, now) && <i className="chip-c">🏁 Objectif · {countdown(m.when, now)}</i>}
+                    {m.when && <i className="chip-o">{new Date(m.when).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</i>}
+                  </span>
+                  {m.hasRoute === false ? <span className="rb-nogpx">Ajouter le GPX</span> : <Spark v={m.prof} id={m.id} />}
                 </button>
                 <button className="iconbtn" aria-label={`Actions de ${m.name}`} onClick={() => setMenu(m)}><Icon name="more" /></button>
               </li>
