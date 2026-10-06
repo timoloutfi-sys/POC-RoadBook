@@ -20,7 +20,7 @@ function Preview({ k, o, w, h, src, tone }: { k: WidgetKind; o?: WidgetItem['o']
   return (
     <div className="pv" style={{ width: W * s, height: H * s } as CSSProperties}>
       <div style={{ width: W, height: H, transform: `scale(${s})`, transformOrigin: 'top left' }}>
-        <Device items={[item]} data={previewData(src)} tone={tone} grid={{ cols: w, rows: h }} className="full" />
+        <Device items={[item]} data={previewData(k === 'effort' ? 'power' : k === 'hr' ? 'hr' : src)} tone={tone} grid={{ cols: w, rows: h }} className="full" />
       </div>
     </div>
   )
@@ -34,6 +34,7 @@ function SizeChip({ pick, size, label, src, tone, onTap, onDragMove, onDrop }: {
   onTap: () => void; onDragMove: (x: number, y: number) => void; onDrop: (x: number, y: number) => void
 }) {
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
+  const justDragged = useRef(false)
   const st = useRef<{ x: number; y: number; timer: ReturnType<typeof setTimeout> | null; drag: boolean; id: number; type: string } | null>(null)
   const down = (e: React.PointerEvent) => {
     const s = { x: e.clientX, y: e.clientY, timer: null as ReturnType<typeof setTimeout> | null, drag: false, id: e.pointerId, type: e.pointerType }
@@ -54,7 +55,7 @@ function SizeChip({ pick, size, label, src, tone, onTap, onDragMove, onDrop }: {
       if (s.timer) clearTimeout(s.timer)
       const dragged = s.drag
       cleanup()
-      if (dragged) onDrop(ev.clientX, ev.clientY); else if (ev.type === 'pointerup') onTap()
+      if (dragged) { justDragged.current = true; onDrop(ev.clientX, ev.clientY) }
     }
     const cleanup = () => {
       window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); window.removeEventListener('touchmove', tm)
@@ -65,7 +66,7 @@ function SizeChip({ pick, size, label, src, tone, onTap, onDragMove, onDrop }: {
   }
   return (
     <>
-      <button className="cat-size" aria-label={`${label} ${size[0]} par ${size[1]} : toucher pour ajouter, appui long pour glisser`} onPointerDown={down} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap() } }}>
+      <button className="cat-size" aria-label={`${label} ${size[0]} par ${size[1]} : toucher pour ajouter, appui long pour glisser`} onPointerDown={down} onClick={e => { e.preventDefault(); if (justDragged.current) { justDragged.current = false; return } onTap() }}>
         <Preview k={pick.k} o={pick.o} w={size[0]} h={size[1]} src={src} tone={tone} /><small>{size[0]} × {size[1]}</small>
       </button>
       {ghost && <div className="drag-ghost" style={{ left: ghost.x, top: ghost.y }}><Preview k={pick.k} o={pick.o} w={size[0]} h={size[1]} src={src} tone={tone} /></div>}
