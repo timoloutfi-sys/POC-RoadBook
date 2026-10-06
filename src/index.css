@@ -245,3 +245,11 @@ b.ok { color: var(--ok); } b.wa { color: var(--accent-fg); } b.ko { color: var(-
 .cat-size small { color: var(--muted); font-size: 13px; }
 .pv { overflow: hidden; border-radius: 6px; pointer-events: none; }
 input[type='search'] { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font: inherit; }
+
+.fam-list { display: flex; flex-direction: column; margin-top: 8px; }
+.fam { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 6px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; cursor: pointer; width: 100%; }
+.fam-pv { width: 64px; height: 46px; flex: none; overflow: hidden; border-radius: 8px; background: #0b0f13; display: grid; place-items: center; }
+.fam-t { flex: 1; min-width: 0; }
+.fam-t b { display: block; font-size: 17px; }
+.fam-t small { display: block; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-size[aria-pressed='true'] { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }

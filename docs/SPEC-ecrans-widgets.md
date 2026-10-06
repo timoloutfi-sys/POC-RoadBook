@@ -155,6 +155,7 @@ _Réalisé (étape 6) : paysage et portrait, sélection, déplacer, agrandir aux
 - **Agrandir** : tirer une poignée. Le cadre s'arrête aux tailles autorisées, la taille s'affiche et le rendu change en direct. Un widget recouvert prend une place libre, sinon passe sur l'écran suivant.
 
 **Catalogue**
+- 8 familles (Effort, Zones, Réserves, Nutrition, Relief, Prochains points, Valeur, Synthèse) ; chaque widget y est une variante. Une ligne par famille, un toucher ouvre la famille (variante, taille avec aperçu, Ajouter). La variante se change ensuite dans Réglages.
 - Panneau à droite en paysage, en bas en portrait.
 - Recherche, puis catégories (Effort, Réserves, Entraînement, Parcours, Temps et plan, Repères).
 - Aperçus réels à chaque taille autorisée.

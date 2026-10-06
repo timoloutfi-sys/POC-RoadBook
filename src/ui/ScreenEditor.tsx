@@ -1,8 +1,8 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { previewData } from '../ride/data'
-import { CATALOG, GROUPS, OPTIONS, defOf, type Group, type WidgetKind } from '../storage/catalog'
+import { FAMILIES, OPTIONS, defOf, familyOf, type Family, type Size, type WidgetKind } from '../storage/catalog'
 import { LANDSCAPE, PORTRAIT, type ScreenDef, type WidgetItem } from '../storage/defaults'
-import { addWidget, fitting, itemsFor, portraitFrom, sizesAt } from '../storage/screens'
+import { addWidget, itemsFor, portraitFrom, sizesAt } from '../storage/screens'
 import { uid } from '../core/format'
 import { effortUnit } from '../strategy/rider'
 import { useStore } from '../storage/store'
@@ -14,9 +14,9 @@ import { Sheet } from './Sheet'
 import { toast } from './toast'
 
 /** Aperçu réel d'un widget à une taille donnée (cases de 140 × 130 px réduites). */
-function Preview({ k, w, h, src, tone }: { k: WidgetKind; w: number; h: number; src: 'power' | 'hr'; tone: number }) {
+function Preview({ k, o, w, h, src, tone }: { k: WidgetKind; o?: WidgetItem['o']; w: number; h: number; src: 'power' | 'hr'; tone: number }) {
   const s = 0.34, W = w * 140, H = h * 130
-  const item: WidgetItem = { id: 'p', k, x: 0, y: 0, w, h }
+  const item: WidgetItem = { id: 'p', k, x: 0, y: 0, w, h, ...(o ? { o } : {}) }
   return (
     <div className="pv" style={{ width: W * s, height: H * s } as CSSProperties}>
       <div style={{ width: W, height: H, transform: `scale(${s})`, transformOrigin: 'top left' }}>
@@ -26,30 +26,52 @@ function Preview({ k, w, h, src, tone }: { k: WidgetKind; w: number; h: number; 
   )
 }
 
-/** Catalogue : recherche, catégories, aperçus de chaque taille autorisée. */
-function Catalog({ only, onPick, onClose, src, tone }: { only?: Map<WidgetKind, [number, number]>; onPick: (k: WidgetKind, size?: [number, number]) => void; onClose: () => void; src: 'power' | 'hr'; tone: number }) {
-  const [q, setQ] = useState(''), [g, setG] = useState<Group | null>(null)
-  const list = CATALOG.filter(d => (!g || d.group === g) && (!q || `${d.name} ${d.desc}`.toLowerCase().includes(q.toLowerCase())) && (!only || only.has(d.k)))
+type Pick = { k: WidgetKind; o?: Record<string, string | number | boolean> }
+
+/**
+ * Catalogue : une ligne par famille (recherche en haut). Un toucher ouvre la famille : on choisit
+ * la variante, puis la taille avec son aperçu réel. `fits` restreint aux tailles qui tiennent à la place visée.
+ */
+function Catalog({ fits, title, onPick, onClose, src, tone }: { fits?: (k: WidgetKind) => Size[]; title: string; onPick: (p: Pick, size: Size) => void; onClose: () => void; src: 'power' | 'hr'; tone: number }) {
+  const [q, setQ] = useState(''), [famId, setFamId] = useState<string | null>(null), [vi, setVi] = useState(0), [size, setSize] = useState<Size | null>(null)
+  const sizesOf = (k: WidgetKind): Size[] => (fits ? fits(k) : defOf(k).sizes)
+  const avail = (f: Family) => f.variants.filter(v => sizesOf(v.k).length)
+  const list = FAMILIES.filter(f => avail(f).length && (!q || `${f.name} ${f.desc} ${f.variants.map(v => v.label).join(' ')}`.toLowerCase().includes(q.toLowerCase())))
+  const fam = FAMILIES.find(f => f.id === famId)
+
+  if (fam) {
+    const vars = avail(fam), v = vars[Math.min(vi, vars.length - 1)], sizes = sizesOf(v.k).filter(z => z[0] * z[1] <= 8)
+    const cur = size && sizes.some(z => z[0] === size[0] && z[1] === size[1]) ? size : sizes[0]
+    return (
+      <Sheet title={fam.name} onClose={onClose}>
+        <button className="btn ghost" onClick={() => { setFamId(null); setVi(0); setSize(null) }}>‹ Tous les widgets</button>
+        <p className="dim">{defOf(v.k).desc}</p>
+        {vars.length > 1 && <div className="row chips" role="group" aria-label="Variante">{vars.map((x, i) => <button key={x.label} className="chip" aria-pressed={x === v} onClick={() => { setVi(i); setSize(null) }}>{x.label}</button>)}</div>}
+        <div className="cat-sizes">
+          {sizes.map(([w, h]) => (
+            <button key={`${w}${h}`} className="cat-size" aria-pressed={cur[0] === w && cur[1] === h} aria-label={`${v.label} ${w} par ${h}`} onClick={() => setSize([w, h])}>
+              <Preview k={v.k} o={v.o} w={w} h={h} src={src} tone={tone} /><small>{w} × {h}</small>
+            </button>
+          ))}
+        </div>
+        <button className="btn primary" style={{ marginTop: 16, width: '100%' }} onClick={() => onPick({ k: v.k, o: v.o }, cur)}>Ajouter · {cur[0]} × {cur[1]}</button>
+      </Sheet>
+    )
+  }
   return (
-    <Sheet title={only ? 'Ce qui tient ici' : 'Ajouter un widget'} onClose={onClose}>
+    <Sheet title={title} onClose={onClose}>
       <input type="search" placeholder="Rechercher un widget" value={q} onChange={e => setQ(e.target.value)} aria-label="Rechercher un widget" />
-      <div className="row chips" role="group" aria-label="Catégories">
-        <button className="chip" aria-pressed={!g} onClick={() => setG(null)}>Tous</button>
-        {GROUPS.map(x => <button key={x} className="chip" aria-pressed={g === x} onClick={() => setG(g === x ? null : x)}>{x}</button>)}
-      </div>
-      <div className="stack">
-        {list.map(d => (
-          <div className="cat-item" key={d.k}>
-            <div className="cat-head"><b>{d.name}</b><small>{d.desc}</small></div>
-            <div className="cat-sizes">
-              {(only ? [only.get(d.k)!] : d.sizes.filter(s => s[0] * s[1] <= 6)).map(([w, h]) => (
-                <button key={`${w}${h}`} className="cat-size" aria-label={`${d.name} ${w} par ${h}`} onClick={() => onPick(d.k, [w, h])}>
-                  <Preview k={d.k} w={w} h={h} src={src} tone={tone} /><small>{w} × {h}</small>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="fam-list">
+        {list.map(f => {
+          const v0 = avail(f)[0], z0 = sizesOf(v0.k).slice().sort((a, b) => a[0] * a[1] - b[0] * b[1])[0]
+          return (
+            <button key={f.id} className="fam" onClick={() => { setFamId(f.id); setVi(0); setSize(null) }}>
+              <span className="fam-pv"><Preview k={v0.k} o={v0.o} w={z0[0]} h={z0[1]} src={src} tone={tone} /></span>
+              <span className="fam-t"><b>{f.name}</b><small>{avail(f).map(v => v.label).join(' · ')}</small></span>
+              <span className="chev" aria-hidden="true">›</span>
+            </button>
+          )
+        })}
         {!list.length && <p className="dim">Aucun widget ne correspond.</p>}
       </div>
     </Sheet>
@@ -83,12 +105,14 @@ export function ScreenEditor({ screen, isStart, onClose, onNew }: Props) {
   }
   const undo = () => { const p = hist[hist.length - 1]; if (p) { setDraft(p); setHist(hist.slice(0, -1)); setSel(null) } }
 
-  const place = (k: WidgetKind, size?: [number, number], cell?: { x: number; y: number } | null) => {
-    if (cell && size) { commit([...items, { id: uid(), k, x: cell.x, y: cell.y, w: size[0], h: size[1] }]); setCat(null); return }
+  const place = (p: Pick, size: Size, cell?: { x: number; y: number } | null) => {
+    const { k, o } = p
+    if (cell) { commit([...items, { id: uid(), k, x: cell.x, y: cell.y, w: size[0], h: size[1], ...(o ? { o } : {}) }]); setCat(null); return }
     const n = addWidget(items, k, grid)
     if (!n) { toast('Plus de place : retire ou réduis un widget.'); return }
     // Taille choisie dans le catalogue si elle tient à la place trouvée.
     const added = n[n.length - 1]
+    if (o) added.o = o
     if (size && (size[0] !== added.w || size[1] !== added.h) && sizesAt(items, k, added.x, added.y, grid).some(s => s[0] === size[0] && s[1] === size[1])) { added.w = size[0]; added.h = size[1] }
     commit(n); setSel(added.id); setCat(null)
   }
@@ -103,9 +127,16 @@ export function ScreenEditor({ screen, isStart, onClose, onNew }: Props) {
   }
   const remove = () => { if (selected) { commit(items.filter(i => i.id !== selected.id)); setSel(null) } }
   const setOpt = (key: string, v: string | number | boolean) => selected && commit(items.map(i => (i.id === selected.id ? { ...i, o: { ...i.o, [key]: v } } : i)))
+  // Change de variante dans la famille : même place, taille conservée si elle existe, sinon la plus proche qui tient.
+  const switchVariant = (v: { k: WidgetKind; o?: WidgetItem['o'] }) => {
+    if (!selected) return
+    const ok = sizesAt(items.filter(i => i.id !== selected.id), v.k, selected.x, selected.y, grid)
+    const s = ok.find(z => z[0] === selected.w && z[1] === selected.h) ?? ok.sort((a, b) => Math.abs(a[0] * a[1] - selected.w * selected.h) - Math.abs(b[0] * b[1] - selected.w * selected.h))[0]
+    if (!s) { toast('Cette variante ne tient pas ici.'); return }
+    commit(items.map(i => (i.id === selected.id ? { id: i.id, k: v.k, x: i.x, y: i.y, w: s[0], h: s[1], ...(v.o ? { o: v.o } : {}) } : i)))
+  }
   const switchTo = (p: boolean) => { setPortrait(p); setSel(null) }
 
-  const free = useMemo(() => (cat?.cell ? new Map(fitting(items, cat.cell.x, cat.cell.y, grid).map(f => [f.k, f.size] as [WidgetKind, [number, number]])) : undefined), [cat, items, grid])
   const save = () => { set({ screens: screens.map(s => (s.id === screen.id ? { ...draft } : s)) }); toast('Écran enregistré.'); onClose() }
   const regenerate = () => { commit(portraitFrom(draft.items)); toast('Portrait régénéré depuis le paysage.') }
 
@@ -130,7 +161,7 @@ export function ScreenEditor({ screen, isStart, onClose, onNew }: Props) {
           <b>{defOf(selected.k).name} · {selected.w} × {selected.h}</b>
           <div className="row">
             <button className="btn" onClick={() => setCat({ cell: null, replace: true })}>Remplacer</button>
-            <button className="btn" disabled={!OPTIONS[selected.k]} onClick={() => setOpts(true)}>Réglages</button>
+            <button className="btn" onClick={() => setOpts(true)}>Réglages</button>
             <button className="btn" onClick={duplicate}>Dupliquer</button>
             <button className="btn danger" onClick={remove}>Retirer</button>
           </div>
@@ -146,19 +177,26 @@ export function ScreenEditor({ screen, isStart, onClose, onNew }: Props) {
         <button className="btn" onClick={() => { if (!dirty || window.confirm('Abandonner les changements ?')) onNew() }}><Icon name="plus" size={20} />Nouvel écran</button>
       </div>
       {cat && (
-        <Catalog only={free} src={src} tone={tone} onClose={() => setCat(null)}
-          onPick={(k, size) => {
-            if (cat.replace && selected) { // Remplacer : même place, taille autorisée la plus proche.
-              const s = size && sizesAt(items.filter(i => i.id !== selected.id), k, selected.x, selected.y, grid, null).some(z => z[0] === size[0] && z[1] === size[1]) ? size : sizesAt(items.filter(i => i.id !== selected.id), k, selected.x, selected.y, grid).sort((a, b) => b[0] * b[1] - a[0] * a[1])[0]
-              if (!s) { toast('Ce widget ne tient pas ici.'); return }
-              commit(items.map(i => (i.id === selected.id ? { id: i.id, k, x: i.x, y: i.y, w: s[0], h: s[1] } : i))); setCat(null); return
-            }
-            place(k, size, cat.cell)
+        <Catalog src={src} tone={tone} title={cat.replace ? 'Remplacer par' : cat.cell ? 'Ce qui tient ici' : 'Ajouter un widget'} onClose={() => setCat(null)}
+          fits={cat.replace && selected ? k => sizesAt(items.filter(i => i.id !== selected.id), k, selected.x, selected.y, grid) : cat.cell ? k => sizesAt(items, k, cat.cell!.x, cat.cell!.y, grid) : undefined}
+          onPick={(p, size) => {
+            if (cat.replace && selected) { commit(items.map(i => (i.id === selected.id ? { id: i.id, k: p.k, x: i.x, y: i.y, w: size[0], h: size[1], ...(p.o ? { o: p.o } : {}) } : i))); setCat(null); return }
+            place(p, size, cat.cell)
           }} />
       )}
-      {opts && selected && OPTIONS[selected.k] && (
+      {opts && selected && (
         <Sheet title={`Réglages · ${defOf(selected.k).name}`} onClose={() => setOpts(false)}>
-          {OPTIONS[selected.k]!.map(o => (
+          {(() => {
+            const { family, variant } = familyOf(selected.k, selected.o)
+            return family.variants.length > 1 && (
+              <Field label="Variante">
+                <div className="row chips" role="group" aria-label="Variante">
+                  {family.variants.map(v => <button key={v.label} className="chip" aria-pressed={v === variant} onClick={() => switchVariant(v)}>{v.label}</button>)}
+                </div>
+              </Field>
+            )
+          })()}
+          {(OPTIONS[selected.k] ?? []).map(o => (
             <Field key={o.key} label={o.label}>
               <div className="seg" role="group" aria-label={o.label}>
                 {o.choices.map(c => <button key={String(c.v)} aria-pressed={(selected.o?.[o.key] ?? o.choices[0].v) === c.v} onClick={() => setOpt(o.key, c.v)}>{c.l}</button>)}

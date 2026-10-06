@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { previewData } from '../ride/data'
 import { tileOf } from '../ui/tiles'
-import { CATALOG, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
+import { CATALOG, FAMILIES, familyOf, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
 import { COLS, PORTRAIT, ROWS, TEMPLATES, mkLayout, normalizeItems, type WidgetItem } from './defaults'
 import { addWidget, applyRect, fitting, overlaps, portraitFrom } from './screens'
 
@@ -106,5 +106,21 @@ describe('portrait et cases vides', () => {
     const items: WidgetItem[] = [{ id: 'a', k: 'cad', x: 2, y: 0, w: 1, h: 1 }]
     expect(applyRect(items, 'a', { x: 2, y: 0, w: 2, h: 1 }, PORTRAIT)).toBeNull()
     expect(applyRect(items, 'a', { x: 1, y: 0, w: 2, h: 1 }, PORTRAIT)).not.toBeNull()
+  })
+})
+
+describe('familles du catalogue', () => {
+  it('8 familles ; chaque widget du catalogue est dans une famille, aucun n’est oublié', () => {
+    expect(FAMILIES.length).toBe(8)
+    const kinds = new Set(FAMILIES.flatMap(f => f.variants.map(v => v.k)))
+    for (const d of CATALOG) expect(kinds.has(d.k), d.k).toBe(true)
+    for (const k of kinds) expect(CATALOG.some(d => d.k === k), k).toBe(true)
+  })
+  it('retrouve la famille et la variante d’un widget posé', () => {
+    expect(familyOf('punch').family.id).toBe('reserves')
+    expect(familyOf('next', { content: 'notes' }).variant.label).toBe('Notes')
+    expect(familyOf('next').variant.label).toBe('Points et notes')
+    expect(familyOf('next', { stops: true }).variant.label).toBe('Arrêts')
+    expect(familyOf('cad').family.id).toBe('valeur')
   })
 })
