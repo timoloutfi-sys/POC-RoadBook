@@ -32,6 +32,20 @@ export function applyRect(items: WidgetItem[], id: string, r: Rect, g: Grid = LA
   return items.map(i => (i.id === id ? { ...i, ...r } : i))
 }
 
+/**
+ * Déplace un widget vers `r` ; si la place est prise par un seul autre widget de même taille, les deux
+ * échangent leur place. `items` est l'état de départ du geste (les positions d'origine y sont intactes).
+ */
+export function moveOrSwap(items: WidgetItem[], id: string, r: Rect, g: Grid = LANDSCAPE): WidgetItem[] | null {
+  const it = items.find(i => i.id === id)
+  if (!it || r.x < 0 || r.y < 0 || r.x + r.w > g.cols || r.y + r.h > g.rows) return null
+  if (!overlaps(items, r, id)) return applyRect(items, id, r, g)
+  const hit = items.filter(b => b.id !== id && r.x < b.x + b.w && b.x < r.x + r.w && r.y < b.y + b.h && b.y < r.y + r.h)
+  if (r.w !== it.w || r.h !== it.h || hit.length !== 1 || hit[0].w !== it.w || hit[0].h !== it.h) return null
+  const o = hit[0]
+  return items.map(i => (i.id === it.id ? { ...i, x: o.x, y: o.y } : i.id === o.id ? { ...i, x: it.x, y: it.y } : i))
+}
+
 /** Supprime un écran, mais jamais le dernier. */
 export function removeScreen(screens: ScreenDef[], id: string): ScreenDef[] {
   return screens.length > 1 ? screens.filter(s => s.id !== id) : screens

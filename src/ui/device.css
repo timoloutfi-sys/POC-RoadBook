@@ -144,3 +144,5 @@
 .cell .cl { font-size: max(var(--minfs), min(9cqh, 4.2cqw)); color: var(--d-mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cell b { font-family: var(--num); font-size: min(17cqh, 8cqw); line-height: 1; white-space: nowrap; }
 .cell b small { font-family: var(--font); font-size: .45em; color: var(--d-mut); margin-left: .15em; font-weight: 600; }
+.dev-hint { position: absolute; z-index: 5; margin: 2px; box-sizing: border-box; border: 3px dashed var(--d-acc); border-radius: 8px; background: color-mix(in srgb, var(--d-acc) 18%, transparent); pointer-events: none; }
+.dev-hint.bad { border-color: var(--d-hi); background: color-mix(in srgb, var(--d-hi) 18%, transparent); }

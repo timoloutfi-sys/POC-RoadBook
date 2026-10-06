@@ -136,6 +136,8 @@ Contrainte transverse : cible matérielle de `CLAUDE.md`. On prépare sur le té
 
 ## 6. Éditeur d'écrans (piste A, maquettes `ecran-1` à `ecran-7`)
 
+_Catalogue : panneau de hauteur standard en bas, non modal ; les familles se déroulent sur place ; une taille se pose d'un toucher ou par appui long puis glisser sur l'écran (emplacement visé en surbrillance) ; un widget glissé sur un autre de même taille échange sa place ; un glisser compte pour un seul changement annulable._
+
 _Réalisé (étape 6) : paysage et portrait, sélection, déplacer, agrandir aux tailles autorisées, catalogue avec recherche, catégories et aperçus, case vide, réglages, annuler. Pas encore : glisser depuis le catalogue, échange de places entre widgets de même taille, widget recouvert déplacé sur l'écran suivant, appui long sur la liste des écrans._
 
 **Disposition**

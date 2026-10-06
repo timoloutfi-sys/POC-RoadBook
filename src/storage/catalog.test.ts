@@ -3,7 +3,7 @@ import { previewData } from '../ride/data'
 import { tileOf } from '../ui/tiles'
 import { CATALOG, FAMILIES, familyOf, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
 import { COLS, PORTRAIT, ROWS, TEMPLATES, mkLayout, normalizeItems, type WidgetItem } from './defaults'
-import { addWidget, applyRect, fitting, overlaps, portraitFrom } from './screens'
+import { addWidget, applyRect, fitting, moveOrSwap, overlaps, portraitFrom } from './screens'
 
 describe('catalogue', () => {
   it('chaque widget a au moins une taille et son nom, et ses tailles tiennent dans la grille', () => {
@@ -122,5 +122,22 @@ describe('familles du catalogue', () => {
     expect(familyOf('next').variant.label).toBe('Points et notes')
     expect(familyOf('next', { stops: true }).variant.label).toBe('Arrêts')
     expect(familyOf('cad').family.id).toBe('valeur')
+  })
+})
+
+describe('échange de places', () => {
+  const A: WidgetItem = { id: 'a', k: 'cad', x: 0, y: 0, w: 1, h: 1 }, B: WidgetItem = { id: 'b', k: 'slope', x: 1, y: 0, w: 1, h: 1 }
+  it('échange deux widgets de même taille', () => {
+    const r = moveOrSwap([A, B], 'a', { x: 1, y: 0, w: 1, h: 1 })!
+    expect(r.find(i => i.id === 'a')).toMatchObject({ x: 1, y: 0 }); expect(r.find(i => i.id === 'b')).toMatchObject({ x: 0, y: 0 })
+  })
+  it('refuse l’échange si les tailles diffèrent ou si plusieurs widgets sont visés', () => {
+    const C: WidgetItem = { id: 'c', k: 'effort', x: 2, y: 0, w: 2, h: 1 }
+    expect(moveOrSwap([A, C], 'a', { x: 2, y: 0, w: 1, h: 1 })).toBeNull()
+    expect(moveOrSwap([A, B, { ...C, x: 0, y: 1 }], 'c', { x: 0, y: 0, w: 2, h: 1 })).toBeNull()
+  })
+  it('déplace simplement quand la place est libre, et reste dans la grille', () => {
+    expect(moveOrSwap([A], 'a', { x: 3, y: 2, w: 1, h: 1 })!.find(i => i.id === 'a')).toMatchObject({ x: 3, y: 2 })
+    expect(moveOrSwap([A], 'a', { x: 6, y: 0, w: 1, h: 1 })).toBeNull()
   })
 })
