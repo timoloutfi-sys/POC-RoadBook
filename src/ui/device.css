@@ -155,10 +155,10 @@
 .gbar.g-ok i { background: var(--d-ok); } .gbar.g-warn i { background: var(--d-warn); } .gbar.g-hi i { background: var(--d-hi); }
 
 /* Zone en cours */
-.zn { position: absolute; inset: 0; padding: 6px 8px; display: flex; flex-direction: column; justify-content: center; background: color-mix(in srgb, var(--zc) 22%, transparent); border-radius: 7px; }
-.zn-n { font-family: var(--num); font-weight: 700; line-height: .9; font-size: min(62cqh, 50cqw); }
+.zn { position: absolute; inset: 0; padding: 6px 8px; display: flex; flex-direction: column; justify-content: center; }
+.zn-n { font-family: var(--num); font-weight: 700; line-height: .9; font-size: min(62cqh, 50cqw); color: var(--zc); }
 .zn-s { font-size: max(var(--minfs), min(14cqh, 12cqw)); font-weight: 600; }
-.zn.wide { flex-direction: row; align-items: center; gap: 4cqw; background: linear-gradient(90deg, color-mix(in srgb, var(--zc) 30%, transparent), transparent 85%); }
+.zn.wide { flex-direction: row; align-items: center; gap: 4cqw; }
 .zn.wide .zn-n { font-size: min(78cqh, 30cqw); }
 .zn-t { display: flex; flex-direction: column; min-width: 0; }
 .zn-t b { font-size: max(var(--minfs), min(20cqh, 9cqw)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

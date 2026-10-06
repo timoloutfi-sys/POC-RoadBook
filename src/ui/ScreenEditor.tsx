@@ -206,10 +206,12 @@ export function ScreenEditor({ screen, onClose }: Props) {
   // Toucher ailleurs que sur un widget ou sa barre désélectionne.
   useEffect(() => {
     if (!sel) return
-    const f = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest?.('.wg, .ed-fl, .sheet, .cat-sheet')) setSel(null) }
+    const f = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest?.('.wg, .ed-fl, .sheet, .sheet-back, .cat-sheet, .cat-back')) setSel(null) }
     document.addEventListener('pointerdown', f)
     return () => document.removeEventListener('pointerdown', f)
   }, [sel])
+  // Les réglages ne concernent que le widget sélectionné : ils se ferment dès que la sélection change.
+  useEffect(() => { setOpts(false) }, [sel])
   const hasOpts = !!(selected && OPTIONS[selected.k])
 
   return (
