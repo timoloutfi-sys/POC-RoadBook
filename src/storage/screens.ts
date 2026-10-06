@@ -32,18 +32,38 @@ export function applyRect(items: WidgetItem[], id: string, r: Rect, g: Grid = LA
   return items.map(i => (i.id === id ? { ...i, ...r } : i))
 }
 
+const hits = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+
 /**
- * Déplace un widget vers `r` ; si la place est prise par un seul autre widget de même taille, les deux
- * échangent leur place. `items` est l'état de départ du geste (les positions d'origine y sont intactes).
+ * Pose un widget en `r` (déplacement ou nouvelle taille) en poussant ceux qu'il recouvre, comme sur Android :
+ * chaque widget recouvert prend d'abord la place laissée libre, sinon la place libre la plus proche,
+ * sinon une taille autorisée plus petite. Deux widgets de même taille échangent donc leur place.
+ * `items` est l'état au début du geste. Retourne null si un widget recouvert ne trouve aucune place.
  */
-export function moveOrSwap(items: WidgetItem[], id: string, r: Rect, g: Grid = LANDSCAPE): WidgetItem[] | null {
+export function placeWithPush(items: WidgetItem[], id: string, r: Rect, g: Grid = LANDSCAPE): WidgetItem[] | null {
   const it = items.find(i => i.id === id)
-  if (!it || r.x < 0 || r.y < 0 || r.x + r.w > g.cols || r.y + r.h > g.rows) return null
-  if (!overlaps(items, r, id)) return applyRect(items, id, r, g)
-  const hit = items.filter(b => b.id !== id && r.x < b.x + b.w && b.x < r.x + r.w && r.y < b.y + b.h && b.y < r.y + r.h)
-  if (r.w !== it.w || r.h !== it.h || hit.length !== 1 || hit[0].w !== it.w || hit[0].h !== it.h) return null
-  const o = hit[0]
-  return items.map(i => (i.id === it.id ? { ...i, x: o.x, y: o.y } : i.id === o.id ? { ...i, x: it.x, y: it.y } : i))
+  if (!it || r.x < 0 || r.y < 0 || r.x + r.w > g.cols || r.y + r.h > g.rows || !isAllowed(it.k, r.w, r.h)) return null
+  const moved = { ...it, ...r }, rest = items.filter(i => i.id !== id), hit = rest.filter(b => hits(b, r))
+  if (!hit.length) return items.map(i => (i.id === id ? moved : i))
+  const placed: WidgetItem[] = [...rest.filter(b => !hit.includes(b)), moved]
+  for (const h of [...hit].sort((a, b) => b.w * b.h - a.w * a.h)) {
+    const sizes: [number, number][] = [[h.w, h.h], ...defOf(h.k).sizes.filter(z => z[0] * z[1] < h.w * h.h).sort((a, b) => b[0] * b[1] - a[0] * a[1])]
+    let spot: Rect | null = null
+    for (const [w, hh] of sizes) {
+      const c: (Rect & { score: number })[] = []
+      for (let y = 0; y + hh <= g.rows; y++)
+        for (let x = 0; x + w <= g.cols; x++) {
+          const q = { x, y, w, h: hh }
+          if (placed.some(p => hits(p, q))) continue
+          const inOld = x >= it.x && y >= it.y && x + w <= it.x + it.w && y + hh <= it.y + it.h
+          c.push({ ...q, score: (inOld ? 0 : 100) + Math.abs(x - h.x) + Math.abs(y - h.y) })
+        }
+      if (c.length) { c.sort((a, b) => a.score - b.score); spot = { x: c[0].x, y: c[0].y, w: c[0].w, h: c[0].h }; break }
+    }
+    if (!spot) return null
+    placed.push({ ...h, ...spot })
+  }
+  return items.map(i => placed.find(p => p.id === i.id)!)
 }
 
 /** Supprime un écran, mais jamais le dernier. */

@@ -3,7 +3,7 @@ import { previewData } from '../ride/data'
 import { tileOf } from '../ui/tiles'
 import { CATALOG, FAMILIES, familyOf, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
 import { COLS, PORTRAIT, ROWS, TEMPLATES, mkLayout, normalizeItems, type WidgetItem } from './defaults'
-import { addWidget, applyRect, fitting, moveOrSwap, overlaps, portraitFrom } from './screens'
+import { addWidget, applyRect, fitting, placeWithPush, overlaps, portraitFrom } from './screens'
 
 describe('catalogue', () => {
   it('chaque widget a au moins une taille et son nom, et ses tailles tiennent dans la grille', () => {
@@ -125,19 +125,31 @@ describe('familles du catalogue', () => {
   })
 })
 
-describe('échange de places', () => {
+describe('déplacer en poussant les autres', () => {
   const A: WidgetItem = { id: 'a', k: 'cad', x: 0, y: 0, w: 1, h: 1 }, B: WidgetItem = { id: 'b', k: 'slope', x: 1, y: 0, w: 1, h: 1 }
-  it('échange deux widgets de même taille', () => {
-    const r = moveOrSwap([A, B], 'a', { x: 1, y: 0, w: 1, h: 1 })!
+  it('deux widgets de même taille échangent leur place', () => {
+    const r = placeWithPush([A, B], 'a', { x: 1, y: 0, w: 1, h: 1 })!
     expect(r.find(i => i.id === 'a')).toMatchObject({ x: 1, y: 0 }); expect(r.find(i => i.id === 'b')).toMatchObject({ x: 0, y: 0 })
   })
-  it('refuse l’échange si les tailles diffèrent ou si plusieurs widgets sont visés', () => {
-    const C: WidgetItem = { id: 'c', k: 'effort', x: 2, y: 0, w: 2, h: 1 }
-    expect(moveOrSwap([A, C], 'a', { x: 2, y: 0, w: 1, h: 1 })).toBeNull()
-    expect(moveOrSwap([A, B, { ...C, x: 0, y: 1 }], 'c', { x: 0, y: 0, w: 2, h: 1 })).toBeNull()
+  it('un grand widget posé sur des petits les pousse ailleurs, sans chevauchement', () => {
+    const E: WidgetItem = { id: 'e', k: 'effort', x: 4, y: 1, w: 2, h: 2 }
+    const r = placeWithPush([A, B, E], 'e', { x: 0, y: 0, w: 2, h: 2 })!
+    expect(r.find(i => i.id === 'e')).toMatchObject({ x: 0, y: 0 })
+    for (const i of r) expect(overlaps(r.filter(o => o !== i), i)).toBe(false)
+    // les petits prennent d'abord la place laissée libre
+    expect(r.filter(i => i.id !== 'e').every(i => i.x >= 4 && i.y >= 1)).toBe(true)
   })
-  it('déplace simplement quand la place est libre, et reste dans la grille', () => {
-    expect(moveOrSwap([A], 'a', { x: 3, y: 2, w: 1, h: 1 })!.find(i => i.id === 'a')).toMatchObject({ x: 3, y: 2 })
-    expect(moveOrSwap([A], 'a', { x: 6, y: 0, w: 1, h: 1 })).toBeNull()
+  it('agrandir en recouvrant un voisin le pousse', () => {
+    const C: WidgetItem = { id: 'c', k: 'effort', x: 0, y: 0, w: 1, h: 1 }
+    const r = placeWithPush([C, B], 'c', { x: 0, y: 0, w: 2, h: 2 })!
+    expect(r.find(i => i.id === 'b')!.x).toBeGreaterThanOrEqual(2)
+  })
+  it('refuse quand l’écran est plein', () => {
+    const full: WidgetItem[] = Array.from({ length: 18 }, (_, i) => ({ id: `w${i}`, k: 'cad' as const, x: i % 6, y: Math.floor(i / 6), w: 1, h: 1 }))
+    expect(placeWithPush(full, 'w0', { x: 0, y: 0, w: 2, h: 1 })).toBeNull()
+  })
+  it('reste dans la grille et dans les tailles autorisées', () => {
+    expect(placeWithPush([A], 'a', { x: 6, y: 0, w: 1, h: 1 })).toBeNull()
+    expect(placeWithPush([A], 'a', { x: 0, y: 0, w: 2, h: 2 })).toBeNull()
   })
 })

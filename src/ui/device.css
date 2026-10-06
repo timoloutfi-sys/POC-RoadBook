@@ -146,3 +146,7 @@
 .cell b small { font-family: var(--font); font-size: .45em; color: var(--d-mut); margin-left: .15em; font-weight: 600; }
 .dev-hint { position: absolute; z-index: 5; margin: 2px; box-sizing: border-box; border: 3px dashed var(--d-acc); border-radius: 8px; background: color-mix(in srgb, var(--d-acc) 18%, transparent); pointer-events: none; }
 .dev-hint.bad { border-color: var(--d-hi); background: color-mix(in srgb, var(--d-hi) 18%, transparent); }
+/* Éditeur : animation des widgets qui se déplacent (comme Android). */
+.editing .wg { transition: left .22s cubic-bezier(.2, .8, .2, 1), top .22s cubic-bezier(.2, .8, .2, 1), width .22s cubic-bezier(.2, .8, .2, 1), height .22s cubic-bezier(.2, .8, .2, 1), transform .2s cubic-bezier(.2, .8, .2, 1); }
+.editing .wg.lifted { transition: none; z-index: 6; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .55)); }
+@media (prefers-reduced-motion: reduce) { .editing .wg { transition: none; } }
