@@ -1,3 +1,4 @@
+import type React from 'react'
 import { fdur, hhmm, hms, nf0, nf1 } from '../core/format'
 import type { WidgetData } from '../ride/data'
 import type { WidgetKind } from '../storage/catalog'
@@ -8,7 +9,7 @@ export interface Tile {
   lab: string
   val?: string
   unit?: string
-  st?: 'ok' | 'hi' | 'lo'
+  st?: 'ok' | 'hi' | 'lo' | 'warn'
   /** Détails, du plus important au moins important. */
   sub?: string[]
   /** Jauge de 0 à 1, avec une zone cible facultative. */
@@ -20,7 +21,7 @@ export interface Tile {
   /** Deux valeurs côte à côte (réserve). */
   pair?: { l: string; v: string; g: number }[]
   /** Grille de mini-valeurs (synthèses), du plus utile au moins utile. */
-  cells?: { l: string; v: string; u?: string; st?: 'ok' | 'hi' | 'lo' }[]
+  cells?: { l: string; v: string; u?: string; st?: 'ok' | 'hi' | 'lo' | 'warn' }[]
   /** Texte quand il n'y a rien à montrer. */
   empty?: string
 }
@@ -32,7 +33,7 @@ const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).
 
 /** Libellé court d'un état de réserve : jamais la couleur seule. */
 const reserveState = (v: number) => (v >= 70 ? 'Bonne' : v >= 40 ? 'Moyenne' : 'Faible')
-const reserveSt = (v: number): Tile['st'] => (v >= 70 ? 'ok' : v >= 40 ? undefined : 'hi')
+const reserveSt = (v: number): Tile['st'] => (v >= 70 ? 'ok' : v >= 40 ? 'warn' : 'hi')
 
 export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | number | boolean> = {}): Tile {
   const m = d.m
@@ -227,11 +228,112 @@ export function TileView({ t, w, h }: { t: Tile; w: number; h: number }) {
       </div>
       <div className="tl-side">
         {showSub && t.sub?.map((s, i) => <div className={`sub${i ? ' dim' : ''}`} key={s}>{s}</div>)}
-        {t.gauge && (shape !== 'wide' || roomy || h >= 1) && <span className="gbar" aria-hidden="true"><i style={{ width: `${pct(t.gauge.v) * 100}%` }} />{t.gauge.zone && <b style={{ left: `${t.gauge.zone[0] * 100}%`, width: `${(t.gauge.zone[1] - t.gauge.zone[0]) * 100}%` }} />}</span>}
+        {t.gauge && (shape !== 'wide' || roomy || h >= 1) && <span className={`gbar${t.st ? ` g-${t.st}` : ''}`} aria-hidden="true"><i style={{ width: `${pct(t.gauge.v) * 100}%` }} />{t.gauge.zone && <b style={{ left: `${t.gauge.zone[0] * 100}%`, width: `${(t.gauge.zone[1] - t.gauge.zone[0]) * 100}%` }} />}</span>}
         {t.steps && (w >= 4 || h >= 2) && (
           <div className="steps" aria-hidden="true">{t.steps.map((s, i) => <i key={i} style={{ flex: s.len, height: `${20 + Math.min(80, s.grade * 7)}%`, background: gradeColor(s.grade) }} />)}</div>
         )}
       </div>
+    </div>
+  )
+}
+
+/* ---- Widgets dessinés sur mesure : ils remplissent toute leur case. ---- */
+
+const resState = (v: number) => (v >= 70 ? 'ok' : v >= 40 ? 'warn' : 'hi')
+
+/** Zone en cours : grand numéro, fond teinté de la couleur de la zone. */
+export function ZoneNowView({ d, w }: { d: WidgetData; w: number }) {
+  const m = d.m, zdefs = d.source === 'power' ? POWER_ZONES : HR_ZONES
+  if (!m || m.zoneNow < 0) return <div className="tl"><div className="lab">Zone</div><div className="sub dim">--</div></div>
+  const z = zdefs[m.zoneNow], since = mmss(Math.max(0, d.t - m.zoneSince))
+  return (
+    <div className={`zn${w > 1 ? ' wide' : ''}`} style={{ '--zc': z.c } as React.CSSProperties}>
+      {w === 1 && <div className="lab">Zone</div>}
+      <div className="zn-n">Z{m.zoneNow + 1}</div>
+      {w > 1 ? <div className="zn-t"><b>{z.l}</b><span>depuis {since}</span></div> : <div className="zn-s">{since}</div>}
+    </div>
+  )
+}
+
+/** Temps par zone : colonnes (2×1), barre unique et légende (3×1 et plus large), barres épaisses (haut ou grand). */
+export function ZonesView({ d, w, h }: { d: WidgetData; w: number; h: number }) {
+  const m = d.m, zdefs = d.source === 'power' ? POWER_ZONES : HR_ZONES
+  if (!m) return <div className="tl"><div className="lab">Temps par zone</div><div className="sub dim">--</div></div>
+  const tot = m.zones.reduce((a, b) => a + b, 0), max = Math.max(1, ...m.zones)
+  const name = (i: number) => (i === 4 && d.source === 'power' ? 'Z5+' : `Z${i + 1}`)
+  const t = (s: number) => (s >= 3600 ? fdur(s) : `${Math.round(s / 60)}′`)
+  if (h === 1 && w <= 2) {
+    return (
+      <div className="zs-cols">
+        {m.zones.map((s, i) => (
+          <div key={i} className={`zs-col${i === m.zoneNow ? ' now' : ''}`}>
+            <span className="zs-area"><span className="zs-v" style={{ bottom: `${Math.max(3, (s / max) * 100)}%` }}>{t(s)}</span><i style={{ height: `${Math.max(3, (s / max) * 100)}%`, background: zdefs[i].c }} /></span>
+            <b>{name(i)}</b>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  if (h === 1) {
+    return (
+      <div className="zs-line">
+        <div className="zs-head"><span className="lab">Temps par zone</span><span className="lab">{fdur(tot)}</span></div>
+        <div className="zs-stack">{m.zones.map((s, i) => <i key={i} className={i === m.zoneNow ? 'now' : undefined} style={{ flex: Math.max(0.01, s), background: zdefs[i].c }} />)}</div>
+        <div className="zs-leg">{m.zones.map((s, i) => <span key={i} className={i === m.zoneNow ? 'now' : undefined}>{name(i)} {t(s)}</span>)}</div>
+      </div>
+    )
+  }
+  return (
+    <div className="zs-bars">
+      <div className="lab">Temps par zone</div>
+      <div className="zs-grid">
+        {m.zones.map((s, i) => (
+          <div key={i} className={`zs-row${i === m.zoneNow ? ' now' : ''}`}>
+            <b>{name(i)}</b><span className="zs-track"><i style={{ width: `${Math.max(2, (s / max) * 100)}%`, background: zdefs[i].c }} /></span><span>{t(s)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Dans la cible : grand pourcentage, barre en trois couleurs (dessous, dedans, dessus). */
+export function InTargetView({ d, w }: { d: WidgetData; w: number }) {
+  const m = d.m
+  if (!m || m.inTarget == null) return <div className="tl"><div className="lab">Dans la cible</div><div className="sub dim">--</div></div>
+  const tot = m.under + m.inT + m.over || 1, pu = Math.round((m.under / tot) * 100), po = Math.round((m.over / tot) * 100)
+  const bar = <div className="it-bar"><i className="lo" style={{ flex: Math.max(0.01, m.under) }} /><i className="ok" style={{ flex: Math.max(0.01, m.inT) }} /><i className="hi" style={{ flex: Math.max(0.01, m.over) }} /></div>
+  return (
+    <div className={`it${w > 1 ? ' wide' : ''}`}>
+      <div className="it-main"><div className="lab">Dans la cible</div><div className="val st-ok">{m.inTarget}<small>%</small></div>{w === 1 && bar}</div>
+      {w > 1 && <div className="it-side">{bar}<span className="st-lo">▾ {pu} % dessous</span><span className="st-warn">▴ {po} % dessus</span></div>}
+    </div>
+  )
+}
+
+/** Punch et endurance : deux lignes (2×1) ou deux blocs empilés (haut ou grand), en couleur. */
+export function ReserveView({ d, w, h }: { d: WidgetData; w: number; h: number }) {
+  const m = d.m
+  if (!m || m.punch == null || m.endurance == null) return <div className="tl"><div className="lab">Punch et endurance</div><div className="sub dim">{m ? 'Puissance requise' : '--'}</div></div>
+  const items = [{ l: 'Punch', v: m.punch }, { l: 'Endurance', v: m.endurance }]
+  if (h === 1) {
+    return (
+      <div className="rv-lines">
+        {items.map(x => (
+          <div key={x.l} className={`rv-line st-${resState(x.v)}`}><span className="lab">{x.l}</span><b className="val">{x.v}<small>%</small></b><span className="rv-track"><i style={{ width: `${x.v}%` }} /></span></div>
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className={`rv-blocks${w === 1 ? ' narrow' : ''}`}>
+      {items.map(x => (
+        <div key={x.l} className={`rv-block st-${resState(x.v)}`}>
+          <div className="rv-head"><span className="lab">{x.l}</span>{w > 1 && <span className="rv-st">{reserveState(x.v)}</span>}</div>
+          <b className="val">{x.v}<small>%</small></b>
+          <span className="rv-track"><i style={{ width: `${x.v}%` }} /></span>
+        </div>
+      ))}
     </div>
   )
 }

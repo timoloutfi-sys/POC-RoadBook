@@ -14,7 +14,7 @@ const HOLD_MS = 450
 
 /**
  * Liste des écrans. Un toucher ouvre l'éditeur ; un appui long passe en mode « modifier », comme l'écran
- * d'accueil d'un iPhone : les cartes tremblent, ✕ supprime, ★ choisit l'écran de départ, glisser réordonne.
+ * d'accueil d'un iPhone : ✕ supprime, ★ choisit l'écran de départ, glisser réordonne ; toucher ailleurs pour sortir.
  */
 export function EcranTab() {
   const { screens, activeScreen, set } = useStore()
@@ -27,6 +27,13 @@ export function EcranTab() {
   const edit = screens.find(s => s.id === editId)
 
   useEffect(() => { if (!undo) return; const t = setTimeout(() => setUndo(null), 5000); return () => clearTimeout(t) }, [undo])
+  // Toucher ailleurs que sur un écran quitte le mode modification.
+  useEffect(() => {
+    if (!jiggle) return
+    const f = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest?.('.scr, .undo')) setJiggle(false) }
+    document.addEventListener('pointerdown', f)
+    return () => document.removeEventListener('pointerdown', f)
+  }, [jiggle])
 
   if (edit) return <ScreenEditor key={edit.id} screen={edit} onClose={() => setEditId(null)} />
 
@@ -76,8 +83,7 @@ export function EcranTab() {
 
   return (
     <>
-      {jiggle && <div className="jig-top"><button className="btn primary sm" onClick={() => setJiggle(false)}>OK</button></div>}
-      <div className={`stack scr-list${jiggle ? ' jig' : ''}`} onClick={e => { if (jiggle && e.target === e.currentTarget) setJiggle(false) }}>
+      <div className={`stack scr-list${jiggle ? ' jig' : ''}`}>
         {screens.map((s, i) => {
           const dragging = drag?.id === s.id
           return (

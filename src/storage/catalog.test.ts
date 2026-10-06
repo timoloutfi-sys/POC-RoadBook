@@ -118,9 +118,7 @@ describe('familles du catalogue', () => {
   })
   it('retrouve la famille et la variante d’un widget posé', () => {
     expect(familyOf('punch').family.id).toBe('reserves')
-    expect(familyOf('next', { content: 'notes' }).variant.label).toBe('Notes')
-    expect(familyOf('next').variant.label).toBe('Points et notes')
-    expect(familyOf('next', { stops: true }).variant.label).toBe('Arrêts')
+    expect(familyOf('next').family.id).toBe('points')
     expect(familyOf('cad').family.id).toBe('valeur')
   })
 })

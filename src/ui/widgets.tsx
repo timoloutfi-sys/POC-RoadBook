@@ -6,7 +6,7 @@ import { POINT_TYPES, type Section } from '../strategy/types'
 import { HR_ZONES, POWER_ZONES, hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
 import type { WidgetItem } from '../storage/defaults'
 import { Icon, type IconName } from './icons'
-import { TileView, tileOf } from './tiles'
+import { InTargetView, ReserveView, TileView, ZoneNowView, ZonesView, tileOf } from './tiles'
 
 export type Size = 'S' | 'M' | 'L'
 export const sizeOf = (it: Pick<WidgetItem, 'w' | 'h'>): Size => ((it.w >= 3 && it.h >= 2) || it.w * it.h >= 6 ? 'L' : it.w >= 2 || it.h >= 2 ? 'M' : 'S')
@@ -55,49 +55,32 @@ const eta = (d: WidgetData, km: number) => {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`
 }
 
+/** Prochains points : des lignes empilées comme sur un cahier ; plus large = plus de détails, plus haut = plus de lignes. */
 function NextW({ d, w, h, content }: { d: WidgetData; w: number; h: number; content: string }) {
   const isNote = (e: Upcoming) => e.kind === 'note'
   const L = d.next.filter(e => (content === 'notes' ? isNote(e) : content === 'points' ? !isNote(e) : true))
-  const lab = content === 'notes' ? 'Prochaines notes' : content === 'points' ? 'Prochains points' : 'Prochain événement'
-  if (!L.length) return <><div className="lab">{lab}</div><div className="sub dim">{content === 'notes' ? 'Aucune note à venir' : 'Rien d’annoncé'}</div></>
+  const lab = content === 'notes' ? 'Prochaines notes' : 'Prochains points'
+  if (!L.length) return <><div className="lab">{lab}</div><div className="sub dim">--</div></>
   const name = (e: Upcoming) => e.name || (e.kind in POINT_TYPES ? POINT_TYPES[e.kind as keyof typeof POINT_TYPES].n : 'Section')
-  if (h === 1 && w === 2) {
-    const e = L[0]
-    return (
-      <>
-        <div className="lab">{lab}</div>
-        <div className={`nx first${isNote(e) ? ' note' : ''}`} style={{ '--l': 2 } as CSSProperties}><Icon name={evIcon(e.kind)} size={24} /><span className="nm">{name(e)}</span></div>
-        <div className="sub"><b className="acc">{nf1(e.km - d.km)} km</b> <span className="dim">· dans {eta(d, e.km)}</span></div>
-      </>
-    )
-  }
-  if (h === 1) {
-    // Large : les prochains côte à côte, autant que la largeur le permet.
-    const n = w <= 3 ? 2 : w <= 4 ? 3 : 4
-    return (
-      <>
-        <div className="lab">{lab}</div>
-        <div className="nxcols">{L.slice(0, n).map(e => (
-          <div className={`nxc${isNote(e) ? ' note' : ''}`} key={e.km + name(e)} style={{ '--l': 3 } as CSSProperties}>
-            <div className="nxh"><Icon name={evIcon(e.kind)} size={20} /><b className="acc">{nf1(e.km - d.km)} km</b></div>
-            <span className="nm">{name(e)}</span>
-          </div>
-        ))}</div>
-      </>
-    )
-  }
-  // Haut ou grand : une ligne par demi-case de hauteur ; les notes passent à la ligne.
-  const rows = h * 2 - (isNote(L[0]) ? 1 : 0), shown = Math.min(L.length, rows)
+  const rows = h === 1 ? 2 : h * 2, shown = L.slice(0, rows)
+  const at = (km: number) => hhmm(new Date(d.now.valueOf() + ((km - d.km) / Math.max(15, d.vAvg || 28)) * 3600e3))
   return (
-    <>
+    <div className="nb">
       <div className="lab">{lab}</div>
-      <div className="nxlist">{L.slice(0, rows).map((e, i) => (
-        <div className={`nx${i === 0 ? ' first' : ''}${isNote(e) ? ' note' : ''}`} key={e.km + name(e)} style={{ '--l': isNote(e) ? Math.min(8, Math.max(2, Math.floor((h * 4) / shown))) : 1 } as CSSProperties}>
-          <Icon name={evIcon(e.kind)} size={22} /><span className="nm">{name(e)}</span>
-          <span className="dist">{nf1(e.km - d.km)} km{w >= 3 && <small> · {eta(d, e.km)}</small>}</span>
-        </div>
-      ))}</div>
-    </>
+      <div className="nb-lines">
+        {shown.map(e => {
+          const note = isNote(e) && h > 1
+          return (
+            <div key={e.km + name(e)} className={`nb-line${note ? ' note' : ''}`} style={note ? ({ '--l': Math.max(1, rows - shown.length + 1) } as CSSProperties) : undefined}>
+              <Icon name={evIcon(e.kind)} size={18} />
+              <span className="nm">{name(e)}</span>
+              {w >= 3 && <span className="eta">{w >= 4 ? `dans ${eta(d, e.km)} · ${at(e.km)}` : eta(d, e.km)}</span>}
+              <span className="km">{nf1(e.km - d.km)} km</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -175,11 +158,15 @@ function GapW({ d, w, h }: { d: WidgetData; w: number; h: number }) {
   )
 }
 
-const TILES = new Set<WidgetItem['k']>(['zone', 'zones', 'intarget', 'reserve', 'punch', 'endurance', 'drift', 'carbs', 'carbgap', 'lap', 'slope', 'climb', 'arrival', 'sunset', 'time', 'dist', 'clock', 'cad', 'speed', 'sumeffort', 'sumroute', 'sumfuel'])
+const TILES = new Set<WidgetItem['k']>(['punch', 'endurance', 'drift', 'carbs', 'carbgap', 'lap', 'slope', 'climb', 'arrival', 'sunset', 'time', 'dist', 'clock', 'cad', 'speed', 'sumeffort', 'sumroute', 'sumfuel'])
 
 export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
   const sz = sizeOf(it), o = it.o ?? {}
   if (TILES.has(it.k)) return <TileView t={tileOf(it.k, d, o)} w={it.w} h={it.h} />
+  if (it.k === 'zone') return <ZoneNowView d={d} w={it.w} />
+  if (it.k === 'zones') return <ZonesView d={d} w={it.w} h={it.h} />
+  if (it.k === 'intarget') return <InTargetView d={d} w={it.w} />
+  if (it.k === 'reserve') return <ReserveView d={d} w={it.w} h={it.h} />
   switch (it.k) {
     case 'effort': return <EffortW d={d} sz={sz} wkg={!!o.wkg} />
     case 'hr': return <EffortW d={d} sz={sz} metric="hr" />

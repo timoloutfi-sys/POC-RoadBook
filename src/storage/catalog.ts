@@ -93,6 +93,7 @@ export interface OptionDef { key: string; label: string; choices: { v: string | 
 export const OPTIONS: Partial<Record<WidgetKind, OptionDef[]>> = {
   effort: [{ key: 'wkg', label: 'Unité', choices: [{ v: false, l: 'W' }, { v: true, l: 'W/kg' }] }],
   speed: [{ key: 'avg', label: 'Mesure', choices: [{ v: false, l: 'Instantanée' }, { v: true, l: 'Moyenne' }] }],
+  next: [{ key: 'content', label: 'Afficher', choices: [{ v: 'all', l: 'Points et notes' }, { v: 'points', l: 'Points' }, { v: 'notes', l: 'Notes' }, { v: 'stops', l: 'Arrêts' }] }],
   profile: [{ key: 'range', label: 'À venir', choices: [{ v: 5, l: '5 km' }, { v: 15, l: '15 km' }, { v: 25, l: '25 km' }] }],
 }
 
@@ -104,18 +105,18 @@ export interface Family { id: string; name: string; desc: string; variants: Vari
 export const FAMILIES: Family[] = [
   { id: 'effort', name: 'Effort', desc: 'Puissance, FC et cible', variants: [{ k: 'effort', label: 'Puissance' }, { k: 'hr', label: 'FC' }, { k: 'target', label: 'Cible' }] },
   { id: 'zones', name: 'Zones', desc: 'Zone en cours, temps par zone, dans la cible', variants: [{ k: 'zone', label: 'Zone en cours' }, { k: 'zones', label: 'Temps par zone' }, { k: 'intarget', label: 'Dans la cible' }] },
-  { id: 'reserves', name: 'Réserves', desc: 'Punch, endurance, dérive cardiaque', variants: [{ k: 'punch', label: 'Punch' }, { k: 'endurance', label: 'Endurance' }, { k: 'reserve', label: 'Les deux' }, { k: 'drift', label: 'Dérive cardiaque' }] },
+  { id: 'reserves', name: 'Réserves', desc: 'Dérive cardiaque, punch, endurance', variants: [{ k: 'drift', label: 'Dérive cardiaque' }, { k: 'punch', label: 'Punch' }, { k: 'endurance', label: 'Endurance' }, { k: 'reserve', label: 'Punch et endurance' }] },
   { id: 'nutrition', name: 'Nutrition', desc: 'Glucides, écart, prochain rappel, synthèse', variants: [{ k: 'carbs', label: 'Glucides / h' }, { k: 'carbgap', label: 'Écart glucides' }, { k: 'fuel', label: 'Prochain rappel' }, { k: 'sumfuel', label: 'Synthèse' }] },
   { id: 'relief', name: 'Relief', desc: 'Profil à venir et montée', variants: [{ k: 'profile', label: 'Profil' }, { k: 'climb', label: 'Montée' }] },
-  { id: 'points', name: 'Prochains points', desc: 'Points, notes, arrêts', variants: [{ k: 'next', label: 'Points et notes', o: { content: 'all' } }, { k: 'next', label: 'Points', o: { content: 'points' } }, { k: 'next', label: 'Notes', o: { content: 'notes' } }, { k: 'next', label: 'Arrêts', o: { content: 'stops' } }] },
-  { id: 'valeur', name: 'Valeur', desc: 'Un chiffre au choix : cadence, vitesse, pente, distance, heure…', variants: [{ k: 'cad', label: 'Cadence' }, { k: 'speed', label: 'Vitesse' }, { k: 'slope', label: 'Pente' }, { k: 'dist', label: 'Distance' }, { k: 'time', label: 'Roulage' }, { k: 'clock', label: 'Heure' }, { k: 'arrival', label: 'Arrivée' }, { k: 'gap', label: 'Écart au plan' }, { k: 'sunset', label: 'Soleil' }] },
+  { id: 'points', name: 'Prochains points', desc: 'Points, notes, arrêts', variants: [{ k: 'next', label: 'Prochains points' }] },
+  { id: 'valeur', name: 'Valeur', desc: 'Un chiffre au choix : écart au plan, cadence, vitesse, pente…', variants: [{ k: 'gap', label: 'Écart au plan' }, { k: 'cad', label: 'Cadence' }, { k: 'speed', label: 'Vitesse' }, { k: 'slope', label: 'Pente' }, { k: 'dist', label: 'Distance' }, { k: 'time', label: 'Roulage' }, { k: 'clock', label: 'Heure' }, { k: 'arrival', label: 'Arrivée' }, { k: 'sunset', label: 'Soleil' }] },
   { id: 'synthese', name: 'Synthèse', desc: 'Plusieurs valeurs en une grille', variants: [{ k: 'sumeffort', label: 'Effort' }, { k: 'sumroute', label: 'Parcours' }, { k: 'lap', label: 'Tour' }] },
 ]
 
 /** Famille et variante d'un widget posé sur un écran. */
-export function familyOf(k: WidgetKind, o?: Record<string, string | number | boolean>): { family: Family; variant: Variant } {
+export function familyOf(k: WidgetKind): { family: Family; variant: Variant } {
   for (const f of FAMILIES) {
-    const v = f.variants.find(x => x.k === k && (!x.o || x.o.content === (o?.content === 'stops' || o?.stops ? 'stops' : o?.content ?? 'all')))
+    const v = f.variants.find(x => x.k === k)
     if (v) return { family: f, variant: v }
   }
   const f = FAMILIES[0]

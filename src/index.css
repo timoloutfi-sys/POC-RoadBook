@@ -271,16 +271,11 @@ input[type='search'] { width: 100%; min-height: 48px; padding: 0 14px; border: 1
 .scr .t b { display: block; font-size: 17px; }
 .scr .t small { color: var(--muted); font-size: 13px; }
 .scr.dragging { transition: none; z-index: 3; box-shadow: 0 12px 26px rgba(0, 0, 0, .5); border-color: var(--accent); }
-.jig .scr:not(.dragging) { animation: jig .16s ease-in-out infinite alternate; }
-.jig .scr:nth-child(2n):not(.dragging) { animation-delay: -.08s; }
-@keyframes jig { from { rotate: -.6deg; } to { rotate: .6deg; } }
-@media (prefers-reduced-motion: reduce) { .jig .scr { animation: none !important; } }
 .scr-x { position: absolute; left: -8px; top: -8px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: #4a5562; color: #fff; font-size: 14px; font-weight: 700; display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
 .scr-x::after { content: ''; position: absolute; inset: -8px; }
 .scr-star { margin-left: auto; width: 36px; height: 36px; border: 0; background: none; color: var(--muted); font-size: 22px; cursor: pointer; }
 .scr-star.on { color: var(--accent); }
 .scr-star:disabled { cursor: default; }
-.jig-top { display: flex; justify-content: flex-end; margin: -4px 0 8px; }
 .btn.sm { min-height: 36px; padding: 0 14px; font-size: 15px; }
 
 /* Éditeur compact */
