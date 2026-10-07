@@ -74,7 +74,7 @@ export function PlanTab() {
 
       <ZoneProfile route={route} ratio={res.ratio} unit={unit} />
 
-      <h2 className="h2">Cible de base</h2>
+      <h2 className="h2">Terrain</h2>
       <div className="stack">
         {([['plat', 'Plat'], ['montee', 'Montée'], ['descente', 'Descente']] as const).map(([k, label]) => (
           <details className="fold" key={k} style={{ marginTop: 0 }}>
@@ -84,7 +84,7 @@ export function PlanTab() {
         ))}
       </div>
 
-      <h2 className="h2">Exceptions · {imposed.length}</h2>
+      <h2 className="h2">Segments · {imposed.length}</h2>
       <ul className="list">
         {imposed.map(s => (
           <li key={s.id}><button className="item" onClick={() => setEdit({ v: s, isNew: false })}>
@@ -93,9 +93,9 @@ export function PlanTab() {
             <span className="t">{s.name}<small>Z{zoneOfPct(s.min, s.max) + 1} · {line(s)}</small></span>
           </button></li>
         ))}
-        {!imposed.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune : ta cible de base s’applique partout.</li>}
+        {!imposed.length && <li className="muted" style={{ padding: '12px 0' }}>Aucun : ton terrain s’applique partout.</li>}
       </ul>
-      <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newImposed())}><Icon name="plus" size={20} />Ajouter une exception</button>
+      <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newImposed())}><Icon name="plus" size={20} />Ajouter un segment</button>
 
       <details className="fold">
         <summary>Répartition par zone</summary>
@@ -162,7 +162,7 @@ export function PlanTab() {
       </details>
 
       {edit && (
-        <Sheet title={edit.isNew ? 'Nouvelle exception' : 'Exception'} onClose={() => setEdit(null)}>
+        <Sheet title={edit.isNew ? 'Nouveau segment' : 'Segment'} onClose={() => setEdit(null)}>
           <ImposedForm initial={edit.v} isNew={edit.isNew} maxKm={route.total / 1000} route={route} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
             onSave={saveImposed} onDelete={() => { setPlan({ imposed: plan.imposed.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
         </Sheet>

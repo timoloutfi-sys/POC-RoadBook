@@ -47,7 +47,7 @@ export function NoGpx() {
 
       <h2 className="h2">Déjà possible sans GPX</h2>
       <ul className="list">
-        <li><button className="item" onClick={() => setSub('cibles')}><span className="t">Cibles<small>Plat, montée, descente : à toi ou suggérées</small></span><Icon name="chevron" size={18} /></button></li>
+        <li><button className="item" onClick={() => setSub('cibles')}><span className="t">Plan<small>Terrain et segments : à toi ou suggérés</small></span><Icon name="chevron" size={18} /></button></li>
         <li><button className="item" onClick={() => setSub('reglages')}><span className="t">Rappels et alertes<small>Nutrition, hydratation, seuils</small></span><Icon name="chevron" size={18} /></button></li>
       </ul>
 

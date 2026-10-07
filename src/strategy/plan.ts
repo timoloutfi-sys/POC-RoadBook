@@ -397,7 +397,7 @@ export function computePlan(inp: PlanInput): PlanResult {
   // Cibles imposées : ajoutées telles quelles, prioritaires sur tout ce qui est généré.
   for (const imp of cfg.imposed) {
     const a = Math.round((imp.a * 1000) / STEP), b = Math.round((imp.b * 1000) / STEP)
-    mk(imp.name || 'Exception', a, b, [imp.min / 100, imp.max / 100], 'imposée', { id: imp.id, kind: imp.kind, msg: imp.msg, avant: imp.avant, locked: true })
+    mk(imp.name || 'Segment', a, b, [imp.min / 100, imp.max / 100], 'imposée', { id: imp.id, kind: imp.kind, msg: imp.msg, avant: imp.avant, locked: true })
     sections[sections.length - 1].a = imp.a; sections[sections.length - 1].b = imp.b
   }
   sections.sort((x, y) => x.a - y.a)

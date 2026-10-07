@@ -62,7 +62,7 @@ function Detail({ onRide }: { onRide: () => void }) {
       </div>
       <div className="seg rb-sub" role="tablist">
         <button role="tab" aria-pressed={sub === 'parcours'} onClick={() => setSub('parcours')}>Parcours</button>
-        <button role="tab" aria-pressed={sub === 'cibles'} onClick={() => setSub('cibles')}>Cibles</button>
+        <button role="tab" aria-pressed={sub === 'cibles'} onClick={() => setSub('cibles')}>Plan</button>
         <button role="tab" aria-pressed={sub === 'reglages'} onClick={() => setSub('reglages')}>Réglages</button>
         <button role="tab" aria-pressed={sub === 'sorties'} onClick={() => setSub('sorties')}>Sorties</button>
       </div>

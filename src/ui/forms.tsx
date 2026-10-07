@@ -68,12 +68,12 @@ export function MarkForm({ initial, isNew, onSave, onDelete, onClose, maxKm, rou
   )
 }
 
-/** Exception (cible imposée) : telle zone ou telle fourchette entre deux km, gardée telle quelle par le plan. */
+/** Segment (cible imposée) : telle zone ou telle fourchette entre deux km, gardée telle quelle par le plan. */
 export function ImposedForm({ initial, isNew, onSave, onDelete, onClose, maxKm, route, unit, ftp, lthr }: FormProps<Section> & { maxKm: number; route: Route; unit: Unit; ftp: number; lthr: number | null }) {
   const [s, setS] = useState(initial)
   const a = clamp(Math.min(s.a, s.b), 0, maxKm), b = clamp(Math.max(s.a, s.b), 0, maxKm)
   return (
-    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: Math.min(s.min, s.max), max: Math.max(s.min, s.max), locked: true, gen: false, auto: false, mark: false, name: s.name.trim() || 'Exception' }) }}>
+    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: Math.min(s.min, s.max), max: Math.max(s.min, s.max), locked: true, gen: false, auto: false, mark: false, name: s.name.trim() || 'Segment' }) }}>
       <Field label="Nom"><input value={s.name} maxLength={60} placeholder="Ex. col au calme" onChange={e => setS({ ...s, name: e.target.value })} /></Field>
       <ProfilePick route={route} a={s.a} b={s.b} onPick={(a, b, c) => setS({ ...s, a, b, ...(c && !s.name.trim() ? { name: c.name } : {}) })} />
       <div className="cols2">

@@ -42,3 +42,5 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 
 - Un widget qui exige un plan (« Dans la cible ») n'est jamais proposé dans un écran de sortie libre.
 - Les heures du plan sont théoriques tant que la sortie n'est pas lancée ; au départ de l'enregistrement elles sont recalées sur l'heure réelle (« prévu » = départ réel + durée prévue).
+
+- Vocabulaire du Plan (repris des outils de référence : Best Bike Split, Strava, TrainingPeaks) : onglet **Plan**, section **Terrain** (plat, montée, descente), section **Segments** (un tronçon km à km avec sa cible). Ne pas réintroduire « exception », « cible de base » ou « par tronçon ».
