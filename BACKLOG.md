@@ -4,6 +4,9 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [ ] Road books › carte de la liste : on voit seulement la courbe → montrer si le road book est travaillé : nombre de points, zones/cibles posées, plan fait ou pas, GPX présent (aperçu plus parlant, profil avec les zones et points repérés).
+- [ ] Road book › Cibles : une section nouvelle a « Personnalisée » par défaut → une zone par défaut (Z2 etc.), la fourchette perso reste un choix.
+- [ ] Plan › « Suggérer un plan » en seuil (et autres intentions) : regroupe les efforts en un gros bloc même quand c'est loin d'être idéal → mieux répartir les efforts (plusieurs blocs, répartis sur le parcours, selon les montées et la récupération).
 - [ ] Widgets › Temps par zone 1×2 : barres minuscules, beaucoup de vide → remplir la case (ou retirer la taille).
 - [ ] Widgets › Dans la cible 1×1 : chiffre petit par rapport à la case.
 - [ ] Éditeur › animation des widgets : animer en transformations plutôt qu'en position (signalé par Impeccable) si saccades sur le téléphone.
