@@ -32,7 +32,7 @@ const blockZoneOf = (i: Intent, unit: 'power' | 'hr'): BlockZone | null => (i ==
 export function suggestedMinutes(intent: Intent, H: number, unit: 'power' | 'hr' = 'power') {
   const z = blockZoneOf(intent, unit)
   if (z == null) return 0
-  const raw = intent === 'tempo' ? clamp(round5(H * 60 * 0.2), 20, 120) : intent === 'seuil' || unit === 'hr' ? clamp(round5(H * 60 * 0.12), 10, 60) : clamp(Math.round((H * 60 * 0.04) / 2) * 2, 4, 20)
+  const raw = intent === 'tempo' ? clamp(round5(H * 60 * 0.2), 20, 120) : intent === 'seuil' || unit === 'hr' ? clamp(round5(H * 60 * 0.18), 15, 60) : clamp(Math.round((H * 60 * 0.04) / 2) * 2, 4, 20)
   return Math.min(raw, blockLimit(z, H))
 }
 

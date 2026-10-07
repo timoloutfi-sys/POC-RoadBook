@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildRoute, demoPoints } from '../route/route'
+import { syntheticRoute } from '../route/synthetic'
 import { computePlan, defaultPlanCfg } from './plan'
 import { suggestPlan, suggestedMinutes, type Intent } from './suggest'
 
@@ -49,5 +50,19 @@ describe('suggestion de plan', () => {
     expect(suggestedMinutes('seuil', 1)).toBeLessThanOrEqual(30)
     expect(suggestedMinutes('vo2max', 5)).toBeLessThanOrEqual(20)
     expect(suggestedMinutes('course' as Intent, 5)).toBe(0)
+  })
+
+  it('les efforts sont répartis sur le parcours, jamais collés (bug du 7 oct. : gros bloc en seuil)', () => {
+    const hilly = { ...inp(), route: syntheticRoute('x', { km: 50, dplus: 650, terrain: 'vallonne' }) }
+    const s = suggestPlan(hilly, 'seuil', 60)
+    const b = [...s.imposed].sort((x, y) => x.a - y.a)
+    expect(b.length).toBeGreaterThanOrEqual(3)
+    for (let i = 1; i < b.length; i++) expect(b[i].a - b[i - 1].b).toBeGreaterThan(2.5) // de la récupération entre deux blocs
+    const d = suggestPlan(inp(), 'seuil', 60).imposed.sort((x, y) => x.a - y.a)
+    for (let i = 1; i < d.length; i++) expect(d[i].a - d[i - 1].b).toBeGreaterThan(8)
+  })
+  it('tempo sur un parcours vallonné : place des blocs malgré les descentes', () => {
+    const hilly = { ...inp(), route: syntheticRoute('x', { km: 50, dplus: 650, terrain: 'vallonne' }) }
+    expect(suggestPlan(hilly, 'tempo').imposed.length).toBeGreaterThan(0)
   })
 })

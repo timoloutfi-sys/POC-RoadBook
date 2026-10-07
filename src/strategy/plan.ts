@@ -239,24 +239,32 @@ export function computePlan(inp: PlanInput): PlanResult {
       const P = new Float64Array(n + 1)
       for (let i = 0; i < n; i++) P[i + 1] = P[i] + STEP / sv(B.mid, gs[i], i)
       let k = 0
+      // Écart minimal entre deux efforts : un tiers de l'espacement idéal ; on le relâche si le terrain ne s'y prête pas.
+      const idealGap = T / (totalB + 1)
       for (; k < nb; k++) {
+        let minGap = Math.max(B.rec, idealGap * 0.5)
         const bad = new Int32Array(n + 1)
         for (let i = 0; i < n; i++) bad[i + 1] = bad[i] + (tag[i] !== -1 || gs[i] <= -2.5 ? 1 : 0)
         let best: { i: number; j: number; score: number; tt: number; avg: number } | null = null
-        for (let i = 0; i < n; i += 4) {
-          if (tag[i] !== -1 || gs[i] <= -2 || res.cumT[i] < (T > 2400 ? 1200 : 300)) continue
-          const target = P[i] + bd
-          if (P[n] < target) break
-          let lo = i + 1, hi = n
-          while (lo < hi) { const m = (lo + hi) >> 1; if (P[m] >= target) hi = m; else lo = m + 1 }
-          const j = lo
-          if (bad[j] - bad[i] > 0) continue
-          const avg = (gp[j] - gp[i]) / (j - i), tc = res.cumT[i]
-          let gap = Infinity
-          for (const b of blocks) gap = Math.min(gap, Math.abs(tc - b.t0))
-          // Les efforts vont en montée régulière (chaque watt y rapporte le plus), répartis sur le parcours.
-          const score = (z >= 3 ? Math.min(Math.max(avg, 0), 8) * 0.5 : -Math.abs(avg) * 0.3) + Math.min(gap / (T / (totalB + 1)), 1) * 2
-          if (!best || score > best.score) best = { i, j, score, tt: P[j] - P[i], avg }
+        for (let attempt = 0; attempt < 3 && !best; attempt++, minGap /= 2) {
+          for (let i = 0; i < n; i += 4) {
+            if (tag[i] !== -1 || gs[i] <= -2 || res.cumT[i] < (T > 2400 ? 1200 : 300)) continue
+            const target = P[i] + bd
+            if (P[n] < target) break
+            let lo = i + 1, hi = n
+            while (lo < hi) { const m = (lo + hi) >> 1; if (P[m] >= target) hi = m; else lo = m + 1 }
+            const j = lo
+            // Une courte descente dans la fenêtre est tolérée (10 %) : sans cela, un parcours vallonné n'offre aucune place.
+            if (bad[j] - bad[i] > Math.floor((j - i) * 0.1)) continue
+            const avg = (gp[j] - gp[i]) / (j - i), tc = res.cumT[i]
+            // Écart (en temps) à l'effort le plus proche : début à début, mais aussi fin à début, pour ne jamais coller deux blocs.
+            let gap = Infinity
+            for (const b of blocks) gap = Math.min(gap, Math.abs(tc - b.t0), Math.abs(tc - res.cumT[b.i1]), Math.abs(res.cumT[j] - b.t0))
+            if (gap < minGap) continue
+            // Les efforts vont en montée régulière (chaque watt y rapporte le plus), mais surtout bien répartis sur le parcours.
+            const score = (z >= 3 ? Math.min(Math.max(avg, 0), 8) * 0.5 : -Math.abs(avg) * 0.3) + Math.min(gap / (T / (totalB + 1)), 1) * 4
+            if (!best || score > best.score) best = { i, j, score, tt: P[j] - P[i], avg }
+          }
         }
         if (!best) break
         const id = blocks.length
