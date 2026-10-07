@@ -55,3 +55,5 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Les cibles s’affichent en zone (« Z2 · Endurance ») ; la fourchette en watts ou bpm n’apparaît que si elle est personnalisée.
 
 - Toute sortie démarre par la feuille « Avant de partir » (road book, écran, capteurs), puis « Démarrer la sortie » : aucun bouton « Rouler » ne lance directement l'écran de sortie, sauf « Reprendre » une sortie en cours.
+
+- Pendant une sortie, on peut revenir à l'appli sans la terminer (bouton « Appli » de la barre) : un bandeau « Sortie en cours » reste au-dessus de la navigation et ramène à l'écran de course d'un toucher. Les réglages modifiés (écrans, plan, alertes) s'appliquent à la sortie en cours.

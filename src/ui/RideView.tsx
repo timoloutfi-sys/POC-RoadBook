@@ -14,11 +14,11 @@ const HOLD_ACK_MS = 500, DOUBLE_TAP_MS = 350, BAR_MS = 2500
 
 /**
  * Vue de course plein écran, dans l'orientation du téléphone. Rien n'est affiché de plus que les widgets : toucher l'écran
- * montre 2,5 s une barre « Capteurs » et « Quitter » (la même en paysage et en portrait), un second toucher la cache. Gestes sur la bande de 24 px :
+ * montre 2,5 s une barre « Capteurs », « Appli » (retour à l'appli, la sortie continue) et « Quitter » (la même en paysage et en portrait), un second toucher la cache. Gestes sur la bande de 24 px :
  * paysage : droite = Fait (appui long), tour (double appui), écran suivant (glisser) ;
  * portrait : bas = Fait, tour, écran suivant (glisser à l'horizontale).
  */
-export function RideView({ onExit }: { onExit: () => void }) {
+export function RideView({ onExit, onAway }: { onExit: () => void; onAway: () => void }) {
   const screens = useStore(s => s.screens), activeId = useStore(s => s.activeScreen), theme = useStore(s => s.rideTheme)
   const route = useStore(s => s.route), set = useStore(s => s.set)
   const [, setTick] = useState(0)
@@ -83,6 +83,7 @@ export function RideView({ onExit }: { onExit: () => void }) {
       {(Date.now() < barUntil || panel) && (
         <div className="ride-bar" role="toolbar" aria-label="Sortie">
           <button onClick={() => { setPanel('sensors'); setBarUntil(Infinity) }}><Icon name="bluetooth" size={22} />Capteurs</button>
+          <button onClick={onAway}><Icon name="home" size={22} />Appli</button>
           <button onClick={() => setPanel('quit')}><Icon name="close" size={22} />Quitter</button>
         </div>
       )}
