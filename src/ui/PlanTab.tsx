@@ -165,7 +165,7 @@ export function PlanTab() {
 
       {edit && (
         <Sheet title={edit.isNew ? 'Ajouter une cible' : 'Cible par tronçon'} onClose={() => setEdit(null)}>
-          <ImposedForm initial={edit.v} isNew={edit.isNew} maxKm={route.total / 1000} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
+          <ImposedForm initial={edit.v} isNew={edit.isNew} maxKm={route.total / 1000} route={route} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
             onSave={saveImposed} onDelete={() => { setPlan({ imposed: plan.imposed.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
         </Sheet>
       )}

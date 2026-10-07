@@ -113,7 +113,7 @@ export function ParcoursTab() {
       )}
       {edit?.kind === 'point' && (
         <Sheet title={edit.isNew ? 'Nouveau point' : 'Modifier le point'} onClose={() => setEdit(null)}>
-          <PointForm initial={edit.v} isNew={edit.isNew} maxKm={L} onClose={() => setEdit(null)}
+          <PointForm initial={edit.v} isNew={edit.isNew} maxKm={L} route={route} onClose={() => setEdit(null)}
             onSave={v => { set({ points: edit.isNew ? [...points, v] : points.map(x => (x.id === v.id ? v : x)) }); setEdit(null) }}
             onDelete={() => { set({ points: points.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
         </Sheet>

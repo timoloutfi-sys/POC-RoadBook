@@ -108,6 +108,23 @@ test('road books : boucle démo → carte avec profil', async (p, url) => {
   ok(await p.locator('.rb-card .rb-prof').count() === 1, 'pas de profil sur la carte')
 })
 
+test('repère et point : choisis sur le profil, sans taper le km', async (p, url) => {
+  await open(p, url); await tab(p, 'Road books')
+  await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200)
+  await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
+  await p.getByRole('button', { name: /Repère/ }).tap(); await p.waitForTimeout(400)
+  const box = await p.locator('svg.pick').boundingBox()
+  await touchDrag(p, box.x + box.width * 0.3, box.y + 40, box.x + box.width * 0.6, box.y + 40)
+  const [da, db] = [await p.getByLabel('Du km').inputValue(), await p.getByLabel('Au km').inputValue()].map(v => parseFloat(v.replace(',', '.')))
+  ok(da > 30 && db > da + 20, `tronçon non pris sur le profil : ${da} → ${db}`)
+  await p.getByRole('button', { name: 'Annuler' }).tap(); await p.waitForTimeout(300)
+  await p.getByRole('button', { name: /Point/ }).first().tap(); await p.waitForTimeout(400)
+  const b2 = await p.locator('svg.pick').boundingBox()
+  await p.touchscreen.tap(b2.x + b2.width * 0.5, b2.y + 40); await p.waitForTimeout(200)
+  const km = parseFloat((await p.getByLabel('Kilomètre').inputValue()).replace(',', '.'))
+  ok(km > 60 && km < 90, `point non posé au milieu : ${km}`)
+})
+
 // ---------------------------------------------------------------------------------------------
 const filter = process.argv[2]
 const srv = await startServer(), browser = await launch()
