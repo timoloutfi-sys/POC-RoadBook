@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { findClimbs, type Route } from '../route/route'
 
-const H = 84, PAD = 6
+const H = 104, PAD = 6, GRAB = 22
 
 /**
  * Choisir un endroit ou un tronçon sur le profil, sans connaître le kilomètre :
@@ -12,7 +12,7 @@ export function ProfilePick({ route, a, b, point, onPick }: {
 }) {
   const L = route.total / 1000
   const svg = useRef<SVGSVGElement>(null)
-  const drag = useRef<{ x: number; km: number; moved: boolean } | null>(null)
+  const drag = useRef<{ x: number; km: number; moved: boolean; other?: number } | null>(null)
   const w = 340
   const climbs = useMemo(() => findClimbs(route), [route])
   const { lo, hi } = useMemo(() => {
@@ -36,10 +36,19 @@ export function ProfilePick({ route, a, b, point, onPick }: {
     <svg ref={svg} className="pick" width="100%" height={H} viewBox={`0 0 ${w} ${H}`} preserveAspectRatio="none" role="img"
       aria-label={point ? 'Profil : touche pour choisir l’endroit' : 'Profil : touche une montée ou glisse pour choisir le passage'}
       style={{ touchAction: 'none', display: 'block', background: 'var(--raised)', borderRadius: 10, margin: '4px 0 12px' }}
-      onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); const km = kmAt(e.clientX); drag.current = { x: e.clientX, km, moved: false } }}
+      onPointerDown={e => {
+        e.currentTarget.setPointerCapture(e.pointerId)
+        const km = kmAt(e.clientX), r = svg.current!.getBoundingClientRect(), px = (k: number) => (k / L) * r.width
+        // Tirer une extrémité du tronçon déjà choisi : plus précis que de le retracer.
+        const near = (k: number) => Math.abs(px(km) - px(k)) < GRAB
+        const edge = !point && highKm > lowKm && (near(lowKm) || near(highKm)) ? (near(lowKm) && (!near(highKm) || Math.abs(km - lowKm) <= Math.abs(km - highKm)) ? 'lo' : 'hi') : null
+        drag.current = { x: e.clientX, km, moved: false, other: edge === 'lo' ? highKm : edge === 'hi' ? lowKm : undefined }
+        if (edge) drag.current.moved = true
+      }}
       onPointerMove={e => {
         const s = drag.current
         if (!s || point) return
+        if (s.other != null) { const km = kmAt(e.clientX); onPick(Math.min(km, s.other), Math.max(km, s.other)); return }
         if (!s.moved && Math.abs(e.clientX - s.x) < 8) return
         s.moved = true
         const km = kmAt(e.clientX)

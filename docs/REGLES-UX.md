@@ -48,3 +48,6 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Pas de geste caché pour quitter ou régler en sortie (appui long sur un bord) : toucher l'écran affiche une barre « Capteurs » et « Quitter », identique en paysage et en portrait, et la fin demande confirmation. Les bords ne servent qu'aux gestes de conduite (Fait, tour, écran suivant).
 - Sur l'Accueil, « Sortie libre » est un bouton visible à côté de « Autre road book », jamais derrière une petite icône.
 - Une feuille « Nouvel écran » propose seulement les modèles et l'écran vide.
+
+- Tout km se saisit en trois gestes : toucher le profil, tirer une extrémité du tronçon, ou régler au curseur fin (±2 km, pas de 0,1) à côté du champ. Le champ numérique reste pour les valeurs exactes.
+- Les boutons d'action d'une page (Suggérer un plan, Rouler avec) ont la taille d'un bouton normal, pas « big » : la place est pour le contenu.

@@ -4,7 +4,8 @@ import { sectionStats, type Route } from '../route/route'
 import { METRICS, PRIO_LABEL, type AlertRule, type Metric } from '../alerts/types'
 import { POINT_TYPES, type Prio, type PointType, type RoutePoint, type Section } from '../strategy/types'
 import type { Unit } from '../strategy/zones'
-import { ProfilePick } from './ProfilePick'
+import type { UrbanZone } from '../strategy/plan'
+import { KmRange } from './KmRange'
 import { TargetPicker } from './TargetPicker'
 import { Field, Num } from './fields'
 
@@ -30,9 +31,8 @@ export function PointForm({ initial, isNew, onSave, onDelete, onClose, maxKm, ro
           {Object.entries(POINT_TYPES).map(([k, v]) => <option key={k} value={k}>{v.n}</option>)}
         </select>
       </Field>
-      <ProfilePick route={route} a={p.km} b={p.km} point onPick={km => setP({ ...p, km })} />
+      <KmRange route={route} a={p.km} b={p.km} point onChange={km => setP({ ...p, km })} />
       <div className="cols2">
-        <Field label="Kilomètre"><Num value={p.km} min={0} max={maxKm} step={1} onChange={v => setP({ ...p, km: v ?? 0 })} /></Field>
         <Field label="Annoncer (km avant)"><Num value={p.avant} min={0} step={1} onChange={v => setP({ ...p, avant: v ?? 0 })} /></Field>
       </div>
       <Field label="Message affiché">
@@ -53,11 +53,7 @@ export function MarkForm({ initial, isNew, onSave, onDelete, onClose, maxKm, rou
   return (
     <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, mark: true, auto: false, gen: false, name: s.name.trim() || 'Repère' }) }}>
       <Field label="Nom"><input value={s.name} maxLength={60} placeholder="Ex. plaine au vent" onChange={e => setS({ ...s, name: e.target.value })} /></Field>
-      <ProfilePick route={route} a={s.a} b={s.b} onPick={(a, b, c) => setS({ ...s, a, b, ...(c && !s.name.trim() ? { name: c.name } : {}) })} />
-      <div className="cols2">
-        <Field label="Du km"><Num value={s.a} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, a: v ?? 0 })} /></Field>
-        <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
-      </div>
+      <KmRange route={route} a={s.a} b={s.b} onChange={(a, b, c) => setS({ ...s, a, b, ...(c && !s.name.trim() ? { name: c.name } : {}) })} />
       <p className="muted" style={{ marginBottom: 12 }}>{statsLine(sectionStats(route, a, b))}</p>
       <div className="cols2">
         <Field label="Annoncer (km avant)"><Num value={s.avant} min={0} step={1} onChange={v => setS({ ...s, avant: v ?? 0 })} /></Field>
@@ -75,11 +71,7 @@ export function ImposedForm({ initial, isNew, onSave, onDelete, onClose, maxKm, 
   return (
     <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: Math.min(s.min, s.max), max: Math.max(s.min, s.max), locked: true, gen: false, auto: false, mark: false, name: s.name.trim() || 'Segment' }) }}>
       <Field label="Nom"><input value={s.name} maxLength={60} placeholder="Ex. col au calme" onChange={e => setS({ ...s, name: e.target.value })} /></Field>
-      <ProfilePick route={route} a={s.a} b={s.b} onPick={(a, b, c) => setS({ ...s, a, b, ...(c && !s.name.trim() ? { name: c.name } : {}) })} />
-      <div className="cols2">
-        <Field label="Du km"><Num value={s.a} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, a: v ?? 0 })} /></Field>
-        <Field label="Au km"><Num value={s.b} min={0} max={maxKm} step={1} onChange={v => setS({ ...s, b: v ?? 0 })} /></Field>
-      </div>
+      <KmRange route={route} a={s.a} b={s.b} onChange={(a, b, c) => setS({ ...s, a, b, ...(c && !s.name.trim() ? { name: c.name } : {}) })} />
       <TargetPicker unit={unit} ftp={ftp} lthr={lthr} min={s.min} max={s.max} onChange={(min, max) => setS({ ...s, min, max })} />
       <Field label="Consigne à l'annonce"><input value={s.msg} maxLength={80} placeholder="Ex. reste assis" onChange={e => setS({ ...s, msg: e.target.value })} /></Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
@@ -131,3 +123,18 @@ export const alertSentence = (a: AlertRule) => {
 /** « 2,1 km · +92 m · pente moy. +4,4 % · max +8,1 % » */
 export const statsLine = (st: ReturnType<typeof sectionStats>) =>
   `${nf1(st.len)} km · +${nf0(st.dplus)} m · pente moy. ${slope(st.avg)}${st.max > Math.abs(st.avg) + 1 ? ` · max ${slope(st.max)}` : ''}`
+
+/** Traversée de ville : sur ces km, feux et carrefours plafonnent la vitesse moyenne. */
+export function UrbanForm({ initial, isNew, onSave, onDelete, onClose, maxKm, route }: FormProps<UrbanZone> & { maxKm: number; route: Route }) {
+  const [u, setU] = useState(initial)
+  const a = clamp(Math.min(u.a, u.b), 0, maxKm), b = clamp(Math.max(u.a, u.b), 0, maxKm)
+  return (
+    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...u, a, b, kmh: clamp(u.kmh, 5, 40) }) }}>
+      <KmRange route={route} a={u.a} b={u.b} onChange={(x, y) => setU({ ...u, a: x, b: y })} />
+      <Field label="Vitesse moyenne (km/h)" hint="Paris intra-muros : 15 à 18 ; banlieue dense : 20 à 24">
+        <Num value={u.kmh} min={5} max={40} step={1} onChange={v => setU({ ...u, kmh: v ?? 18 })} />
+      </Field>
+      <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
+    </form>
+  )
+}

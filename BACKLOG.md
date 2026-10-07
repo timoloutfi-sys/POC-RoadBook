@@ -4,6 +4,9 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Road book › « Suggérer un plan » et « Rouler avec » trop grands → taille normale.
+- [x] Plan › feux et carrefours (ville) : traversées de ville à saisir (km à km + vitesse moyenne), prises en compte dans les temps.
+- [x] Segments › curseur de réglage fin à côté des champs km ; tirer les extrémités sur le profil ; même sélecteur pour repères, points et ville.
 - [x] Écrans › « Nouvel écran » : retirer « Copier un écran » (modèles et écran vide seulement).
 - [x] Accueil › lancer une sortie libre : bouton visible « Sortie libre » et « Autre road book » sous « Rouler ».
 - [x] Sortie › connecter les capteurs sans quitter l'écran (barre Capteurs au toucher).

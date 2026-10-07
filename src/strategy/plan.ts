@@ -39,7 +39,11 @@ export interface PlanCfg {
   windFrom?: number
   /** Température (°C) : densité de l'air et besoin en eau. */
   tempC?: number
+  /** Traversées de ville : sur ces km, la vitesse moyenne ne dépasse pas `kmh` (feux, carrefours). */
+  urban?: UrbanZone[]
 }
+
+export interface UrbanZone { id: string; a: number; b: number; kmh: number }
 
 export const defaultPlanCfg = (): PlanCfg => {
   const d = new Date(); d.setHours(8, 0, 0, 0)
@@ -133,13 +137,22 @@ export function computePlan(inp: PlanInput): PlanResult {
 
   // Temps réel : simulation avec inertie, virages, freinage, roue libre, air et vent locaux,
   // puissance réduite en altitude, et ralentissements de route ouverte.
+  const urbanV = new Float32Array(n)
+  for (const u of cfg.urban ?? []) {
+    const i0 = clamp(Math.round((u.a * 1000) / STEP), 0, n - 1), i1 = clamp(Math.round((u.b * 1000) / STEP), 0, n - 1)
+    for (let i = i0; i <= i1; i++) urbanV[i] = Math.max(3, u.kmh) / 3.6
+  }
   const timing = (ratio: Float32Array, b: Body = body, k = 1) => {
     const power = new Float32Array(n)
     for (let i = 0; i < n; i++) power[i] = ratio[i] * F * alt[i] * k
     const sim = simulateRide(b, { ds: STEP, grade: gs, power, rho, wind, vcap })
     const dt = new Float32Array(n), cumT = new Float64Array(n)
     let t = 0, kj = 0, p4 = 0
-    for (let i = 1; i < n; i++) { const d = sim.dt[i] * ROAD_FACTOR, w = sim.pw[i]; dt[i] = d; t += d; kj += (w * d) / 1000; p4 += (w / F) ** 4 * d; cumT[i] = t }
+    for (let i = 1; i < n; i++) {
+      // Ville : les feux et carrefours imposent une vitesse moyenne ; le temps en plus se passe à l'arrêt ou en roue libre.
+      const base = sim.dt[i] * ROAD_FACTOR, w = sim.pw[i], d = urbanV[i] ? Math.max(base, STEP / urbanV[i]) : base
+      dt[i] = d; t += d; kj += (w * base) / 1000; p4 += (w / F) ** 4 * base; cumT[i] = t
+    }
     return { dt, cumT, t, kj, np: (p4 / t) ** 0.25 }
   }
   const climbs = findClimbs(route)

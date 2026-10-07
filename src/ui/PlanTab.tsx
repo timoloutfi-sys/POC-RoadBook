@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fdur, hrs, nf0, nf1, uid } from '../core/format'
-import { defaultPlanCfg, type PlanCfg, type ProgramRow } from '../strategy/plan'
+import { defaultPlanCfg, type PlanCfg, type ProgramRow, type UrbanZone } from '../strategy/plan'
 import { effectiveFtp, effectiveLthr, effortUnit } from '../strategy/rider'
 import { INTENTS, suggestPlan, suggestedMinutes, type Intent } from '../strategy/suggest'
 import type { Section } from '../strategy/types'
@@ -8,7 +8,7 @@ import { pctToValue, unitLabel } from '../strategy/units'
 import { HR_ZONES, POWER_ZONES, hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
 import { useStore } from '../storage/store'
 import { Field, Num, Stepper } from './fields'
-import { ImposedForm } from './forms'
+import { ImposedForm, UrbanForm } from './forms'
 import { Icon } from './icons'
 import { Sheet } from './Sheet'
 import { TargetPicker } from './TargetPicker'
@@ -27,6 +27,7 @@ const BLOCK_INTENTS: Intent[] = ['tempo', 'seuil', 'vo2max']
 export function PlanTab() {
   const { route, rider, plan, planResult: res, set } = useStore()
   const [edit, setEdit] = useState<Editing | null>(null)
+  const [urbanEdit, setUrbanEdit] = useState<{ v: UrbanZone; isNew: boolean } | null>(null)
   const [suggest, setSuggest] = useState<{ intent: Intent | null; minutes: number } | null>(null)
   const [undo, setUndo] = useState<{ prev: PlanCfg; note: string } | null>(null)
   const unit = effortUnit(rider), ftp = effectiveFtp(rider), lthr = effectiveLthr(rider), u = unitLabel(unit)
@@ -37,6 +38,7 @@ export function PlanTab() {
 
   const setPlan = (p: Partial<PlanCfg>) => { setUndo(null); set({ plan: { ...(plan ?? defaultPlanCfg()), ...p } }) }
   const imposed = [...plan.imposed].sort((a, b) => a.a - b.a)
+  const urban = [...(plan.urban ?? [])].sort((a, b) => a.a - b.a)
   const nZones = zones.length
   const zt = unit === 'power' ? res.zt : [...res.zt.slice(0, 4), res.zt[4] + res.zt[5] + res.zt[6]]
   const total = zt.reduce((a, b) => a + b, 0) || 1, mx = Math.max(...zt, 1)
@@ -64,7 +66,7 @@ export function PlanTab() {
         <div><b>{nf1(res.vavg)}</b><span>km/h en roulant</span></div>
       </div>
       {res.warnings.map(w => <p key={w} className="notice">{w}</p>)}
-      <button className="btn primary big" style={{ marginBottom: 12 }} onClick={openSuggest}>Suggérer un plan</button>
+      <button className="btn primary" style={{ marginBottom: 12 }} onClick={openSuggest}>Suggérer un plan</button>
       {undo && (
         <div className="row undo" role="status">
           <span className="grow">{undo.note}</span>
@@ -96,6 +98,18 @@ export function PlanTab() {
         {!imposed.length && <li className="muted" style={{ padding: '12px 0' }}>Aucun : ton terrain s’applique partout.</li>}
       </ul>
       <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newImposed())}><Icon name="plus" size={20} />Ajouter un segment</button>
+
+      <h2 className="h2">Ville · {urban.length}</h2>
+      <ul className="list">
+        {urban.map(u => (
+          <li key={u.id}><button className="item" onClick={() => setUrbanEdit({ v: u, isNew: false })}>
+            <span className="km">{nf1(u.a)}–{nf1(u.b)}</span>
+            <span className="t">{nf0(u.kmh)} km/h en moyenne<small>Feux et carrefours</small></span>
+          </button></li>
+        ))}
+        {!urban.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune : le plan roule sans feux ni carrefours.</li>}
+      </ul>
+      <button className="btn" onClick={() => setUrbanEdit({ isNew: true, v: { id: uid(), a: 0, b: Math.min(5, route.total / 1000), kmh: 18 } })}><Icon name="plus" size={20} />Ajouter une traversée de ville</button>
 
       <details className="fold">
         <summary>Répartition par zone</summary>
@@ -165,6 +179,13 @@ export function PlanTab() {
         <Sheet title={edit.isNew ? 'Nouveau segment' : 'Segment'} onClose={() => setEdit(null)}>
           <ImposedForm initial={edit.v} isNew={edit.isNew} maxKm={route.total / 1000} route={route} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
             onSave={saveImposed} onDelete={() => { setPlan({ imposed: plan.imposed.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
+        </Sheet>
+      )}
+      {urbanEdit && (
+        <Sheet title={urbanEdit.isNew ? 'Nouvelle traversée de ville' : 'Traversée de ville'} onClose={() => setUrbanEdit(null)}>
+          <UrbanForm initial={urbanEdit.v} isNew={urbanEdit.isNew} maxKm={route.total / 1000} route={route} onClose={() => setUrbanEdit(null)}
+            onSave={v => { const cur = plan.urban ?? []; setPlan({ urban: cur.some(x => x.id === v.id) ? cur.map(x => (x.id === v.id ? v : x)) : [...cur, v] }); setUrbanEdit(null) }}
+            onDelete={() => { setPlan({ urban: (plan.urban ?? []).filter(x => x.id !== urbanEdit.v.id) }); setUrbanEdit(null) }} />
         </Sheet>
       )}
       {suggest && (

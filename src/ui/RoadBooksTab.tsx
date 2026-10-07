@@ -67,7 +67,7 @@ function Detail({ onRide }: { onRide: () => void }) {
         <button role="tab" aria-pressed={sub === 'sorties'} onClick={() => setSub('sorties')}>Sorties</button>
       </div>
       {sub === 'parcours' ? (noGpx ? <NoGpx /> : <ParcoursTab />) : sub === 'cibles' ? <PlanTab /> : sub === 'reglages' ? <RoadBookSettings /> : <SortiesTab roadbookId={current.id} />}
-      <div className="rb-cta"><button className="btn primary big" onClick={onRide}><Icon name="ride" size={22} />{noGpx ? 'Rouler en sortie libre' : 'Rouler avec'}</button></div>
+      <div className="rb-cta"><button className="btn primary" style={{ width: '100%' }} onClick={onRide}><Icon name="ride" size={22} />{noGpx ? 'Rouler en sortie libre' : 'Rouler avec'}</button></div>
     </>
   )
 }
