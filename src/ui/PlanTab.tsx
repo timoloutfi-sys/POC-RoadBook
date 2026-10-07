@@ -42,7 +42,7 @@ export function PlanTab() {
   const total = zt.reduce((a, b) => a + b, 0) || 1, mx = Math.max(...zt, 1)
   const line = (s: { min: number; max: number }) => { const lo = pctToValue(s.min, unit, ftp, lthr), hi = pctToValue(s.max, unit, ftp, lthr); return lo != null ? `${lo}–${hi} ${u}` : 'FC seuil à renseigner' }
   const zoneOfPct = (min: number, max: number) => { const z = powerZoneOf((min + max) / 200); return Math.min(unit === 'power' ? z : hrZoneOfPowerZone(z), nZones - 1) }
-  const newImposed = (r?: ProgramRow): Editing => ({ isNew: true, v: { id: uid(), kind: 'zone', locked: true, name: r && !r.locked ? r.label : '', a: r ? +r.a.toFixed(1) : 0, b: r ? +r.b.toFixed(1) : Math.min(5, route.total / 1000), min: r?.minPct ?? 65, max: r?.maxPct ?? 72, msg: '', avant: 1 } })
+  const newImposed = (r?: ProgramRow): Editing => ({ isNew: true, v: { id: uid(), kind: 'zone', locked: true, name: r && !r.locked ? r.label : '', a: r ? +r.a.toFixed(1) : 0, b: r ? +r.b.toFixed(1) : Math.min(5, route.total / 1000), min: r?.minPct ?? 55, max: r?.maxPct ?? 75, msg: '', avant: 1 } })
   const saveImposed = (v: Section) => { setPlan({ imposed: plan.imposed.some(x => x.id === v.id) ? plan.imposed.map(x => (x.id === v.id ? v : x)) : [...plan.imposed, v] }); setEdit(null) }
 
   const openSuggest = () => setSuggest({ intent: null, minutes: 0 })
