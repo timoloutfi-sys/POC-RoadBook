@@ -260,9 +260,9 @@ export function ZonesView({ d, w, h }: { d: WidgetData; w: number; h: number }) 
   const tot = m.zones.reduce((a, b) => a + b, 0), max = Math.max(1, ...m.zones)
   const name = (i: number) => (i === 4 && d.source === 'power' ? 'Z5+' : `Z${i + 1}`)
   const t = (s: number) => (s >= 3600 ? fdur(s) : `${Math.round(s / 60)}′`)
-  if (h === 1 && w <= 2) {
+  if ((h === 1 && w <= 2) || w === 1) {
     return (
-      <div className="zs-cols">
+      <div className={`zs-cols${w === 1 ? ' narrow' : ''}`}>
         {m.zones.map((s, i) => (
           <div key={i} className={`zs-col${i === m.zoneNow ? ' now' : ''}`}>
             <span className="zs-area"><span className="zs-v" style={{ bottom: `${Math.max(3, (s / max) * 100)}%` }}>{t(s)}</span><i style={{ height: `${Math.max(3, (s / max) * 100)}%`, background: zdefs[i].c }} /></span>

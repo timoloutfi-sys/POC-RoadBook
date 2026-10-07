@@ -172,6 +172,8 @@
 .zs-area .zs-v { position: absolute; left: 0; right: 0; text-align: center; }
 .zs-col b { font-size: max(var(--minfs), min(13cqh, 6cqw)); line-height: 1.1; }
 .zs-v { font-family: var(--num); font-size: max(var(--minfs), min(13cqh, 6cqw)); line-height: 1.1; color: var(--d-mut); }
+.zs-cols.narrow { gap: 2%; inset: 4px 3px 2px; }
+.zs-cols.narrow .zs-col b, .zs-cols.narrow .zs-v { font-size: max(10px, min(9cqh, 5.8cqw)); }
 .zs-col.now { outline: 2px solid var(--d-ink); outline-offset: -1px; }
 .zs-col.now .zs-v { color: var(--d-ink); font-weight: 700; }
 .zs-line { position: absolute; inset: 6px 10px; display: flex; flex-direction: column; justify-content: space-between; }
@@ -195,6 +197,8 @@
 .it.wide { flex-direction: row; align-items: center; gap: 4cqw; }
 .it .val { font-size: min(52cqh, 26cqw); }
 .it:not(.wide) { align-items: center; text-align: center; }
+.it:not(.wide) .val { font-size: min(46cqh, 36cqw); }
+.it:not(.wide) .val small { font-size: .5em; }
 .it-main { display: flex; flex-direction: column; gap: 3px; }
 .it-side { flex: 1; display: flex; flex-direction: column; gap: 3px; font-size: max(var(--minfs), min(14cqh, 6cqw)); font-weight: 600; min-width: 0; }
 .it-bar { display: flex; gap: 2px; height: max(8px, 9cqh); width: 100%; min-width: 60px; }
