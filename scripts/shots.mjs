@@ -18,6 +18,7 @@ for (const t of ['course', 'entrainement', 'libre']) {
 // Widgets par famille, chacun à toutes ses tailles autorisées (fenêtre large).
 const FAM = { effort: 'effort,hr,target', zones: 'zone,zones,intarget', reserves: 'drift,punch,endurance,reserve', nutrition: 'carbs,carbgap,fuel,sumfuel', relief: 'profile,climb', points: 'next', valeur: 'gap,cad,speed,slope,dist,time,clock,arrival,sunset', synthese: 'sumeffort,sumroute,lap' }
 for (const [f, k] of Object.entries(FAM)) shot(`widgets-${f}`, p => p.goto(`${root}gallery.html?v=widgets&k=${k}`), { full: true, viewport: { width: 1300, height: 600 } })
+shot('widgets-points-notes', p => p.goto(`${root}gallery.html?v=widgets&k=next&o=content:notes`), { full: true, viewport: { width: 1300, height: 600 } })
 shot('widgets-effort-cardio', p => p.goto(`${root}gallery.html?v=widgets&k=effort,hr,target&src=hr`), { full: true, viewport: { width: 1300, height: 600 } })
 for (const t of ['Accueil', 'Road books', 'Sorties', 'Écrans']) shot(`appli-${t.replace(' ', '-').toLowerCase()}`, async p => { await open(p, srv.url); await tab(p, t) })
 shot('appli-roadbooks-carte', async p => { await open(p, srv.url); await tab(p, 'Road books'); await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200); await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200); await p.getByRole('button', { name: 'Retour' }).tap(); await p.waitForTimeout(400) })

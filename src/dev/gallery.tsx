@@ -1,7 +1,7 @@
 /**
  * Galerie de développement (jamais publiée) : rend les écrans prêts à l'emploi et chaque widget à chaque taille
  * autorisée, avec les données d'aperçu. Sert aux captures automatiques (`npm run shots`).
- * Paramètres : ?v=screens|widgets &t=<modèle> &p=1 (portrait) &n=0|1 (jour/nuit) &src=power|hr
+ * Paramètres : ?v=screens|widgets &t=<modèle> &p=1 (portrait) &n=0|1 (jour/nuit) &src=power|hr &o=clé:valeur,… (options des widgets)
  */
 import { createRoot } from 'react-dom/client'
 import '@fontsource/barlow/latin-400.css'
@@ -40,7 +40,7 @@ function Widgets() {
           <div style={{ color: '#a3b0bc', font: '600 13px Barlow', margin: '0 0 6px' }}>{d.name}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-start' }}>
             {d.sizes.map(([w, h]) => {
-              const it: WidgetItem = { id: 'g', k: d.k, x: 0, y: 0, w, h }
+              const it: WidgetItem = { id: 'g', k: d.k, x: 0, y: 0, w, h, ...(q.get('o') ? { o: Object.fromEntries(q.get('o')!.split(',').map(kv => kv.split(':'))) } : {}) }
               return (
                 <div key={`${w}${h}`} style={{ width: w * 140, height: h * 130 }}>
                   <Device items={[it]} data={data} tone={night ? 1 : 0} grid={{ cols: w, rows: h }} className="full" />

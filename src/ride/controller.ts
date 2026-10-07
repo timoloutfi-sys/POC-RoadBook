@@ -201,12 +201,12 @@ class Ride {
     const banner = st.banner && performance.now() < st.banner.until ? st.banner : null
     if (this.src === 'sim') {
       const s = this.sim
-      return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: s, plan: this.progress(s.d / 1000, s.t),
+      return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, memo: c.notes, run: s, plan: this.progress(s.d / 1000, s.t),
         power: avg10(s.buf, s.p), hr: s.hr, cad: s.cad, speed: s.v * 3.6, vAvg: s.t > 60 ? (s.d / s.t) * 3.6 : 28, hrHist: s.hrHist, now, banner })
     }
     const v = this.hub.vals, g = this.gps, fresh = performance.now() - g.ts < 10000
     const elapsed = recorder.ride ? (Date.now() - recorder.ride.start) / 1000 : st.t
-    return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, run: st, plan: this.progress(st.d / 1000, elapsed),
+    return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, memo: c.notes, run: st, plan: this.progress(st.d / 1000, elapsed),
       power: this.eng.pBuf.length ? avg10(this.eng.pBuf, 0) : null, hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
       vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner, m: metricsView(this.eng.m, this.eng.cfg, source === 'power', st.t) })
   }

@@ -65,16 +65,18 @@ function NextW({ d, w, h, content }: { d: WidgetData; w: number; h: number; cont
   const isNote = (e: Upcoming) => e.kind === 'note'
   const L = d.next.filter(e => (content === 'notes' ? isNote(e) : content === 'points' ? !isNote(e) : true))
   const lab = content === 'notes' ? 'Prochaines notes' : 'Prochains points'
-  if (!L.length) return <><div className="lab">{lab}</div><div className="sub dim">--</div></>
+  const memo = content === 'notes' ? d.memo : null
+  if (!L.length && !memo) return <><div className="lab">{lab}</div><div className="sub dim">--</div></>
   const typed = (e: Upcoming) => e.kind in POINT_TYPES
   const title = (e: Upcoming) => (typed(e) ? POINT_TYPES[e.kind as keyof typeof POINT_TYPES].n : e.name || 'Section')
   const text = (e: Upcoming) => (typed(e) && e.name && e.name !== title(e) ? e.name : '')
-  const rows = h === 1 ? 2 : h * 2
+  const rows = (h === 1 ? 2 : h * 2) - (memo ? 1 : 0)
   const shown = L.slice(0, rows), spare = Math.max(0, rows - shown.length)
   return (
     <div className="nb">
       <div className="lab">{lab}</div>
       <div className="nb-lines">
+        {memo && <div className="nb-line nb-memo" style={{ '--l': h > 1 ? 4 : 2 } as CSSProperties}><Icon name="note" size={16} /><span className="nb-body"><b className="nb-title">Mémo</b><span className="nb-text">{memo}</span></span></div>}
         {shown.map(e => (
           <div key={e.km + title(e)} className="nb-line" style={{ '--l': Math.min(5, 1 + (w >= 3 ? 1 : 0) + (text(e) ? spare : 0) + (h > 1 ? 1 : 0)) } as CSSProperties}>
             <Icon name={evIcon(e.kind)} size={16} />

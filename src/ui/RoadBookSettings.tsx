@@ -17,6 +17,7 @@ export function RoadBookSettings() {
   const { current, patch } = useLibrary()
   const { alerts, periodic, screens, goalId, set } = useStore()
   const [edit, setEdit] = useState<{ a: AlertRule; isNew: boolean } | null>(null)
+  const [memo, setMemo] = useState(current?.notes ?? '')
   if (!current) return null
   const o = current.overrides
   const ea = effectiveAlerts(alerts, o), ep = effectivePeriodic(periodic, o)
@@ -63,6 +64,13 @@ export function RoadBookSettings() {
             <option value="">Écran de départ par défaut</option>
             {screens.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
+        </Field>
+      </div>
+
+      <div className="card-block">
+        <h2 className="h2" style={{ marginTop: 0 }}>Mémo</h2>
+        <Field label="Affiché dans « Prochaines notes »">
+          <textarea value={memo} rows={4} placeholder="Ex. ravito du km 120 : remplir les bidons, barre salée" onChange={e => setMemo(e.target.value)} onBlur={() => { if (memo !== (current.notes ?? '')) void patch({ notes: memo }) }} />
         </Field>
       </div>
 
