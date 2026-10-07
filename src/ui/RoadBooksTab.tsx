@@ -123,7 +123,6 @@ export function RoadBooksTab({ onRide }: { onRide: () => void }) {
         </>
       ) : (
         <>
-          {current && !libre && <button className="btn primary" style={{ width: '100%', marginBottom: 12 }} onClick={onRide}><Icon name="ride" size={22} />Rouler · {current.name}</button>}
           <ul className="list rbs">
             {list.map(m => (
               <li key={m.id} className="rb-card">
