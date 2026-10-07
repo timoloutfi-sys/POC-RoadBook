@@ -20,16 +20,16 @@ Phase actuelle : valider l'usage avec un **téléphone en paysage** comme second
 - **Le temps de roulage ne compte que quand on avance** : pas d'alerte aux feux.
 - Interface en français, tutoiement, nombres au format fr-FR.
 
+## Méthode (à lire en premier)
+
+- **La mémoire du projet est dans le dépôt** : `PRODUCT.md` (produit), `docs/REGLES-UX.md` (règles d'interface tirées des retours, **à respecter pour tout écran**), `BACKLOG.md` (ce qu'il reste à faire), `docs/SPEC-*.md` (specs validées), `docs/METHODE.md` (cycle de travail, sessions en parallèle).
+- On travaille **par lots** : l'utilisateur remplit `BACKLOG.md`, Claude traite le lot (un commit par point), lance `npm run check` et `npm run shots`, regarde les captures, puis fait un seul compte rendu. Chaque bug remonté devient un test dans `scripts/e2e.mjs` ; chaque retour général devient une règle dans `docs/REGLES-UX.md`.
+- **Pas de maquettes dessinées à la main** : on montre l'appli réelle (captures, galerie `gallery.html`).
+- Une nouvelle session par lot plutôt qu'une conversation qui s'allonge.
+
 ## État actuel
 
-Migration en cours du prototype (`legacy/roadbook-poc.html`, gardé comme référence jusqu'à parité) vers **Vite + React + TypeScript**, en PWA, ciblée **Chrome sur Android**. Plan validé, livré en 4 étapes :
-
-1. **Socle** (fait) : React, PWA, mise en ligne GitHub Pages, Impeccable, calculs portés en modules testés. Coquille à 4 onglets, seul Parcours fonctionne.
-2. **Navigation et vue de course** (fait) : barre de 4 onglets en bas (Parcours, Plan, Écran, Rouler), profil coureur au premier lancement, écrans de course modulaires et sauvegardés (plusieurs écrans nommés, éditeur par glisser-déposer, aperçu fidèle jour/nuit, watts/cardio), vue de course plein écran paysage avec thème jour/nuit selon le soleil, gestes sur les bandes de 24 px (appui long droite = Fait, glisser = écran suivant, appui long gauche 1,5 s = quitter), alertes et rappels dans l'onglet Écran, Rouler (capteurs, démarrer, répéter la sortie). L'onglet Plan est un emplacement.
-3. **Assistant Plan et algorithme** (fait) : une question (Sortie tranquille, Entraînement, Course, temps visé en option), plan immédiat, ajustement du temps par zone par − / +. L'algorithme place les efforts là où chaque watt fait gagner le plus de temps (`secondsPerWatt`), en puissance ou en cardio.
-4. **Passe `polish`** et réglages après essai sur le vélo.
-
-L'ancien générateur `computePlan` n'est volontairement pas porté : il est remplacé à l'étape 3. L'analyse par Claude est mise de côté.
+Vite + React + TypeScript, PWA pour Chrome sur Android, publiée sur GitHub Pages à chaque push. Fait : bibliothèque de road books et sorties (IndexedDB), Accueil avec objectif et course sans GPX, enregistrement et analyse des sorties, plan et suggestions, profil à pas variable et tracé fin, moteur de sortie pur (`tick`), calculs incrémentaux (Punch, endurance, dérive, glucides, zones, tour), catalogue de 29 widgets en 8 familles, éditeur d'écrans paysage et portrait (glisser animé, catalogue en fenêtre basse, appui long façon iPhone sur la liste). À venir : essais sur le vélo et réglages (`BACKLOG.md`), puis les « Prochaines étapes » en bas de ce fichier. Le prototype `legacy/roadbook-poc.html` reste comme référence.
 
 ## Orientation produit (à lire en premier)
 
@@ -59,9 +59,10 @@ Code dans `src/` :
 - `storage/` : configuration par défaut (écrans, thème, profil), migration de l'ancien format (`migrateConfig`), gestion des écrans (`screens.ts`), store zustand sauvegardé en localStorage, export et import.
 - `ride/` : contrôleur de sortie unique (capteurs + GPS ou coureur virtuel + moteur d'alertes), construction des données des widgets, vibration et bip.
 - `storage/catalog.ts` : catalogue des 29 widgets décrits par des données (tailles autorisées, besoins), regroupés en 8 familles à variantes pour l'éditeur (`FAMILIES`), tailles imposées au redimensionnement, migration des écrans enregistrés (`normalizeItems`). `ride/metrics.ts` : Punch, endurance, dérive, glucides, zones, dans la cible, tour, autonomie téléphone (incrémentaux). `ui/tiles.tsx` : contenu des widgets (`tileOf`) et mise en page selon la forme (large, haut, carré).
-- `ui/` : composants React. `Device` = grille 6 × 3 d'un écran, `widgets.tsx` = les widgets (tailles S, M, L), `RideView` = vue de course et gestes, `ScaledDevice` = aperçu fidèle à 844 px réduit, `device.css` = tons jour/nuit mélangés par `--n`.
+- `ui/` : composants React. `Device` = grille d'un écran (6 × 3 paysage, 3 × 6 portrait), glisser animé qui pousse les autres widgets (`placeWithPush`) ; `widgets.tsx` + `tiles.tsx` = rendu des widgets selon leur forme ; `ScreenEditor` = éditeur (barre flottante, catalogue en fenêtre basse par famille) ; `EcranTab` = liste des écrans (appui long : ✕, ☆, réordonner) ; `RideView` = vue de course dans l'orientation du téléphone et gestes ; `ScaledDevice` = aperçu fidèle réduit ; `device.css` = tons jour/nuit mélangés par `--n`.
+- `scripts/` : `e2e.mjs` (tests au doigt sur téléphone simulé), `shots.mjs` (captures), `lib.mjs` ; `gallery.html` + `src/dev/gallery.tsx` = galerie de développement (jamais publiée).
 
-Commandes : `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Chaque push lance tests et build, puis publie sur GitHub Pages (`.github/workflows/deploy.yml`).
+Commandes : `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run lint`, `npm run build`, **`npm run check`** (types + tests + lint + tests au doigt, avant chaque push), `npm run e2e`, `npm run shots`. Chaque push lance tests et build, puis publie sur GitHub Pages (`.github/workflows/deploy.yml`).
 
 ## Sans capteur de puissance
 
@@ -71,7 +72,7 @@ Le plan reste calculé en puissance (le modèle physique sert à placer les effo
 
 ## Design et UX : Impeccable
 
-Le skill Impeccable est installé dans `.claude/skills/impeccable` (agents dans `.claude/agents`). `PRODUCT.md` porte la vérité produit. Avant tout écran : `/impeccable shape`, choix de la direction avec l'utilisateur, puis construction ; à la fin de chaque étape : `critique`, `audit`, `polish`, et le détecteur `.claude/skills/impeccable/scripts/impeccable detect --json <cibles>`. Captures au format Android (390 × 844 en portrait, 844 × 390 en paysage).
+Le skill Impeccable est installé dans `.claude/skills/impeccable` (agents dans `.claude/agents`). `PRODUCT.md` porte la vérité produit, `docs/REGLES-UX.md` les règles d'interface. Pour un nouvel écran : direction validée avec l'utilisateur, puis construction ; à la fin : détecteur `.claude/skills/impeccable/scripts/impeccable detect --json <cibles>` et `npm run shots`. Captures au format Android (390 × 844 en portrait, 844 × 390 en paysage).
 
 ## Modèle physique et réalisme
 
@@ -102,7 +103,7 @@ C'est le cœur de l'appli : chaque estimation doit être réaliste. Tests de ré
 
 ## Prochaines étapes
 
-Après les 4 étapes ci-dessus :
+Après les essais sur le vélo :
 
 1. Puissance estimée en montée sans capteur (vitesse + pente).
 2. Rejeu d'un vrai fichier `.fit` dans le simulateur, et comparaison plan contre réel.
