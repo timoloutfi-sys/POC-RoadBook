@@ -26,6 +26,7 @@ Phase actuelle : valider l'usage avec un **téléphone en paysage** comme second
 - On travaille **par lots** : l'utilisateur remplit `BACKLOG.md`, Claude traite le lot (un commit par point), lance `npm run check` et `npm run shots`, regarde les captures, puis fait un seul compte rendu. Chaque bug remonté devient un test dans `scripts/e2e.mjs` ; chaque retour général devient une règle dans `docs/REGLES-UX.md`.
 - **Pas de maquettes dessinées à la main** : on montre l'appli réelle (captures, galerie `gallery.html`).
 - Une nouvelle session par lot plutôt qu'une conversation qui s'allonge.
+- Outils : skills `retours` (ranger des retours dans le backlog, à utiliser dès que l'utilisateur donne des retours), `lot` (traiter le backlog), `etat` (point d'étape) ; agents `developpeur` (un groupe de points, en parallèle) et `verificateur` (tests, captures, règles UX). L'utilisateur ne touche pas aux fichiers : il parle, Claude range et livre.
 
 ## État actuel
 

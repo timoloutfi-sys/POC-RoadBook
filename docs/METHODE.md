@@ -11,6 +11,13 @@ Objectif : avancer vite sans perdre ce qui a été décidé. **La mémoire du pr
 | `BACKLOG.md` | Ce qu'il reste à faire, par lots |
 | `docs/SPEC-*.md` | Specs validées par sujet |
 
+## Pour l'utilisateur (tout ce qu'il y a à savoir)
+- **Tu écris tes retours dans la conversation**, comme d'habitude : texte et captures, en vrac. Claude les range lui-même dans le backlog (skill `retours`) et te répond en 3 lignes.
+- **Pour faire avancer** : tape `/lot` (ou « avance »). Claude traite tout le backlog, vérifie, met en ligne et te répond avec une ligne par point.
+- **Pour savoir où on en est** : `/etat`.
+- **Entre deux lots**, ouvre une nouvelle session. Tu n'as rien à réexpliquer : tout est dans le dépôt.
+- Tu n'ouvres jamais les fichiers `.md`. Ils servent de mémoire à Claude, et tu peux les lire sur GitHub si tu veux.
+
 ## Le cycle
 1. **L'utilisateur** essaie l'appli sur son téléphone et note tout dans `BACKLOG.md` (ou dans un seul message, que Claude recopie dans le backlog).
 2. **Claude** traite le lot : un commit par point, puis `npm run check` (types, tests, lint, tests au doigt) et `npm run shots`, regarde les captures, corrige, pousse.
