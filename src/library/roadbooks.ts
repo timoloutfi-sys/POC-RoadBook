@@ -4,6 +4,7 @@ import type { Route } from '../route/route'
 import { defaultBase } from '../strategy/types'
 import type { Overrides, RoadBook, RoadBookMeta } from './types'
 
+type OKind = 'alerts' | 'periodic'
 export const emptyOverrides = (): Overrides => ({ alerts: {}, periodic: {} })
 
 export function newRoadBook(name: string, now = Date.now()): RoadBook {
@@ -27,13 +28,13 @@ export function metaOf(rb: RoadBook, route: Route | null, estH: number | null = 
 /** Valeur effective : le défaut global, avec les écarts de ce road book par-dessus. */
 const merge = <T extends { id: string }>(defaults: T[], o: Record<string, Partial<T>>): T[] =>
   defaults.map(d => (o[d.id] ? { ...d, ...o[d.id], id: d.id } : d))
-export const effectiveAlerts = (defaults: AlertRule[], o: Overrides) => merge(defaults, o.alerts)
-export const effectivePeriodic = (defaults: Periodic[], o: Overrides) => merge(defaults, o.periodic)
+export const effectiveAlerts = (defaults: AlertRule[], o: Overrides) => [...merge(defaults, o.alerts), ...(o.extraAlerts ?? [])]
+export const effectivePeriodic = (defaults: Periodic[], o: Overrides) => [...merge(defaults, o.periodic), ...(o.extraPeriodic ?? [])]
 
-export const isOverridden = (o: Overrides, kind: keyof Overrides, id: string) => id in o[kind]
+export const isOverridden = (o: Overrides, kind: OKind, id: string) => id in o[kind]
 
 /** Enregistre un écart ; si la valeur redevient celle du défaut, l'écart disparaît. */
-export function setOverride<K extends keyof Overrides>(
+export function setOverride<K extends OKind>(
   o: Overrides, kind: K, base: { id: string }, patch: Record<string, unknown>,
 ): Overrides {
   const cur = { ...(o[kind][base.id] as object | undefined), ...patch } as Record<string, unknown>
@@ -44,7 +45,7 @@ export function setOverride<K extends keyof Overrides>(
   return { ...o, [kind]: next }
 }
 
-export function resetOverride(o: Overrides, kind: keyof Overrides, id: string): Overrides {
+export function resetOverride(o: Overrides, kind: OKind, id: string): Overrides {
   const next = { ...o[kind] }
   delete next[id]
   return { ...o, [kind]: next }

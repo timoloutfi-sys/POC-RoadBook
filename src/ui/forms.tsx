@@ -89,7 +89,7 @@ export function AlertForm({ initial, isNew, onSave, onDelete, onClose }: FormPro
   const ref = hasBand ? a.ref : 'val'
   return (
     <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...a, ref, name: a.name.trim() || 'Alerte', msg: a.msg.trim() || 'Alerte' }) }}>
-      <Field label="Nom"><input value={a.name} maxLength={40} onChange={e => setA({ ...a, name: e.target.value })} /></Field>
+      <Field label="Nom"><input value={a.name} maxLength={40} placeholder="Ex. Trop fort en montée" onChange={e => setA({ ...a, name: e.target.value })} /></Field>
       <div className="cols2">
         <Field label="Quand">
           <select value={a.metric} onChange={e => setA({ ...a, metric: e.target.value as Metric })}>{Object.entries(METRICS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}</select>
@@ -111,7 +111,7 @@ export function AlertForm({ initial, isNew, onSave, onDelete, onClose }: FormPro
         <select value={a.prio} onChange={e => setA({ ...a, prio: e.target.value as Prio })}>{Object.entries(PRIO_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
       </Field>
       <Field label="Alors afficher" hint="{min} {max} : cible · {val} : mesure">
-        <input value={a.msg} maxLength={70} onChange={e => setA({ ...a, msg: e.target.value })} />
+        <input value={a.msg} maxLength={70} placeholder="Ex. Au-dessus de {max}" onChange={e => setA({ ...a, msg: e.target.value })} />
       </Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
     </form>

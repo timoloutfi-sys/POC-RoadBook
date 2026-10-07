@@ -11,7 +11,7 @@ import { useStore } from '../storage/store'
 import { effectiveFtp, effectiveLthr } from '../strategy/rider'
 import { targetAt, type EffortSource } from '../strategy/target'
 import { buildData, type WidgetData } from './data'
-import { gapOf, nextStopOf, plannedKjAt, type PlanProgress } from './progress'
+import { gapOf, nextStopOf, plannedKjAt, rebase, type PlanProgress } from './progress'
 import { eleAt, recorder } from './recorder'
 import { timeline, type TimelineRow } from '../strategy/timeline'
 import { signal } from './signal'
@@ -100,8 +100,12 @@ class Ride {
       this.planCache = { res, rows, etas: ok ? rows.filter(r => r.at).map(r => ({ km: r.km, t: (r.at!.valueOf() - t0.valueOf()) / 1000 })) : [] }
     }
     const ftp = effectiveFtp(c.rider)
+    // Au départ de la sortie, les heures prévues se recalent sur l'heure réelle ; l'écart au plan se mesure depuis ce départ.
+    const t0 = new Date(c.plan.start), real = this.src === 'live' && recorder.ride ? recorder.ride.start : null
+    const stop = nextStopOf(this.planCache.rows, km), etas = this.planCache.etas
     return {
-      nextStop: nextStopOf(this.planCache.rows, km), gapS: gapOf(this.planCache.etas, km, elapsedS),
+      startedAt: real, plannedEndS: etas.length ? etas[etas.length - 1].t : null,
+      nextStop: stop && !isNaN(t0.valueOf()) ? { ...stop, at: rebase(stop.at, t0, real) } : stop, gapS: gapOf(this.planCache.etas, km, elapsedS),
       kj: this.src === 'live' && this.source() === 'power' && this.eng.kjSeen ? this.eng.kj : null, kjPlan: plannedKjAt(res, ftp, km),
     }
   }

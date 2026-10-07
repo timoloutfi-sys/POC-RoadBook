@@ -159,7 +159,7 @@ export function previewData(source: EffortSource = 'power'): WidgetData {
     next: [{ kind: 'eau', name: 'Fontaine derrière l’église', km: 31.3 }, { kind: 'montee', name: 'Montée 1', km: 36.7 }, { kind: 'danger', name: 'Gravillons dans le virage à gauche', km: 41.2 }, { kind: 'note', name: 'Ravito de Nogent : ouvert 24 h/24, borne CB à gauche de la porte', km: 47.5 }],
     fuel: { s: 12 * 60, msg: 'Mange' }, hrHist: [140, 142, 141, 144, 146, 145, 147, 148, 147, 148], sev: {}, banner: null,
     now: new Date(2026, 5, 21, 14, 30), arrival: new Date(2026, 5, 21, 19, 5), noLthr: false,
-    plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790 },
+    plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790, startedAt: new Date(2026, 5, 21, 13, 0).valueOf(), plannedEndS: 6 * 3600 },
     power: 168, mass: 78, slope: 3.2, sun: { kind: 'set', at: new Date(2026, 5, 21, 21, 55) },
     climb: { state: 'in', lenM: 4200, avg: 6.1, gainM: 256, doneM: 1500, toGoKm: 2.7, steps: [{ lenM: 600, grade: 4 }, { lenM: 900, grade: 6 }, { lenM: 800, grade: 8 }, { lenM: 700, grade: 5 }, { lenM: 1200, grade: 7 }] },
     m: {

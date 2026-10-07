@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { uid } from '../core/format'
-import { PRIO_LABEL, type AlertRule } from '../alerts/types'
+import { PRIO_LABEL, type AlertRule, type Periodic } from '../alerts/types'
 import { useStore } from '../storage/store'
 import { AlertForm, alertSentence } from './forms'
 import { Num } from './fields'
 import { Sheet } from './Sheet'
 
-const blank = (): AlertRule => ({ id: uid(), on: true, name: 'Nouvelle alerte', metric: 'effort', op: '>', ref: 'max', val: 0, dur: 20, cool: 5, prio: 'action', msg: 'Au-dessus de {max}' })
+export const blankAlert = (): AlertRule => ({ id: uid(), on: true, name: '', metric: 'effort', op: '>', ref: 'max', val: 0, dur: 20, cool: 5, prio: 'action', msg: '' })
+export const blankReminder = (): Periodic => ({ id: uid(), on: true, every: 30, msg: '', prio: 'info' })
 
 /** Alertes de seuil et rappels périodiques, dans une section dépliable. */
 export function AlertsSection() {
@@ -32,20 +33,22 @@ export function AlertsSection() {
             </li>
           ))}
         </ul>
-        <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit({ a: blank(), isNew: true })}>Nouvelle alerte</button>
+        <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit({ a: blankAlert(), isNew: true })}>Nouvelle alerte</button>
 
         <h3 className="h2">Rappels</h3>
         {periodic.map(p => (
-          <div className="row" key={p.id} style={{ marginBottom: 8, flexWrap: 'nowrap' }}>
-            <input type="checkbox" style={{ width: 24, height: 24 }} checked={p.on} aria-label="Activer le rappel" onChange={e => set({ periodic: periodic.map(x => (x.id === p.id ? { ...x, on: e.target.checked } : x)) })} />
-            <span className="muted">toutes les</span>
-            <div style={{ width: 64 }} className="field"><Num value={p.every} min={1} onChange={v => set({ periodic: periodic.map(x => (x.id === p.id ? { ...x, every: Math.max(1, v ?? 1) } : x)) })} /></div>
-            <span className="muted">min</span>
-            <div className="field grow"><input value={p.msg} maxLength={60} aria-label="Message du rappel" onChange={e => set({ periodic: periodic.map(x => (x.id === p.id ? { ...x, msg: e.target.value } : x)) })} /></div>
-            <button className="iconbtn" aria-label="Supprimer le rappel" onClick={() => set({ periodic: periodic.filter(x => x.id !== p.id) })}>×</button>
+          <div key={p.id} style={{ marginBottom: 12 }}>
+            <div className="row" style={{ flexWrap: 'nowrap' }}>
+              <input type="checkbox" style={{ width: 24, height: 24 }} checked={p.on} aria-label="Activer le rappel" onChange={e => set({ periodic: periodic.map(x => (x.id === p.id ? { ...x, on: e.target.checked } : x)) })} />
+              <span className="muted">toutes les</span>
+              <div style={{ width: 72 }} className="field"><Num value={p.every} min={1} onChange={v => set({ periodic: periodic.map(x => (x.id === p.id ? { ...x, every: Math.max(1, v ?? 1) } : x)) })} /></div>
+              <span className="muted grow">min</span>
+              <button className="iconbtn" aria-label="Supprimer le rappel" onClick={() => set({ periodic: periodic.filter(x => x.id !== p.id) })}>×</button>
+            </div>
+            <div className="field" style={{ marginTop: 6 }}><input value={p.msg} maxLength={60} placeholder="Message du rappel" aria-label="Message du rappel" onChange={e => set({ periodic: periodic.map(x => (x.id === p.id ? { ...x, msg: e.target.value } : x)) })} /></div>
           </div>
         ))}
-        <button className="btn" onClick={() => set({ periodic: [...periodic, { id: uid(), on: true, every: 30, msg: 'Sel : une pastille', prio: 'info' }] })}>Nouveau rappel</button>
+        <button className="btn" onClick={() => set({ periodic: [...periodic, blankReminder()] })}>Nouveau rappel</button>
       </div>
       {edit && (
         <Sheet title={edit.isNew ? 'Nouvelle alerte' : "Modifier l'alerte"} onClose={() => setEdit(null)}>

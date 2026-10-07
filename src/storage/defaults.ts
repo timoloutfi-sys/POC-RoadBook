@@ -25,7 +25,7 @@ type Tpl = [WidgetKind, number, number, number, number][]
 export const TEMPLATES = {
   course: { n: 'Course', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['fuel', 1, 2, 1, 1], ['gap', 2, 2, 2, 1], ['arrival', 4, 2, 2, 1]] },
   entrainement: { n: 'Entraînement', items: [['effort', 0, 0, 2, 2], ['zone', 2, 0, 2, 1], ['intarget', 4, 0, 2, 1], ['zones', 2, 1, 2, 2], ['hr', 4, 1, 1, 1], ['cad', 5, 1, 1, 1], ['punch', 0, 2, 2, 1], ['lap', 4, 2, 2, 1]] },
-  libre: { n: 'Sortie libre', items: [['effort', 0, 0, 2, 2], ['hr', 2, 0, 1, 1], ['cad', 3, 0, 1, 1], ['speed', 4, 0, 2, 1], ['zone', 2, 1, 2, 1], ['intarget', 4, 1, 2, 1], ['dist', 0, 2, 2, 1], ['time', 2, 2, 2, 1], ['clock', 4, 2, 2, 1]] },
+  libre: { n: 'Sortie libre', items: [['effort', 0, 0, 2, 2], ['hr', 2, 0, 1, 1], ['cad', 3, 0, 1, 1], ['speed', 4, 0, 2, 1], ['zone', 2, 1, 2, 1], ['lap', 4, 1, 2, 1], ['dist', 0, 2, 2, 1], ['time', 2, 2, 2, 1], ['clock', 4, 2, 2, 1]] },
 } satisfies Record<string, { n: string; items: Tpl }>
 export const mkLayout = (k: keyof typeof TEMPLATES): WidgetItem[] =>
   (TEMPLATES[k].items as Tpl).map(([kind, x, y, w, h]) => ({ id: uid(), k: kind, x, y, w, h }))

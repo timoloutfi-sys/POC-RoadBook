@@ -10,6 +10,9 @@ export interface PlanProgress {
   /** Travail réalisé et prévu au km actuel, en kJ ; null sans capteur de puissance. */
   kj: number | null
   kjPlan: number | null
+  /** Heure de départ réelle (ms) et durée prévue jusqu'à l'arrivée (s) : « prévu » = départ réel + durée prévue. */
+  startedAt: number | null
+  plannedEndS: number | null
 }
 
 const cache = new WeakMap<PlanResult, Float64Array>()
@@ -32,6 +35,10 @@ export function nextStopOf(rows: TimelineRow[], km: number): PlanProgress['nextS
   const r = rows.find(x => x.kind === 'point' && x.km > km + 0.05 && (x.stop > 0 || x.icon === 'eau' || x.icon === 'ravito'))
   return r ? { name: r.label || (r.icon === 'eau' ? "Point d'eau" : 'Ravito'), kmAway: r.km - km, at: r.at, stopMin: r.stop } : null
 }
+
+/** Décale une heure du plan (calculée pour le départ prévu) sur le départ réel de la sortie. */
+export const rebase = (at: Date | null, plannedStart: Date, realStartMs: number | null) =>
+  at && realStartMs != null ? new Date(at.valueOf() + (realStartMs - plannedStart.valueOf())) : at
 
 export const gapOf = (etas: { km: number; t: number }[], km: number, elapsedS: number) => {
   const p = plannedAt(etas, km)

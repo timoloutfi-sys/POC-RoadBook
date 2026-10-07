@@ -103,7 +103,8 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     case 'arrival': {
       if (!d.arrival) return { lab: 'Arrivée', empty: '--' }
       const left = Math.max(0, d.arrival.valueOf() - d.now.valueOf()) / 1000
-      return { lab: 'Arrivée', val: hhmm(d.arrival), sub: [`dans ${fdur(left)}`] }
+      const p = d.plan, planned = p?.startedAt != null && p.plannedEndS != null ? new Date(p.startedAt + p.plannedEndS * 1000) : null
+      return { lab: 'Arrivée', val: hhmm(d.arrival), sub: [`dans ${fdur(left)}`, ...(planned ? [`prévu ${hhmm(planned)}`] : [])] }
     }
     case 'sunset': {
       if (!d.sun) return { lab: 'Soleil', empty: '--' }

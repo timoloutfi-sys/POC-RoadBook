@@ -10,6 +10,9 @@ export interface Estimate { km: number; dplus: number; terrain: 'plat' | 'vallon
 export interface Overrides {
   alerts: Record<string, Partial<AlertRule>>
   periodic: Record<string, Partial<Periodic>>
+  /** Alertes et rappels propres à ce road book (en plus des défauts). */
+  extraAlerts?: AlertRule[]
+  extraPeriodic?: Periodic[]
 }
 
 /** Un parcours préparé : annotations, cibles et réglages. Le tracé est stocké à part. */
