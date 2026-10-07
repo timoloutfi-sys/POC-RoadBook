@@ -64,10 +64,17 @@ export function PlanTab() {
         <div><b>{nf1(res.vavg)}</b><span>km/h en roulant</span></div>
       </div>
       {res.warnings.map(w => <p key={w} className="notice">{w}</p>)}
+      <button className="btn primary big" style={{ marginBottom: 12 }} onClick={openSuggest}>Suggérer un plan</button>
+      {undo && (
+        <div className="row undo" role="status">
+          <span className="grow">{undo.note}</span>
+          <button className="btn" onClick={() => { set({ plan: undo.prev }); setUndo(null); toast('Plan précédent rétabli.') }}>Annuler</button>
+        </div>
+      )}
 
       <ZoneProfile route={route} ratio={res.ratio} unit={unit} />
 
-      <h2 className="h2">Mes cibles</h2>
+      <h2 className="h2">Cible de base</h2>
       <div className="stack">
         {([['plat', 'Plat'], ['montee', 'Montée'], ['descente', 'Descente']] as const).map(([k, label]) => (
           <details className="fold" key={k} style={{ marginTop: 0 }}>
@@ -77,7 +84,7 @@ export function PlanTab() {
         ))}
       </div>
 
-      <h2 className="h2">Par tronçon · {imposed.length}</h2>
+      <h2 className="h2">Exceptions · {imposed.length}</h2>
       <ul className="list">
         {imposed.map(s => (
           <li key={s.id}><button className="item" onClick={() => setEdit({ v: s, isNew: false })}>
@@ -86,18 +93,9 @@ export function PlanTab() {
             <span className="t">{s.name}<small>Z{zoneOfPct(s.min, s.max) + 1} · {line(s)}</small></span>
           </button></li>
         ))}
-        {!imposed.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune.</li>}
+        {!imposed.length && <li className="muted" style={{ padding: '12px 0' }}>Aucune : ta cible de base s’applique partout.</li>}
       </ul>
-      <div className="row" style={{ marginTop: 8 }}>
-        <button className="btn" onClick={() => setEdit(newImposed())}><Icon name="plus" size={20} />Ajouter une cible</button>
-        <button className="btn primary" onClick={openSuggest}>Suggérer un plan</button>
-      </div>
-      {undo && (
-        <div className="row undo" role="status">
-          <span className="grow">{undo.note}</span>
-          <button className="btn" onClick={() => { set({ plan: undo.prev }); setUndo(null); toast('Plan précédent rétabli.') }}>Annuler</button>
-        </div>
-      )}
+      <button className="btn" style={{ marginTop: 8 }} onClick={() => setEdit(newImposed())}><Icon name="plus" size={20} />Ajouter une exception</button>
 
       <details className="fold">
         <summary>Répartition par zone</summary>
@@ -164,7 +162,7 @@ export function PlanTab() {
       </details>
 
       {edit && (
-        <Sheet title={edit.isNew ? 'Ajouter une cible' : 'Cible par tronçon'} onClose={() => setEdit(null)}>
+        <Sheet title={edit.isNew ? 'Nouvelle exception' : 'Exception'} onClose={() => setEdit(null)}>
           <ImposedForm initial={edit.v} isNew={edit.isNew} maxKm={route.total / 1000} route={route} unit={unit} ftp={ftp} lthr={lthr} onClose={() => setEdit(null)}
             onSave={saveImposed} onDelete={() => { setPlan({ imposed: plan.imposed.filter(x => x.id !== edit.v.id) }); setEdit(null) }} />
         </Sheet>
