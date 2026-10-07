@@ -4,6 +4,7 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Sortie › tous les boutons « Rouler » passent par « Avant de partir » (road book, écran, capteurs) puis « Démarrer la sortie » ; bouton collant ; « 1 point » au singulier.
 - [x] Plan › zones (« Z2 · Endurance ») au lieu des watts/bpm, sauf cible personnalisée.
 - [x] Road books › « Rouler » : plus de bouton collant partout ; en tête de liste, sur chaque carte et dans l'onglet Sorties du road book.
 - [x] Sortie › barre Capteurs / Quitter : cachée par défaut, 2,5 s au toucher, un second toucher la cache.

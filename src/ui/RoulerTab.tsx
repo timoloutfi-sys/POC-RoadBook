@@ -34,7 +34,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
           {list.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           <option value="libre">Sortie libre</option>
         </select>
-        <span className="hint">{libre || !route ? 'Sans parcours ni plan : tes alertes et rappels s’appliquent.' : `${nf1(route.total / 1000)} km · ${points.length} points`}</span>
+        <span className="hint">{libre || !route ? 'Sans parcours ni plan : tes alertes et rappels s’appliquent.' : `${nf1(route.total / 1000)} km · ${points.length} point${points.length > 1 ? 's' : ''}`}</span>
       </Field>
       {screens.length > 1 && (
         <Field label="Écran">
@@ -54,11 +54,11 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
       <SensorsBlock />
 
       <h2 className="h2">Sortie</h2>
-      <div className="stack">
+      <div className="stack start-bar">
         <button className="btn primary big" onClick={() => onStart('live')}>{resume ? 'Reprendre la sortie' : 'Démarrer la sortie'}</button>
         {resume && <button className="btn" onClick={() => { ride.newRide(); bump(n => n + 1); toast('Nouvelle sortie prête.') }}>Nouvelle sortie</button>}
       </div>
-      <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>Bord droit : appui long = Fait, glisser = écran suivant. Bord gauche : maintenir = quitter.</p>
+      <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>Pendant la sortie : toucher l’écran = capteurs et quitter ; bord droit : appui long = Fait, double appui = tour, glisser = écran suivant.</p>
 
       <details className="fold">
         <summary>Répéter la sortie (simulation)</summary>

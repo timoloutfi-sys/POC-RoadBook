@@ -11,7 +11,6 @@ import { bluetoothAvailable, bluetoothOn } from '../sensors/ble'
 import { useStore } from '../storage/store'
 import { FixGoalSheet, NewCourse } from './GoalFlow'
 import { Icon } from './icons'
-import { RoulerTab } from './RoulerTab'
 import { KINDS, ICON, LABEL, statusOf } from './SensorsBlock'
 import { Sheet } from './Sheet'
 import { toast } from './toast'
@@ -29,13 +28,12 @@ function Spark({ v }: { v: number[] }) {
 }
 
 /** Accueil : la prochaine chose à faire, le bouton Rouler, l'état des capteurs, la dernière sortie. */
-export function HomeTab({ go, onStart }: { go: (tab: string) => void; onStart: (src: RideSource) => void }) {
+export function HomeTab({ go, onStart, onRide, onPrep }: { go: (tab: string) => void; onStart: (src: RideSource) => void; onRide: (m: RoadBookMeta | null) => void; onPrep: () => void }) {
   const { list, current, unfinished, open, setSub, setRideToOpen, create } = useLibrary()
   const { goalId, libre, set } = useStore()
   const now = new Date()
   const [last, setLast] = useState<Ride | null>(null)
   const [choose, setChoose] = useState(false)
-  const [prep, setPrep] = useState(false)
   const [fix, setFix] = useState(false)
   const [course, setCourse] = useState(false)
   const [, bump] = useState(0)
@@ -52,10 +50,8 @@ export function HomeTab({ go, onStart }: { go: (tab: string) => void; onStart: (
   const resume = ride.hasRide && ride.src === 'live'
 
   const openRb = async (id: string, sub: 'parcours' | 'reglages' = 'parcours') => { await open(id); setSub(sub); go('roadbooks') }
-  const rollWith = async (m: RoadBookMeta | null) => {
-    if (m && m.hasRoute) { await useLibrary.getState().open(m.id, false); set({ libre: false }) } else set({ libre: true })
-    onStart('live')
-  }
+  // Une sortie en cours se reprend tout de suite ; sinon on passe par « Avant de partir ».
+  const rollWith = (m: RoadBookMeta | null) => { if (resume) onStart('live'); else onRide(m) }
   const importGpx = async (f: File | undefined) => {
     if (!f) return
     try { const g = parseGPX(await f.text()); await create(g.name || f.name.replace(/\.gpx$/i, ''), { route: buildRoute(g.name, g.pts) }); go('roadbooks') } catch (e) { toast(e instanceof Error ? e.message : 'Import impossible.') }
@@ -69,13 +65,12 @@ export function HomeTab({ go, onStart }: { go: (tab: string) => void; onStart: (
       <div className="step done"><i>1</i><div className="grow"><b>Ton profil</b><div className="muted">Poids, FTP, cardio seuil</div></div></div>
       <div className="step"><i>2</i><div className="grow"><b>Ton parcours</b><div className="muted" style={{ marginBottom: 8 }}>Le GPX de Komoot, Strava ou Ride with GPS, ou une course dont le GPX n’est pas publié.</div>
         <div className="stack"><button className="btn" onClick={() => file.current?.click()}><Icon name="upload" size={20} />Importer un GPX</button><button className="btn" onClick={() => setCourse(true)}><Icon name="flag" size={20} />Nouvelle course sans GPX</button></div></div></div>
-      <div className="step"><i>3</i><div className="grow"><b>Tes capteurs</b><div className="muted" style={{ marginBottom: 8 }}>Cardio, puissance, cadence en Bluetooth.</div><button className="btn" onClick={() => setPrep(true)}>Connecter</button></div></div>
+      <div className="step"><i>3</i><div className="grow"><b>Tes capteurs</b><div className="muted" style={{ marginBottom: 8 }}>Cardio, puissance, cadence en Bluetooth.</div><button className="btn" onClick={() => onPrep()}>Connecter</button></div></div>
       <div className="stack" style={{ marginTop: 16 }}>
         <button className="btn" onClick={() => void create('Boucle démo', { demo: true }).then(() => go('roadbooks'))}>Essayer la boucle démo</button>
-        <button className="btn ghost" onClick={() => { set({ libre: true }); onStart('live') }}>ou sortie libre tout de suite</button>
+        <button className="btn ghost" onClick={() => onRide(null)}>ou sortie libre tout de suite</button>
       </div>
       <input ref={file} type="file" accept=".gpx,application/gpx+xml" hidden onChange={e => { void importGpx(e.target.files?.[0]); e.target.value = '' }} />
-      {prep && <Sheet title="Avant de partir" onClose={() => setPrep(false)}><RoulerTab onStart={s => { setPrep(false); onStart(s) }} /></Sheet>}
       {course && <NewCourse onClose={() => setCourse(false)} onDone={() => { setCourse(false) }} />}
     </>
   )
@@ -149,7 +144,7 @@ export function HomeTab({ go, onStart }: { go: (tab: string) => void; onStart: (
       )}
       {target && !target.hasRoute && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>Sans GPX : sortie libre avec les cibles de ce road book.</p>}
 
-      <button className="ready" onClick={() => setPrep(true)} aria-label="Avant de partir">
+      <button className="ready" onClick={() => onPrep()} aria-label="Avant de partir">
         <span className="muted">Prêt à partir</span>
         <span className="sicons">{KINDS.map(k => <span key={k} className={`st-${statusOf(k)}`} title={LABEL[k]}><Icon name={ICON[k]} size={22} /></span>)}<span className="st-on"><Icon name="gps" size={22} /></span></span>
         <span className="muted warn">{missing}</span>
@@ -191,7 +186,6 @@ export function HomeTab({ go, onStart }: { go: (tab: string) => void; onStart: (
           </ul>
         </Sheet>
       )}
-      {prep && <Sheet title="Avant de partir" onClose={() => setPrep(false)}><RoulerTab onStart={s => { setPrep(false); onStart(s) }} /></Sheet>}
       {fix && <FixGoalSheet onClose={() => setFix(false)} onNew={() => { setFix(false); setCourse(true) }} onPick={id => { setFix(false); void openRb(id, 'reglages') }} />}
       {course && <NewCourse onClose={() => setCourse(false)} onDone={() => setCourse(false)} />}
     </>
