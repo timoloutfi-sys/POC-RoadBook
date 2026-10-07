@@ -70,10 +70,10 @@ test('éditeur : toucher ailleurs désélectionne', async (p, url) => {
 test('éditeur : glisser un widget sur un autre de même taille les échange, ↶ annule d’un coup', async (p, url) => {
   await editor(p, url)
   const before = await widgets(p)
-  const a = await center(p.locator('.edit-dev .wg[aria-label="Cadence"]')), b = await center(p.locator('.edit-dev .wg[aria-label="FC"]'))
+  const a = await center(p.locator('.edit-dev .wg[aria-label="Rappel"]')), b = await center(p.locator('.edit-dev .wg[aria-label="FC"]'))
   await touchDrag(p, a.x, a.y, b.x, b.y)
   const after = await widgets(p)
-  ok(after.includes('Cadence@0,2') && after.includes('FC@1,2'), `pas d'échange : ${after.join(' ')}`)
+  ok(after.includes('Rappel@0,2') && after.includes('FC@1,2'), `pas d'échange : ${after.join(' ')}`)
   await p.getByRole('button', { name: 'Annuler le dernier changement' }).tap(); await p.waitForTimeout(300)
   ok(JSON.stringify(await widgets(p)) === JSON.stringify(before), 'annuler ne rétablit pas tout')
 })

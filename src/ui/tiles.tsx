@@ -1,5 +1,6 @@
 import type React from 'react'
 import { fdur, hhmm, hms, nf0, nf1 } from '../core/format'
+import { carbGapState, driftState, driftWord, gapState, inTargetState, reserveState, reserveWord, type State } from './state'
 import type { WidgetData } from '../ride/data'
 import type { WidgetKind } from '../storage/catalog'
 import { HR_ZONES, POWER_ZONES } from '../strategy/zones'
@@ -9,7 +10,7 @@ export interface Tile {
   lab: string
   val?: string
   unit?: string
-  st?: 'ok' | 'hi' | 'lo' | 'warn'
+  st?: State
   /** Détails, du plus important au moins important. */
   sub?: string[]
   /** Jauge de 0 à 1, avec une zone cible facultative. */
@@ -21,7 +22,7 @@ export interface Tile {
   /** Deux valeurs côte à côte (réserve). */
   pair?: { l: string; v: string; g: number }[]
   /** Grille de mini-valeurs (synthèses), du plus utile au moins utile. */
-  cells?: { l: string; v: string; u?: string; st?: 'ok' | 'hi' | 'lo' | 'warn' }[]
+  cells?: { l: string; v: string; u?: string; st?: State }[]
   /** Texte quand il n'y a rien à montrer. */
   empty?: string
 }
@@ -31,9 +32,6 @@ export const gradeColor = gc
 const pct = (v: number) => Math.min(1, Math.max(0, v))
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`
 
-/** Libellé court d'un état de réserve : jamais la couleur seule. */
-const reserveState = (v: number) => (v >= 70 ? 'Bonne' : v >= 40 ? 'Moyenne' : 'Faible')
-const reserveSt = (v: number): Tile['st'] => (v >= 70 ? 'ok' : v >= 40 ? 'warn' : 'hi')
 
 export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | number | boolean> = {}): Tile {
   const m = d.m
@@ -58,11 +56,11 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     case 'punch': {
       if (!m) return { lab: 'Punch', empty: '--' }
       if (m.punch == null) return { lab: 'Punch', empty: 'Puissance requise' }
-      return { lab: 'Punch', val: String(m.punch), unit: '%', st: reserveSt(m.punch), sub: [reserveState(m.punch)], gauge: { v: m.punch / 100 } }
+      return { lab: 'Punch', val: String(m.punch), unit: '%', st: reserveState(m.punch), sub: [reserveWord(m.punch)], gauge: { v: m.punch / 100 } }
     }
     case 'endurance': {
       if (!m || m.endurance == null) return { lab: 'Endurance', empty: '--' }
-      return { lab: 'Endurance', val: String(m.endurance), unit: '%', st: reserveSt(m.endurance), sub: [reserveState(m.endurance)], gauge: { v: m.endurance / 100 } }
+      return { lab: 'Endurance', val: String(m.endurance), unit: '%', st: reserveState(m.endurance), sub: [reserveWord(m.endurance)], gauge: { v: m.endurance / 100 } }
     }
     case 'reserve': {
       if (!m) return { lab: 'Réserve', empty: '--' }
@@ -71,8 +69,8 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     }
     case 'drift': {
       if (!m || m.drift == null) return { lab: 'Dérive cardiaque', empty: d.t < 1800 ? 'Mesure en cours' : '--' }
-      const v = m.drift, st: Tile['st'] = v >= 5 ? 'hi' : v >= 3 ? undefined : 'ok'
-      return { lab: 'Dérive cardiaque', val: `${v > 0 ? '+' : ''}${nf1(v)}`, unit: '%', st, sub: [v >= 5 ? 'Élevée' : v >= 3 ? 'Moyenne' : 'Faible', 'limite 5 %'], gauge: { v: pct(v / 10), zone: [0, 0.5] } }
+      const v = m.drift, st = driftState(v)
+      return { lab: 'Dérive cardiaque', val: `${v > 0 ? '+' : ''}${nf1(v)}`, unit: '%', st, sub: [driftWord(v), 'limite 5 %'], gauge: { v: pct(v / 10), zone: [0, 0.5] } }
     }
     case 'carbs': {
       if (!m || m.carbPerH == null) return { lab: 'Glucides / h', empty: d.t < 300 ? 'Mesure en cours' : '--' }
@@ -80,7 +78,7 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     }
     case 'carbgap': {
       if (!m) return { lab: 'Écart glucides', empty: '--' }
-      const g = m.carbGap, st: Tile['st'] = g > -30 ? 'ok' : g > -60 ? undefined : 'hi'
+      const g = m.carbGap, st = carbGapState(g)
       return { lab: 'Écart glucides', val: `${g > 0 ? '+' : g < 0 ? '−' : ''}${Math.abs(g)}`, unit: 'g', st, sub: [g >= 0 ? 'En avance' : 'En retard'] }
     }
     case 'lap': {
@@ -90,7 +88,7 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     }
     case 'slope': {
       if (d.slope == null) return { lab: 'Pente', empty: '--' }
-      return { lab: 'Pente', val: nf1(d.slope), unit: '%', st: d.slope >= 8 ? 'hi' : undefined }
+      return { lab: 'Pente', val: nf1(d.slope), unit: '%' }
     }
     case 'climb': {
       const c = d.climb
@@ -118,9 +116,9 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
       if (d.hr != null) c.push({ l: 'FC', v: nf0(d.hr), u: 'bpm' })
       if (m && m.zoneNow >= 0) c.push({ l: 'Zone', v: `Z${m.zoneNow + 1}` })
       if (m?.inTarget != null) c.push({ l: 'Dans la cible', v: String(m.inTarget), u: '%' })
-      if (m?.punch != null) c.push({ l: 'Punch', v: String(m.punch), u: '%', st: reserveSt(m.punch) })
-      if (m?.endurance != null) c.push({ l: 'Endurance', v: String(m.endurance), u: '%', st: reserveSt(m.endurance) })
-      if (m?.drift != null) c.push({ l: 'Dérive', v: `${m.drift > 0 ? '+' : ''}${nf1(m.drift)}`, u: '%', st: m.drift >= 5 ? 'hi' : undefined })
+      if (m?.punch != null) c.push({ l: 'Punch', v: String(m.punch), u: '%', st: reserveState(m.punch) })
+      if (m?.endurance != null) c.push({ l: 'Endurance', v: String(m.endurance), u: '%', st: reserveState(m.endurance) })
+      if (m?.drift != null) c.push({ l: 'Dérive', v: `${m.drift > 0 ? '+' : ''}${nf1(m.drift)}`, u: '%', st: driftState(m.drift) })
       if (d.cad != null) c.push({ l: 'Cadence', v: nf0(d.cad), u: 'rpm' })
       return c.length ? { lab: 'Effort', cells: c } : { lab: 'Effort', empty: '--' }
     }
@@ -129,7 +127,7 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
       if (d.total) c.push({ l: 'Reste', v: nf1(Math.max(0, d.total - d.km)), u: 'km' })
       if (d.arrival) c.push({ l: 'Arrivée', v: hhmm(d.arrival) })
       const g = d.plan?.gapS
-      if (g != null) { const mn = Math.round(g / 60); c.push({ l: 'Écart au plan', v: `${mn > 0 ? '+' : mn < 0 ? '−' : ''}${Math.abs(mn)}`, u: 'min', st: Math.abs(mn) < 5 ? 'ok' : mn > 0 ? 'hi' : 'lo' }) }
+      if (g != null) { const mn = Math.round(g / 60); c.push({ l: 'Écart au plan', v: `${mn > 0 ? '+' : mn < 0 ? '−' : ''}${Math.abs(mn)}`, u: 'min', st: gapState(mn) }) }
       if (d.slope != null) c.push({ l: 'Pente', v: nf1(d.slope), u: '%' })
       if (d.climb) c.push({ l: d.climb.state === 'in' ? 'Montée, reste' : 'Prochaine montée', v: nf1(d.climb.toGoKm), u: 'km' })
       if (d.next[0]) c.push({ l: 'Prochain point', v: nf1(d.next[0].km - d.km), u: 'km' })
@@ -139,7 +137,7 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     case 'sumfuel': {
       const c: NonNullable<Tile['cells']> = []
       if (m?.carbPerH != null) c.push({ l: 'Glucides / h', v: String(m.carbPerH), u: 'g' })
-      if (m) c.push({ l: 'Écart glucides', v: `${m.carbGap > 0 ? '+' : m.carbGap < 0 ? '−' : ''}${Math.abs(m.carbGap)}`, u: 'g', st: m.carbGap > -30 ? 'ok' : m.carbGap > -60 ? undefined : 'hi' })
+      if (m) c.push({ l: 'Écart glucides', v: `${m.carbGap > 0 ? '+' : m.carbGap < 0 ? '−' : ''}${Math.abs(m.carbGap)}`, u: 'g', st: carbGapState(m.carbGap) })
       if (d.fuel) c.push({ l: 'Prochain rappel', v: d.fuel.s < 60 ? `${Math.round(d.fuel.s)} s` : `${Math.ceil(d.fuel.s / 60)} min` })
       if (m) { c.push({ l: 'Brûlés', v: String(m.carbBurned), u: 'g' }); c.push({ l: 'Mangés', v: String(m.carbEaten), u: 'g' }) }
       return c.length ? { lab: 'Nutrition', cells: c } : { lab: 'Nutrition', empty: '--' }
@@ -239,7 +237,6 @@ export function TileView({ t, w, h }: { t: Tile; w: number; h: number }) {
 
 /* ---- Widgets dessinés sur mesure : ils remplissent toute leur case. ---- */
 
-const resState = (v: number) => (v >= 70 ? 'ok' : v >= 40 ? 'warn' : 'hi')
 
 /** Zone en cours : grand numéro, fond teinté de la couleur de la zone. */
 export function ZoneNowView({ d, w }: { d: WidgetData; w: number }) {
@@ -305,7 +302,7 @@ export function InTargetView({ d, w }: { d: WidgetData; w: number }) {
   const bar = <div className="it-bar"><i className="lo" style={{ flex: Math.max(0.01, m.under) }} /><i className="ok" style={{ flex: Math.max(0.01, m.inT) }} /><i className="hi" style={{ flex: Math.max(0.01, m.over) }} /></div>
   return (
     <div className={`it${w > 1 ? ' wide' : ''}`}>
-      <div className="it-main"><div className="lab">Dans la cible</div><div className="val st-ok">{m.inTarget}<small>%</small></div>{w === 1 && bar}</div>
+      <div className="it-main"><div className="lab">Dans la cible</div><div className={`val st-${inTargetState(m.inTarget)}`}>{m.inTarget}<small>%</small></div>{w === 1 && bar}</div>
       {w > 1 && <div className="it-side">{bar}<span className="st-lo">▾ {pu} % dessous</span><span className="st-warn">▴ {po} % dessus</span></div>}
     </div>
   )
@@ -320,7 +317,7 @@ export function ReserveView({ d, w, h }: { d: WidgetData; w: number; h: number }
     return (
       <div className="rv-lines">
         {items.map(x => (
-          <div key={x.l} className={`rv-line st-${resState(x.v)}`}><span className="lab">{x.l}</span><b className="val">{x.v}<small>%</small></b><span className="rv-track"><i style={{ width: `${x.v}%` }} /></span></div>
+          <div key={x.l} className={`rv-line st-${reserveState(x.v)}`}><span className="lab">{x.l}</span><b className="val">{x.v}<small>%</small></b><span className="rv-track"><i style={{ width: `${x.v}%` }} /></span></div>
         ))}
       </div>
     )
@@ -328,8 +325,8 @@ export function ReserveView({ d, w, h }: { d: WidgetData; w: number; h: number }
   return (
     <div className={`rv-blocks${w === 1 ? ' narrow' : ''}`}>
       {items.map(x => (
-        <div key={x.l} className={`rv-block st-${resState(x.v)}`}>
-          <div className="rv-head"><span className="lab">{x.l}</span>{w > 1 && <span className="rv-st">{reserveState(x.v)}</span>}</div>
+        <div key={x.l} className={`rv-block st-${reserveState(x.v)}`}>
+          <div className="rv-head"><span className="lab">{x.l}</span>{w > 1 && <span className="rv-st">{reserveWord(x.v)}</span>}</div>
           <b className="val">{x.v}<small>%</small></b>
           <span className="rv-track"><i style={{ width: `${x.v}%` }} /></span>
         </div>

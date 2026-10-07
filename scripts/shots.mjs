@@ -10,7 +10,7 @@ const root = srv.url.replace(/POC-RoadBook\/$/, 'POC-RoadBook/')
 const jobs = []
 const shot = (name, fn, opts) => jobs.push({ name, fn, opts })
 
-for (const t of ['ultra', 'clm', 'tri', 'sortie', 'reserves', 'montagne']) {
+for (const t of ['course', 'entrainement', 'libre']) {
   shot(`ecran-${t}-paysage-nuit`, p => p.goto(`${root}gallery.html?t=${t}&n=1`), { landscape: true })
   shot(`ecran-${t}-paysage-jour`, p => p.goto(`${root}gallery.html?t=${t}&n=0`), { landscape: true })
   shot(`ecran-${t}-portrait`, p => p.goto(`${root}gallery.html?t=${t}&p=1`))

@@ -6,6 +6,7 @@ import { POINT_TYPES, type Section } from '../strategy/types'
 import { HR_ZONES, POWER_ZONES, hrZoneOfPowerZone, powerZoneOf } from '../strategy/zones'
 import type { WidgetItem } from '../storage/defaults'
 import { Icon, type IconName } from './icons'
+import { gapState, gapWord } from './state'
 import { InTargetView, ReserveView, TileView, ZoneNowView, ZonesView, tileOf } from './tiles'
 
 export type Size = 'S' | 'M' | 'L'
@@ -55,30 +56,32 @@ const eta = (d: WidgetData, km: number) => {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`
 }
 
-/** Prochains points : des lignes empilées comme sur un cahier ; plus large = plus de détails, plus haut = plus de lignes. */
+/**
+ * Prochains points : une entrée par point, empilées comme un cahier.
+ * Le titre est le type (« Point d'eau »), dessous le texte écrit par l'utilisateur (plus petit, sur plusieurs lignes
+ * si la place le permet) ; à droite la distance et le temps restants.
+ */
 function NextW({ d, w, h, content }: { d: WidgetData; w: number; h: number; content: string }) {
   const isNote = (e: Upcoming) => e.kind === 'note'
   const L = d.next.filter(e => (content === 'notes' ? isNote(e) : content === 'points' ? !isNote(e) : true))
   const lab = content === 'notes' ? 'Prochaines notes' : 'Prochains points'
   if (!L.length) return <><div className="lab">{lab}</div><div className="sub dim">--</div></>
-  const name = (e: Upcoming) => e.name || (e.kind in POINT_TYPES ? POINT_TYPES[e.kind as keyof typeof POINT_TYPES].n : 'Section')
-  const rows = h === 1 ? 2 : h * 2, shown = L.slice(0, rows)
-  const at = (km: number) => hhmm(new Date(d.now.valueOf() + ((km - d.km) / Math.max(15, d.vAvg || 28)) * 3600e3))
+  const typed = (e: Upcoming) => e.kind in POINT_TYPES
+  const title = (e: Upcoming) => (typed(e) ? POINT_TYPES[e.kind as keyof typeof POINT_TYPES].n : e.name || 'Section')
+  const text = (e: Upcoming) => (typed(e) && e.name && e.name !== title(e) ? e.name : '')
+  const rows = h === 1 ? 2 : h * 2
+  const shown = L.slice(0, rows), spare = Math.max(0, rows - shown.length)
   return (
     <div className="nb">
       <div className="lab">{lab}</div>
       <div className="nb-lines">
-        {shown.map(e => {
-          const note = isNote(e) && h > 1
-          return (
-            <div key={e.km + name(e)} className={`nb-line${note ? ' note' : ''}`} style={note ? ({ '--l': Math.max(1, rows - shown.length + 1) } as CSSProperties) : undefined}>
-              <Icon name={evIcon(e.kind)} size={18} />
-              <span className="nm">{name(e)}</span>
-              {w >= 3 && <span className="eta">{w >= 4 ? `dans ${eta(d, e.km)} · ${at(e.km)}` : eta(d, e.km)}</span>}
-              <span className="km">{nf1(e.km - d.km)} km</span>
-            </div>
-          )
-        })}
+        {shown.map(e => (
+          <div key={e.km + title(e)} className="nb-line" style={{ '--l': Math.min(5, 1 + (w >= 3 ? 1 : 0) + (text(e) ? spare : 0) + (h > 1 ? 1 : 0)) } as CSSProperties}>
+            <Icon name={evIcon(e.kind)} size={16} />
+            <span className="nb-body"><b className="nb-title">{title(e)}</b>{text(e) && <span className="nb-text">{text(e)}</span>}</span>
+            <span className="nb-when"><b>{nf1(e.km - d.km)} km</b><span>{eta(d, e.km)}</span></span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -146,13 +149,13 @@ function NextStopsW({ d, sz }: { d: WidgetData; sz: Size }) {
 function GapW({ d, w, h }: { d: WidgetData; w: number; h: number }) {
   const g = d.plan?.gapS
   if (g == null) return <><div className="lab">Écart au plan</div><div className="val">--</div></>
-  const m = Math.round(g / 60), st = Math.abs(m) < 5 ? 'ok' : m > 0 ? 'hi' : 'lo'
+  const m = Math.round(g / 60), st = gapState(m)
   const p = d.plan, pct = p && p.kj != null && p.kjPlan ? Math.round((p.kj / p.kjPlan - 1) * 100) : null
   return (
     <>
       <div className="lab">Écart au plan</div>
       <div className={`val st-${st}`}>{m === 0 ? '0' : `${m > 0 ? '+' : '−'}${Math.abs(m)}`}<small>min</small></div>
-      {w * h > 1 && <div className={`sub st-${st}`}>{Math.abs(m) < 2 ? 'Dans les temps' : m > 0 ? 'En retard' : 'En avance'}</div>}
+      {w * h > 1 && <div className={`sub st-${st}`}>{gapWord(m)}</div>}
       {w * h >= 4 && p && p.kj != null && p.kjPlan && pct != null && <div className="sub dim">Dépense {nf0(p.kj)} / {nf0(p.kjPlan)} kJ ({pct > 0 ? '+' : pct < 0 ? '−' : ''}{Math.abs(pct)} %)</div>}
     </>
   )

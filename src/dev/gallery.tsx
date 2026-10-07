@@ -23,7 +23,7 @@ const src = (q.get('src') ?? 'power') as 'power' | 'hr'
 const data = previewData(src)
 
 function Screens() {
-  const t = (q.get('t') ?? 'ultra') as keyof typeof TEMPLATES, land = mkLayout(t)
+  const t = (q.get('t') ?? 'course') as keyof typeof TEMPLATES, land = mkLayout(t)
   return (
     <div style={{ width: portrait ? 390 : 844, height: portrait ? 844 : 390 }}>
       <Device items={portrait ? portraitFrom(land) : land} grid={portrait ? PORTRAIT : LANDSCAPE} data={data} tone={night ? 1 : 0} className="full" />

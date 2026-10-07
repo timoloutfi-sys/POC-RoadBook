@@ -23,12 +23,9 @@ export const PORTRAIT: Grid = { cols: ROWS, rows: COLS }
 
 type Tpl = [WidgetKind, number, number, number, number][]
 export const TEMPLATES = {
-  ultra: { n: 'Ultra', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['cad', 1, 2, 1, 1], ['speed', 2, 2, 1, 1], ['fuel', 3, 2, 1, 1], ['gap', 4, 2, 2, 1]] },
-  clm: { n: 'Contre-la-montre', items: [['effort', 0, 0, 2, 2], ['speed', 2, 0, 1, 1], ['cad', 3, 0, 1, 1], ['hr', 4, 0, 2, 1], ['target', 2, 1, 2, 1], ['intarget', 4, 1, 2, 1], ['profile', 0, 2, 4, 1], ['time', 4, 2, 2, 1]] },
-  tri: { n: 'Triathlon', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['hr', 4, 0, 2, 1], ['fuel', 2, 1, 2, 1], ['cad', 4, 1, 2, 1], ['next', 0, 2, 2, 1], ['time', 2, 2, 2, 1], ['arrival', 4, 2, 2, 1]] },
-  sortie: { n: 'Sortie sans parcours', items: [['effort', 0, 0, 2, 2], ['zones', 2, 0, 2, 2], ['hr', 4, 0, 2, 1], ['cad', 4, 1, 1, 1], ['speed', 5, 1, 1, 1], ['zone', 0, 2, 2, 1], ['intarget', 2, 2, 2, 1], ['lap', 4, 2, 2, 1]] },
-  reserves: { n: 'Réserves', items: [['reserve', 0, 0, 2, 2], ['punch', 2, 0, 2, 1], ['endurance', 4, 0, 2, 1], ['drift', 2, 1, 2, 1], ['carbs', 4, 1, 2, 1], ['carbgap', 0, 2, 2, 1], ['fuel', 2, 2, 2, 1], ['hr', 4, 2, 2, 1]] },
-  montagne: { n: 'Montagne', items: [['climb', 0, 0, 4, 2], ['effort', 4, 0, 2, 2], ['profile', 0, 2, 4, 1], ['slope', 4, 2, 1, 1], ['cad', 5, 2, 1, 1]] },
+  course: { n: 'Course', items: [['effort', 0, 0, 2, 2], ['target', 2, 0, 2, 1], ['next', 4, 0, 2, 1], ['profile', 2, 1, 4, 1], ['hr', 0, 2, 1, 1], ['fuel', 1, 2, 1, 1], ['gap', 2, 2, 2, 1], ['arrival', 4, 2, 2, 1]] },
+  entrainement: { n: 'Entraînement', items: [['effort', 0, 0, 2, 2], ['zone', 2, 0, 2, 1], ['intarget', 4, 0, 2, 1], ['zones', 2, 1, 2, 2], ['hr', 4, 1, 1, 1], ['cad', 5, 1, 1, 1], ['punch', 0, 2, 2, 1], ['lap', 4, 2, 2, 1]] },
+  libre: { n: 'Sortie libre', items: [['effort', 0, 0, 2, 2], ['hr', 2, 0, 1, 1], ['cad', 3, 0, 1, 1], ['speed', 4, 0, 2, 1], ['zone', 2, 1, 2, 1], ['intarget', 4, 1, 2, 1], ['dist', 0, 2, 2, 1], ['time', 2, 2, 2, 1], ['clock', 4, 2, 2, 1]] },
 } satisfies Record<string, { n: string; items: Tpl }>
 export const mkLayout = (k: keyof typeof TEMPLATES): WidgetItem[] =>
   (TEMPLATES[k].items as Tpl).map(([kind, x, y, w, h]) => ({ id: uid(), k: kind, x, y, w, h }))
@@ -101,7 +98,7 @@ export interface Config {
 }
 
 export const defaultConfig = (): Config => {
-  const main: ScreenDef = { id: uid(), name: 'Principal', items: mkLayout('ultra') }
+  const main: ScreenDef = { id: uid(), name: 'Principal', items: mkLayout('course') }
   return {
     rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
     alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
@@ -129,7 +126,7 @@ export function migrateConfig(c: Config & { layout?: WidgetItem[] }): Config {
   // Le plan est toujours « tes cibles » : les anciens modes automatiques n'existent plus.
   if (out.plan) out.plan = { ...defaultPlanCfg(), ...out.plan, mode: 'manuel', intensity: null, targetHours: null, minutes: {} }
   if (!out.screens?.length || c.screens === undefined) {
-    const items = c.layout?.length ? c.layout : mkLayout('ultra')
+    const items = c.layout?.length ? c.layout : mkLayout('course')
     out.screens = [{ id: uid(), name: 'Principal', items }]
   }
   out.screens = out.screens.map(sc => ({

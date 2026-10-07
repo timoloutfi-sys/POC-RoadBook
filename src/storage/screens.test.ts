@@ -29,7 +29,7 @@ describe('écrans modulaires', () => {
     expect(applyRect(items, 'a', { x: COLS, y: 0, w: 1, h: 1 })).toBeNull()
   })
   it('crée, duplique, supprime (jamais le dernier), réordonne', () => {
-    const a = createScreen('Plat', 'ultra'), b = duplicateScreen(a)
+    const a = createScreen('Plat', 'course'), b = duplicateScreen(a)
     expect(b.name).toBe('Plat (copie)')
     expect(b.items[0].id).not.toBe(a.items[0].id)
     expect(createScreen('Vide', null).items).toEqual([])
@@ -68,7 +68,7 @@ describe('migration des sections', () => {
 
 describe('migration', () => {
   it('l’ancienne disposition devient l’écran « Principal », puissance → effort', () => {
-    const old = { ...defaultConfig(), layout: mkLayout('clm').map(i => (i.k === 'effort' ? { ...i, k: 'power' as never } : i)), screens: undefined as never }
+    const old = { ...defaultConfig(), layout: mkLayout('libre').map(i => (i.k === 'effort' ? { ...i, k: 'power' as never } : i)), screens: undefined as never }
     const m = migrateConfig(old)
     expect(m.screens).toHaveLength(1)
     expect(m.screens[0].name).toBe('Principal')
