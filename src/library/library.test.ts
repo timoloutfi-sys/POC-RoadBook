@@ -5,7 +5,8 @@ import { defaultConfig } from '../storage/defaults'
 import { buildRoute, demoPoints } from '../route/route'
 import { Db } from './db'
 import { Library } from './library'
-import { duplicateRoadBook, effectiveAlerts, metaOf, newRoadBook, resetOverride, setOverride } from './roadbooks'
+import type { RoadBook } from './types'
+import { workOf, duplicateRoadBook, effectiveAlerts, metaOf, newRoadBook, resetOverride, setOverride } from './roadbooks'
 import { roadBookFromConfig } from './migrate'
 import type { Ride, RideChunk } from './types'
 
@@ -133,5 +134,18 @@ describe('fichier d’un road book', () => {
     const m = metaOf(newRoadBook('x'), route)
     expect(m.prof).toHaveLength(40)
     expect(Math.max(...m.prof)).toBe(100)
+  })
+})
+
+describe('aperçu du travail fait', () => {
+  it('compte les points posés, les cibles par zone et les repères, en fractions du parcours', () => {
+    const rb = newRoadBook('x')
+    rb.points = [{ id: 'a', km: 25, type: 'eau', text: '' }, { id: 'b', km: 30, type: 'eau', text: '', gen: true }] as RoadBook['points']
+    rb.sections = [{ id: 'm', kind: 'zone', name: 'v', a: 0, b: 10, min: 0, max: 0, msg: '', avant: 1, mark: true }]
+    rb.plan = { imposed: [{ id: 'i', kind: 'zone', name: '', a: 50, b: 75, min: 90, max: 105, msg: '', avant: 1, locked: true }] } as RoadBook['plan']
+    const w = workOf(rb, 100)
+    expect(w.points).toEqual([0.25])
+    expect(w.bands).toEqual([{ a: 0, b: 0.1, z: -1 }, { a: 0.5, b: 0.75, z: 3 }])
+    expect(workOf(newRoadBook('y'), 100)).toEqual({ points: [], bands: [], planned: false })
   })
 })

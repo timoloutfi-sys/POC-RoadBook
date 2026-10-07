@@ -49,6 +49,8 @@ export interface RoadBookMeta {
   hasRoute?: boolean
   /** Nombre d'arrêts prévus aux points. */
   stops?: number
+  /** Aperçu du travail fait : points posés, cibles (zones) et repères en fractions du parcours, plan choisi. */
+  work?: { points: number[]; bands: { a: number; b: number; z: number }[]; planned: boolean }
 }
 
 export type RideKind = 'roadbook' | 'libre' | 'simu'

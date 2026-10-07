@@ -2,6 +2,7 @@ import type { AlertRule, Periodic } from '../alerts/types'
 import { uid } from '../core/format'
 import type { Route } from '../route/route'
 import { defaultBase } from '../strategy/types'
+import { powerZoneOf } from '../strategy/zones'
 import type { Overrides, RoadBook, RoadBookMeta } from './types'
 
 type OKind = 'alerts' | 'periodic'
@@ -22,6 +23,21 @@ export function metaOf(rb: RoadBook, route: Route | null, estH: number | null = 
   return {
     id: rb.id, name: rb.name, km: real ? real.total / 1000 : rb.est?.km ?? 0, dplus: real ? Math.round(real.dplus) : rb.est?.dplus ?? 0,
     estH, updated: rb.updated, prof: profile(real), when: rb.when, kind: rb.kind ?? 'sortie', hasRoute: !!real, stops: rb.points.filter(p => !p.gen && (p.stop ?? 0) > 0).length,
+    work: workOf(rb, real ? real.total / 1000 : rb.est?.km ?? 0),
+  }
+}
+
+/** Ce que le coureur a posé : ses points, ses cibles imposées (par zone) et ses repères, en fractions du parcours. */
+export function workOf(rb: RoadBook, km: number): NonNullable<RoadBookMeta['work']> {
+  const f = (x: number) => (km > 0 ? Math.min(1, Math.max(0, x / km)) : 0)
+  const imposed = rb.plan?.imposed ?? []
+  return {
+    points: rb.points.filter(p => !p.gen).map(p => +f(p.km).toFixed(4)),
+    bands: [
+      ...rb.sections.filter(s => s.mark && !s.gen).map(s => ({ a: +f(s.a).toFixed(4), b: +f(s.b).toFixed(4), z: -1 })),
+      ...imposed.map(s => ({ a: +f(s.a).toFixed(4), b: +f(s.b).toFixed(4), z: powerZoneOf((s.min + s.max) / 200) })),
+    ],
+    planned: !!rb.plan,
   }
 }
 
