@@ -18,7 +18,7 @@ const clock = (s: number | null) => (s == null ? '–' : fdur(Math.abs(s)))
 const sgn = (s: number) => `${s >= 0 ? '+' : '−'}${fdur(Math.abs(s))}`
 
 /** Liste des sorties, toutes ou celles d'un road book. */
-export function SortiesTab({ roadbookId }: { roadbookId?: string }) {
+export function SortiesTab({ roadbookId, onRide, rideLabel }: { roadbookId?: string; onRide?: () => void; rideLabel?: string }) {
   const [rides, setRides] = useState<Ride[] | null>(null)
   const pending = useLibrary(s => s.rideToOpen)
   const [open, setOpen] = useState<string | null>(pending)
@@ -33,6 +33,7 @@ export function SortiesTab({ roadbookId }: { roadbookId?: string }) {
   const shown = rides.filter(r => !filter || (filter === 'libre' ? !r.roadbookId : r.roadbookId === filter))
   return (
     <>
+      {roadbookId && onRide && <button className="btn primary" style={{ width: '100%', marginBottom: 12 }} onClick={onRide}><Icon name="ride" size={22} />{rideLabel ?? 'Rouler'}</button>}
       {!roadbookId && rides.length > 0 && (
         <label className="field"><span>Road book</span>
           <select value={filter} onChange={e => setFilter(e.target.value)}>

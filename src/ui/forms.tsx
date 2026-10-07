@@ -4,7 +4,6 @@ import { sectionStats, type Route } from '../route/route'
 import { METRICS, PRIO_LABEL, type AlertRule, type Metric } from '../alerts/types'
 import { POINT_TYPES, type Prio, type PointType, type RoutePoint, type Section } from '../strategy/types'
 import type { Unit } from '../strategy/zones'
-import type { UrbanZone } from '../strategy/plan'
 import { KmRange } from './KmRange'
 import { TargetPicker } from './TargetPicker'
 import { Field, Num } from './fields'
@@ -69,10 +68,19 @@ export function ImposedForm({ initial, isNew, onSave, onDelete, onClose, maxKm, 
   const [s, setS] = useState(initial)
   const a = clamp(Math.min(s.a, s.b), 0, maxKm), b = clamp(Math.max(s.a, s.b), 0, maxKm)
   return (
-    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: Math.min(s.min, s.max), max: Math.max(s.min, s.max), locked: true, gen: false, auto: false, mark: false, name: s.name.trim() || 'Segment' }) }}>
+    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...s, a, b, min: Math.min(s.min, s.max), max: Math.max(s.min, s.max), locked: true, gen: false, auto: false, mark: false, name: s.name.trim() || (s.urbanKmh ? 'Ville' : 'Segment'), urbanKmh: s.urbanKmh ? Math.min(40, Math.max(5, s.urbanKmh)) : undefined }) }}>
       <Field label="Nom"><input value={s.name} maxLength={60} placeholder="Ex. col au calme" onChange={e => setS({ ...s, name: e.target.value })} /></Field>
       <KmRange route={route} a={s.a} b={s.b} onChange={(a, b, c) => setS({ ...s, a, b, ...(c && !s.name.trim() ? { name: c.name } : {}) })} />
       <TargetPicker unit={unit} ftp={ftp} lthr={lthr} min={s.min} max={s.max} onChange={(min, max) => setS({ ...s, min, max })} />
+      <label className="row" style={{ padding: '4px 0 8px', flexWrap: 'nowrap' }}>
+        <span className="grow"><b>Ville</b><small style={{ display: 'block', color: 'var(--muted)' }}>Feux et carrefours : la vitesse moyenne est plafonnée</small></span>
+        <input type="checkbox" role="switch" style={{ width: 28, height: 28 }} checked={!!s.urbanKmh} onChange={e => setS({ ...s, urbanKmh: e.target.checked ? 18 : undefined })} />
+      </label>
+      {!!s.urbanKmh && (
+        <Field label="Vitesse moyenne (km/h)" hint="Paris intra-muros : 15 à 18 ; banlieue dense : 20 à 24">
+          <Num value={s.urbanKmh} min={5} max={40} step={1} onChange={v => setS({ ...s, urbanKmh: Math.min(40, Math.max(5, v ?? 18)) })} />
+        </Field>
+      )}
       <Field label="Consigne à l'annonce"><input value={s.msg} maxLength={80} placeholder="Ex. reste assis" onChange={e => setS({ ...s, msg: e.target.value })} /></Field>
       <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
     </form>
@@ -124,17 +132,3 @@ export const alertSentence = (a: AlertRule) => {
 export const statsLine = (st: ReturnType<typeof sectionStats>) =>
   `${nf1(st.len)} km · +${nf0(st.dplus)} m · pente moy. ${slope(st.avg)}${st.max > Math.abs(st.avg) + 1 ? ` · max ${slope(st.max)}` : ''}`
 
-/** Traversée de ville : sur ces km, feux et carrefours plafonnent la vitesse moyenne. */
-export function UrbanForm({ initial, isNew, onSave, onDelete, onClose, maxKm, route }: FormProps<UrbanZone> & { maxKm: number; route: Route }) {
-  const [u, setU] = useState(initial)
-  const a = clamp(Math.min(u.a, u.b), 0, maxKm), b = clamp(Math.max(u.a, u.b), 0, maxKm)
-  return (
-    <form noValidate onSubmit={e => { e.preventDefault(); onSave({ ...u, a, b, kmh: clamp(u.kmh, 5, 40) }) }}>
-      <KmRange route={route} a={u.a} b={u.b} onChange={(x, y) => setU({ ...u, a: x, b: y })} />
-      <Field label="Vitesse moyenne (km/h)" hint="Paris intra-muros : 15 à 18 ; banlieue dense : 20 à 24">
-        <Num value={u.kmh} min={5} max={40} step={1} onChange={v => setU({ ...u, kmh: v ?? 18 })} />
-      </Field>
-      <Actions isNew={isNew} onDelete={onDelete} onClose={onClose} />
-    </form>
-  )
-}

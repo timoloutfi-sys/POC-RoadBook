@@ -10,11 +10,11 @@ import { Icon } from './icons'
 import { Sheet } from './Sheet'
 import { SensorsBlock } from './SensorsBlock'
 
-const HOLD_ACK_MS = 500, DOUBLE_TAP_MS = 350, BAR_MS = 5000
+const HOLD_ACK_MS = 500, DOUBLE_TAP_MS = 350, BAR_MS = 2500
 
 /**
- * Vue de course plein écran, dans l'orientation du téléphone. Toucher l'écran affiche, quelques secondes, une barre
- * « Capteurs » et « Quitter » (la même en paysage et en portrait). Gestes sur la bande de 24 px :
+ * Vue de course plein écran, dans l'orientation du téléphone. Rien n'est affiché de plus que les widgets : toucher l'écran
+ * montre 2,5 s une barre « Capteurs » et « Quitter » (la même en paysage et en portrait), un second toucher la cache. Gestes sur la bande de 24 px :
  * paysage : droite = Fait (appui long), tour (double appui), écran suivant (glisser) ;
  * portrait : bas = Fait, tour, écran suivant (glisser à l'horizontale).
  */
@@ -22,7 +22,7 @@ export function RideView({ onExit }: { onExit: () => void }) {
   const screens = useStore(s => s.screens), activeId = useStore(s => s.activeScreen), theme = useStore(s => s.rideTheme)
   const route = useStore(s => s.route), set = useStore(s => s.set)
   const [, setTick] = useState(0)
-  const [barUntil, setBarUntil] = useState(() => Date.now() + BAR_MS)
+  const [barUntil, setBarUntil] = useState(0)
   const [panel, setPanel] = useState<null | 'sensors' | 'quit'>(null)
   const [dotsUntil, setDotsUntil] = useState(0)
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches)
@@ -74,7 +74,7 @@ export function RideView({ onExit }: { onExit: () => void }) {
   const items = itemsFor(screen, portrait)
   const act = <div className={`strip ${portrait ? 'bottom' : 'right'}`} onPointerDown={rDown} onPointerMove={rMove} onPointerUp={rUp} onPointerCancel={rUp} aria-label="Appui long : fait. Double appui : tour. Glisser : écran suivant" />
   return (
-    <div className={`ride dev${portrait ? ' port' : ''}`} style={style} onClick={e => { if (!(e.target as HTMLElement).closest('.strip, .ride-bar, .sheet, .sheet-back')) setBarUntil(Date.now() + BAR_MS) }}>
+    <div className={`ride dev${portrait ? ' port' : ''}`} style={style} onClick={e => { if (!(e.target as HTMLElement).closest('.strip, .ride-bar, .sheet, .sheet-back')) setBarUntil(Date.now() < barUntil ? 0 : Date.now() + BAR_MS) }}>
       <Device items={items} data={data} tone={tone} grid={portrait ? PORTRAIT : LANDSCAPE} className="full" />
       {act}
       {Date.now() < dotsUntil && screens.length > 1 && (

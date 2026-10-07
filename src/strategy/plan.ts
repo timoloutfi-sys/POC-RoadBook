@@ -39,11 +39,7 @@ export interface PlanCfg {
   windFrom?: number
   /** Température (°C) : densité de l'air et besoin en eau. */
   tempC?: number
-  /** Traversées de ville : sur ces km, la vitesse moyenne ne dépasse pas `kmh` (feux, carrefours). */
-  urban?: UrbanZone[]
 }
-
-export interface UrbanZone { id: string; a: number; b: number; kmh: number }
 
 export const defaultPlanCfg = (): PlanCfg => {
   const d = new Date(); d.setHours(8, 0, 0, 0)
@@ -138,9 +134,9 @@ export function computePlan(inp: PlanInput): PlanResult {
   // Temps réel : simulation avec inertie, virages, freinage, roue libre, air et vent locaux,
   // puissance réduite en altitude, et ralentissements de route ouverte.
   const urbanV = new Float32Array(n)
-  for (const u of cfg.urban ?? []) {
+  for (const u of cfg.imposed.filter(x => x.urbanKmh)) {
     const i0 = clamp(Math.round((u.a * 1000) / STEP), 0, n - 1), i1 = clamp(Math.round((u.b * 1000) / STEP), 0, n - 1)
-    for (let i = i0; i <= i1; i++) urbanV[i] = Math.max(3, u.kmh) / 3.6
+    for (let i = i0; i <= i1; i++) urbanV[i] = Math.max(3, u.urbanKmh!) / 3.6
   }
   const timing = (ratio: Float32Array, b: Body = body, k = 1) => {
     const power = new Float32Array(n)

@@ -3,7 +3,7 @@ import type { Route } from '../route/route'
 import { HR_ZONES, POWER_ZONES, hrZoneOfPowerZone, powerZoneOf, type Unit } from '../strategy/zones'
 
 /** Profil d'altitude coloré par zone d'effort : on voit où le plan demande de pousser. */
-export function ZoneProfile({ route, ratio, unit }: { route: Route; ratio: Float32Array; unit: Unit }) {
+export function ZoneProfile({ route, ratio, unit, urban = [] }: { route: Route; ratio: Float32Array; unit: Unit; urban?: [number, number][] }) {
   const W = 1000, H = 150
   const g = useMemo(() => {
     let lo = Infinity, hi = -Infinity
@@ -33,6 +33,8 @@ export function ZoneProfile({ route, ratio, unit }: { route: Route; ratio: Float
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: '100%', height: 130, display: 'block' }} role="img" aria-label="Profil coloré par zone d'effort">
       {g.runs.map((r, k) => <path key={k} d={r.d} fill={r.c} opacity={0.85} />)}
       <path d={g.line} fill="none" stroke="var(--ink)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+      {urban.length > 0 && <defs><pattern id="urb" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="14" fill="var(--ink)" opacity=".55" /></pattern></defs>}
+      {urban.map(([a, b], k) => <rect key={k} x={(a / (route.total / 1000)) * 1000} width={Math.max(4, ((b - a) / (route.total / 1000)) * 1000)} y={0} height={150} fill="url(#urb)" />)}
     </svg>
   )
 }

@@ -32,6 +32,8 @@ export interface Section {
   mark?: boolean
   /** Cible imposée par le coureur : prioritaire sur le plan et conservée par l'algorithme. */
   locked?: boolean
+  /** Traversée de ville : vitesse moyenne maximale (km/h) sur ce segment, à cause des feux et carrefours. */
+  urbanKmh?: number
 }
 
 /** Cibles de base en % FTP selon la pente, hors sections. */

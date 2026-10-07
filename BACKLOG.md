@@ -4,6 +4,10 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Plan › zones (« Z2 · Endurance ») au lieu des watts/bpm, sauf cible personnalisée.
+- [x] Road books › « Rouler » : plus de bouton collant partout ; en tête de liste, sur chaque carte et dans l'onglet Sorties du road book.
+- [x] Sortie › barre Capteurs / Quitter : cachée par défaut, 2,5 s au toucher, un second toucher la cache.
+- [x] Plan › ville fusionnée dans les segments (interrupteur « Ville » + vitesse moyenne), hachurée sur le profil.
 - [x] Road book › « Suggérer un plan » et « Rouler avec » trop grands → taille normale.
 - [x] Plan › feux et carrefours (ville) : traversées de ville à saisir (km à km + vitesse moyenne), prises en compte dans les temps.
 - [x] Segments › curseur de réglage fin à côté des champs km ; tirer les extrémités sur le profil ; même sélecteur pour repères, points et ville.

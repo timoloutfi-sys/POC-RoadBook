@@ -46,8 +46,10 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Vocabulaire du Plan (repris des outils de référence : Best Bike Split, Strava, TrainingPeaks) : onglet **Plan**, section **Terrain** (plat, montée, descente), section **Segments** (un tronçon km à km avec sa cible). Ne pas réintroduire « exception », « cible de base » ou « par tronçon ».
 
 - Pas de geste caché pour quitter ou régler en sortie (appui long sur un bord) : toucher l'écran affiche une barre « Capteurs » et « Quitter », identique en paysage et en portrait, et la fin demande confirmation. Les bords ne servent qu'aux gestes de conduite (Fait, tour, écran suivant).
+- Le bouton « Rouler » n’est pas collé en bas de chaque page : en tête de la liste des road books, sur chaque carte, et dans l’onglet Sorties du road book.
 - Sur l'Accueil, « Sortie libre » est un bouton visible à côté de « Autre road book », jamais derrière une petite icône.
 - Une feuille « Nouvel écran » propose seulement les modèles et l'écran vide.
 
 - Tout km se saisit en trois gestes : toucher le profil, tirer une extrémité du tronçon, ou régler au curseur fin (±2 km, pas de 0,1) à côté du champ. Le champ numérique reste pour les valeurs exactes.
 - Les boutons d'action d'une page (Suggérer un plan, Rouler avec) ont la taille d'un bouton normal, pas « big » : la place est pour le contenu.
+- Les cibles s’affichent en zone (« Z2 · Endurance ») ; la fourchette en watts ou bpm n’apparaît que si elle est personnalisée.
