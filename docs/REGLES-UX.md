@@ -39,3 +39,6 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 ## Technique (pièges déjà rencontrés)
 - Noms de classes CSS : préfixer (`zs-`, `rv-`, `nb-`…) ; `.ghost`, `.stack`, `.pv` sont déjà pris par l'appli et ont causé des bugs d'affichage.
 - Fermer une fenêtre ou désélectionner doit aussi remettre à zéro les états liés (ex. réglages ouverts).
+
+- Un widget qui exige un plan (« Dans la cible ») n'est jamais proposé dans un écran de sortie libre.
+- Les heures du plan sont théoriques tant que la sortie n'est pas lancée ; au départ de l'enregistrement elles sont recalées sur l'heure réelle (« prévu » = départ réel + durée prévue).

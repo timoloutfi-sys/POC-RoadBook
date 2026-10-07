@@ -10,7 +10,7 @@ Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Cla
 - [ ] Route › mémo libre du road book à afficher dans « Prochains points » (variante Notes).
 - [ ] Profil › variantes « restant » et « complet » ; Puissance › moyenne 3/10/30 s.
 
-- [ ] ❓ Écrans › choix de l'écran selon le type de sortie : voir la proposition (défaut par type de sortie, écran propre à chaque road book, aperçu dans « Avant de partir »).
+- [x] Écrans › choix de l'écran selon le type de sortie : écran du road book, sinon écran propre à la sortie libre, sinon écran de départ (★), sinon le premier ; réglable dans « Avant de partir ».
 
 ## En cours
 

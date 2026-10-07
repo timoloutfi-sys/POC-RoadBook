@@ -143,3 +143,9 @@ export function fillFree(items: WidgetItem[], g: Grid): WidgetItem[] {
 
 /** Widgets d'un écran dans l'orientation demandée. */
 export const itemsFor = (s: ScreenDef, portrait: boolean) => (portrait ? s.portrait ?? portraitFrom(s.items) : s.items)
+
+/** Écran à ouvrir pour une sortie : celui du road book, sinon celui du type de sortie, sinon l'écran de départ général, sinon le premier. */
+export function pickScreen(screens: ScreenDef[], o: { rbScreen?: string; libre: boolean; libreScreen?: string; activeScreen: string }): string {
+  const has = (id?: string) => (id && screens.some(s => s.id === id) ? id : undefined)
+  return (o.libre ? has(o.libreScreen) : has(o.rbScreen)) ?? has(o.activeScreen) ?? screens[0].id
+}

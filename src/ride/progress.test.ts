@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TEMPLATES } from '../storage/defaults'
 import { previewData } from './data'
+import { pickScreen } from '../storage/screens'
 import { rebase } from './progress'
 import { tileOf } from '../ui/tiles'
 
@@ -17,5 +18,13 @@ describe('heures du plan recalées sur le départ réel', () => {
   })
   it('la sortie libre n’a aucun widget qui exige un plan', () => {
     expect(TEMPLATES.libre.items.some(i => (i[0] as string) === 'intarget')).toBe(false)
+  })
+  it('l’écran de la sortie : road book, sinon type de sortie, sinon écran de départ, sinon le premier', () => {
+    const sc = ['a', 'b', 'c'].map(id => ({ id, name: id, items: [] }))
+    expect(pickScreen(sc, { rbScreen: 'b', libre: false, activeScreen: 'a' })).toBe('b')
+    expect(pickScreen(sc, { libre: false, activeScreen: 'c' })).toBe('c')
+    expect(pickScreen(sc, { rbScreen: 'b', libre: true, libreScreen: 'c', activeScreen: 'a' })).toBe('c')
+    expect(pickScreen(sc, { libre: true, activeScreen: 'a' })).toBe('a')
+    expect(pickScreen(sc, { rbScreen: 'zzz', libre: false, activeScreen: 'zzz' })).toBe('a')
   })
 })

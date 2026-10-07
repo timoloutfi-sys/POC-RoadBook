@@ -80,6 +80,8 @@ export interface Config {
   maxPerHour: number
   screens: ScreenDef[]
   activeScreen: string
+  /** Écran de départ d'une sortie libre ; sinon `activeScreen` (le road book peut imposer le sien). */
+  libreScreen?: string
   rideTheme: RideTheme
   /** Plan de course choisi dans l'onglet Plan ; null tant que rien n'est choisi. */
   plan: PlanCfg | null

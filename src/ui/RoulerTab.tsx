@@ -4,6 +4,7 @@ import { ride, type RideSource } from '../ride/controller'
 import { bluetoothAvailable, bluetoothOn } from '../sensors/ble'
 import { useLibrary } from '../library/session'
 import { exportPlan, importPlan } from '../storage/transfer'
+import { pickScreen } from '../storage/screens'
 import { pickConfig, useStore } from '../storage/store'
 import { Field, Num } from './fields'
 import { SensorsBlock } from './SensorsBlock'
@@ -14,8 +15,9 @@ const Check = ({ s, t, sm }: { s: 'ok' | 'ko' | 'wa'; t: string; sm?: string }) 
 )
 
 export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
-  const { route, points, libre, set } = useStore()
-  const { list, current, open } = useLibrary()
+  const { route, points, libre, screens, activeScreen, libreScreen, set } = useStore()
+  const { list, current, open, patch } = useLibrary()
+  const screenId = pickScreen(screens, { rbScreen: current?.startScreen, libre, libreScreen, activeScreen })
   const [, bump] = useState(0)
   const [opts, setOpts] = useState(ride.simOpts)
   const [xfer, setXfer] = useState('')
@@ -34,6 +36,13 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
         </select>
         <span className="hint">{libre || !route ? 'Sans parcours ni plan : tes alertes et rappels s’appliquent.' : `${nf1(route.total / 1000)} km · ${points.length} points`}</span>
       </Field>
+      {screens.length > 1 && (
+        <Field label="Écran">
+          <select value={screenId} onChange={e => { if (libre || !current) set({ libreScreen: e.target.value }); else void patch({ startScreen: e.target.value }) }}>
+            {screens.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+          </select>
+        </Field>
+      )}
 
       <div>
         {bt && btOn === false ? <Check s="ko" t="Bluetooth éteint" sm="Allume-le, ainsi que la position, dans les réglages du téléphone" /> : bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}

@@ -4,6 +4,7 @@ import { recorder } from './ride/recorder'
 import type { Ride, RideSummary } from './library/types'
 import { RideEnd } from './ui/RideEnd'
 import { useLibrary } from './library/session'
+import { pickScreen } from './storage/screens'
 import { useStore } from './storage/store'
 import { EcranTab } from './ui/EcranTab'
 import { Icon, type IconName } from './ui/icons'
@@ -30,8 +31,8 @@ export default function App() {
 
   useEffect(() => { const a = document.querySelector('main'); a?.scrollTo({ top: 0 }) }, [tab])
   const start = async (src: RideSource) => {
-    const st = useStore.getState(), sc = useLibrary.getState().current?.startScreen
-    if (!ride.hasRide && !st.libre && sc && st.screens.some(x => x.id === sc)) st.set({ activeScreen: sc })
+    const st = useStore.getState()
+    if (!ride.hasRide) st.set({ activeScreen: pickScreen(st.screens, { rbScreen: useLibrary.getState().current?.startScreen, libre: st.libre, libreScreen: st.libreScreen, activeScreen: st.activeScreen }) })
     setRiding(true); await ride.start(src)
   }
   const [end, setEnd] = useState<{ ride: Ride; summary: RideSummary } | null>(null)
