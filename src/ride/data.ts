@@ -1,6 +1,6 @@
 import { nextReminder, type Banner, type RunState } from '../alerts/engine'
 import type { Periodic } from '../alerts/types'
-import type { PlanProgress } from './progress'
+import { remainingFromPace, type PlanProgress } from './progress'
 import { clamp } from '../core/format'
 import type { Route } from '../route/route'
 import { effectiveFtp, effectiveLthr, type Rider } from '../strategy/rider'
@@ -129,7 +129,8 @@ export function buildData(i: Inputs): WidgetData {
   const nextSec = [...i.sections].sort((a, b) => a.a - b.a).find(s => s.a > km && s !== tg.section)
   const v = Math.max(15, i.vAvg || 28)
   const leftS = tg.section ? Math.max(0, ((tg.section.b - km) / v) * 3600) : null
-  const eta = route ? new Date(i.now.valueOf() + ((total - km) / v) * 3600e3) : null
+  const paced = i.plan ? remainingFromPace(i.plan.plannedEndS, i.plan.gapS, run.t) : null
+  const eta = route ? new Date(i.now.valueOf() + (paced ?? ((total - km) / v) * 3600) * 1000) : null
   return {
     source: i.source,
     effort: i.source === 'power' ? i.power : i.hr,

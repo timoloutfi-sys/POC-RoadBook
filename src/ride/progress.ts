@@ -44,3 +44,14 @@ export const gapOf = (etas: { km: number; t: number }[], km: number, elapsedS: n
   const p = plannedAt(etas, km)
   return p == null ? null : elapsedS - p
 }
+
+/**
+ * Secondes restantes jusqu'à l'arrivée d'après l'allure réelle : le reste du plan, multiplié par le rapport
+ * entre le temps réellement mis et le temps prévu jusqu'ici (borné). Null tant que l'allure n'est pas mesurable.
+ */
+export function remainingFromPace(plannedEndS: number | null, gapS: number | null, elapsedS: number): number | null {
+  if (plannedEndS == null || gapS == null || elapsedS < 600) return null
+  const plannedHere = elapsedS - gapS
+  if (plannedHere < 300 || plannedHere >= plannedEndS) return null
+  return (plannedEndS - plannedHere) * Math.min(1.5, Math.max(0.7, elapsedS / plannedHere))
+}

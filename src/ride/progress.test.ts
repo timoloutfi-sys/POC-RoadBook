@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { TEMPLATES } from '../storage/defaults'
 import { previewData } from './data'
 import { pickScreen } from '../storage/screens'
-import { rebase } from './progress'
+import { rebase, remainingFromPace } from './progress'
 import { tileOf } from '../ui/tiles'
 
 describe('heures du plan recalées sur le départ réel', () => {
@@ -26,5 +26,12 @@ describe('heures du plan recalées sur le départ réel', () => {
     expect(pickScreen(sc, { rbScreen: 'b', libre: true, libreScreen: 'c', activeScreen: 'a' })).toBe('c')
     expect(pickScreen(sc, { libre: true, activeScreen: 'a' })).toBe('a')
     expect(pickScreen(sc, { rbScreen: 'zzz', libre: false, activeScreen: 'zzz' })).toBe('a')
+  })
+  it('l’arrivée estimée suit l’allure réelle, bornée, et attend 10 min de mesure', () => {
+    // 1 h écoulée pour 50 min prévues : on met 20 % de plus que le plan sur les 4 h restantes (prévu 5 h au total)
+    expect(remainingFromPace(5 * 3600, 600, 3600)).toBeCloseTo((5 * 3600 - 3000) * 1.2, 5)
+    expect(remainingFromPace(5 * 3600, 0, 300)).toBeNull()
+    expect(remainingFromPace(null, 0, 3600)).toBeNull()
+    expect(remainingFromPace(5 * 3600, 3000, 3600)).toBeCloseTo((5 * 3600 - 600) * 1.5, 5)
   })
 })
