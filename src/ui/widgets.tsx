@@ -98,7 +98,8 @@ function ProfileW({ d, sz, range: opt }: { d: WidgetData; sz: Size; range?: stri
   const range = typeof opt === 'number' ? opt : sz === 'S' ? 5 : sz === 'M' ? 15 : 25
   const view = useMemo(() => {
     if (!route) return null
-    const a = Math.min(d.km, route.total / 1000), b = Math.min(route.total / 1000, a + range)
+    const total = route.total / 1000
+    const a = opt === 'all' ? 0 : Math.min(d.km, total), b = opt === 'all' || opt === 'rest' ? total : Math.min(total, a + range)
     const i0 = Math.floor((a * 1000) / 50), i1 = Math.max(i0 + 2, Math.ceil((b * 1000) / 50))
     let lo = Infinity, hi = -Infinity
     for (let i = i0; i <= Math.min(i1, route.n - 1); i++) { lo = Math.min(lo, route.ele[i]); hi = Math.max(hi, route.ele[i]) }
@@ -110,19 +111,19 @@ function ProfileW({ d, sz, range: opt }: { d: WidgetData; sz: Size; range?: stri
       p += `${p ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
     }
     return { a, b, span, W, H, path: p }
-  }, [route, d.km, range])
+  }, [route, d.km, range, opt])
   if (!view) return <><div className="lab">Profil</div><div className="sub">Aucun parcours</div></>
   const X = (km: number) => ((km - view.a) / view.span) * view.W
   const tint = (s: Section) => (d.source === 'power' ? POWER_ZONES : HR_ZONES)[Math.min(d.source === 'power' ? 6 : 4, d.source === 'power' ? powerZoneOf((s.min + s.max) / 200) : hrZoneOfPowerZone(powerZoneOf((s.min + s.max) / 200)))].c
   return (
     <>
-      <div className="lab">Profil · {range} km à venir</div>
+      <div className="lab">{opt === 'all' ? 'Profil complet' : opt === 'rest' ? 'Profil · jusqu’à l’arrivée' : `Profil · ${range} km à venir`}</div>
       <svg className="mini" viewBox={`0 0 ${view.W} ${view.H}`} preserveAspectRatio="none" aria-hidden="true">
         {sections.filter(s => s.b > view.a && s.a < view.b).map(s => <rect key={s.id} x={X(Math.max(s.a, view.a))} width={Math.max(3, X(Math.min(s.b, view.b)) - X(Math.max(s.a, view.a)))} y={0} height={view.H} fill={tint(s)} opacity={0.28} />)}
         <path d={`${view.path}L${view.W},${view.H}L0,${view.H}Z`} className="mfill" />
         <path d={view.path} className="mline" fill="none" vectorEffect="non-scaling-stroke" />
         {points.filter(p => p.km >= view.a && p.km <= view.b).map(p => <line key={p.id} x1={X(p.km)} x2={X(p.km)} y1={0} y2={view.H} className="mpt" vectorEffect="non-scaling-stroke" />)}
-        <line x1={0} x2={0} y1={0} y2={view.H} className="mnow" vectorEffect="non-scaling-stroke" />
+        <line x1={X(Math.min(d.km, view.b))} x2={X(Math.min(d.km, view.b))} y1={0} y2={view.H} className="mnow" vectorEffect="non-scaling-stroke" />
       </svg>
       <div className="axis"><span>{nf0(view.a)} km</span><span>{nf0(view.b)} km</span></div>
     </>
