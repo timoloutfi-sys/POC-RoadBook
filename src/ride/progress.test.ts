@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TEMPLATES } from '../storage/defaults'
+import { TEMPLATES, defaultConfig, migrateConfig } from '../storage/defaults'
 import { previewData } from './data'
 import { pickScreen } from '../storage/screens'
 import { rebase, remainingFromPace } from './progress'
@@ -33,5 +33,13 @@ describe('heures du plan recalées sur le départ réel', () => {
     expect(remainingFromPace(5 * 3600, 0, 300)).toBeNull()
     expect(remainingFromPace(null, 0, 3600)).toBeNull()
     expect(remainingFromPace(5 * 3600, 3000, 3600)).toBeCloseTo((5 * 3600 - 600) * 1.5, 5)
+  })
+  it('une installation existante reçoit un écran « Sortie libre » une seule fois', () => {
+    const old = { ...defaultConfig(), libreScreen: undefined }
+    const a = migrateConfig(old)
+    expect(a.screens.some(x => x.id === a.libreScreen && x.name === 'Sortie libre')).toBe(true)
+    const b = migrateConfig(a)
+    expect(b.screens.length).toBe(a.screens.length)
+    expect(defaultConfig().libreScreen).toBeTruthy()
   })
 })

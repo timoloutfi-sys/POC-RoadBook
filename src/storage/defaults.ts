@@ -101,10 +101,11 @@ export interface Config {
 
 export const defaultConfig = (): Config => {
   const main: ScreenDef = { id: uid(), name: 'Principal', items: mkLayout('course') }
+  const libre: ScreenDef = { id: uid(), name: 'Sortie libre', items: mkLayout('libre') }
   return {
     rider: defaultRider(), wheel: 2146, base: defaultBase(), sections: [], points: [],
     alerts: defaultAlerts(), periodic: defaultPeriodic(), maxPerHour: 10,
-    screens: [main], activeScreen: main.id, rideTheme: 'auto', plan: null, sensors: {}, onboarded: false,
+    screens: [main, libre], activeScreen: main.id, libreScreen: libre.id, rideTheme: 'auto', plan: null, sensors: {}, onboarded: false,
     activeRoadbook: null, libre: false, goalId: null, libraryMigrated: false,
   }
 }
@@ -136,6 +137,11 @@ export function migrateConfig(c: Config & { layout?: WidgetItem[] }): Config {
     items: normalizeItems(sc.items),
   }))
   if (!out.screens.some(sc => sc.id === out.activeScreen)) out.activeScreen = out.screens[0].id
+  // Sortie libre : un écran sans widget qui exige un parcours ou un plan, créé une fois pour les installations existantes.
+  if (c.libreScreen === undefined && c.screens !== undefined) {
+    const libre: ScreenDef = { id: uid(), name: 'Sortie libre', items: mkLayout('libre') }
+    out.screens = [...out.screens, libre]; out.libreScreen = libre.id
+  }
   delete (out as Config & { layout?: unknown }).layout
   return out
 }
