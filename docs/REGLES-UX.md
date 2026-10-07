@@ -44,3 +44,7 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Les heures du plan sont théoriques tant que la sortie n'est pas lancée ; au départ de l'enregistrement elles sont recalées sur l'heure réelle (« prévu » = départ réel + durée prévue).
 
 - Vocabulaire du Plan (repris des outils de référence : Best Bike Split, Strava, TrainingPeaks) : onglet **Plan**, section **Terrain** (plat, montée, descente), section **Segments** (un tronçon km à km avec sa cible). Ne pas réintroduire « exception », « cible de base » ou « par tronçon ».
+
+- Pas de geste caché pour quitter ou régler en sortie (appui long sur un bord) : toucher l'écran affiche une barre « Capteurs » et « Quitter », identique en paysage et en portrait, et la fin demande confirmation. Les bords ne servent qu'aux gestes de conduite (Fait, tour, écran suivant).
+- Sur l'Accueil, « Sortie libre » est un bouton visible à côté de « Autre road book », jamais derrière une petite icône.
+- Une feuille « Nouvel écran » propose seulement les modèles et l'écran vide.

@@ -6,19 +6,24 @@ import { useStore } from '../storage/store'
 import { itemsFor, stepScreen } from '../storage/screens'
 import { LANDSCAPE, PORTRAIT } from '../storage/defaults'
 import { Device } from './Device'
+import { Icon } from './icons'
+import { Sheet } from './Sheet'
+import { SensorsBlock } from './SensorsBlock'
 
-const HOLD_QUIT_MS = 1500, HOLD_ACK_MS = 500, DOUBLE_TAP_MS = 350
+const HOLD_ACK_MS = 500, DOUBLE_TAP_MS = 350, BAR_MS = 5000
 
 /**
- * Vue de course plein écran, dans l'orientation du téléphone. Gestes sur les bandes de 24 px :
- * paysage : droite = Fait (appui long), tour (double appui), écran suivant (glisser) ; gauche = quitter (appui long).
- * portrait : bas = Fait, tour, écran suivant (glisser à l'horizontale) ; haut = quitter.
+ * Vue de course plein écran, dans l'orientation du téléphone. Toucher l'écran affiche, quelques secondes, une barre
+ * « Capteurs » et « Quitter » (la même en paysage et en portrait). Gestes sur la bande de 24 px :
+ * paysage : droite = Fait (appui long), tour (double appui), écran suivant (glisser) ;
+ * portrait : bas = Fait, tour, écran suivant (glisser à l'horizontale).
  */
 export function RideView({ onExit }: { onExit: () => void }) {
   const screens = useStore(s => s.screens), activeId = useStore(s => s.activeScreen), theme = useStore(s => s.rideTheme)
   const route = useStore(s => s.route), set = useStore(s => s.set)
   const [, setTick] = useState(0)
-  const [quitP, setQuitP] = useState(0)
+  const [barUntil, setBarUntil] = useState(() => Date.now() + BAR_MS)
+  const [panel, setPanel] = useState<null | 'sensors' | 'quit'>(null)
   const [dotsUntil, setDotsUntil] = useState(0)
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches)
   useEffect(() => {
@@ -65,32 +70,30 @@ export function RideView({ onExit }: { onExit: () => void }) {
     }
   }
 
-  // Bande gauche : maintenir 1,5 s pour quitter, la jauge se remplit.
-  const L = useRef<number>(0)
-  const lStart = (e: React.PointerEvent) => {
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-    const t0 = performance.now()
-    const step = () => {
-      const p = Math.min(1, (performance.now() - t0) / HOLD_QUIT_MS)
-      setQuitP(p)
-      if (p >= 1) { L.current = 0; setQuitP(0); onExit(); return }
-      L.current = requestAnimationFrame(step)
-    }
-    L.current = requestAnimationFrame(step)
-  }
-  const lEnd = () => { cancelAnimationFrame(L.current); setQuitP(0) }
-
   const style = { '--n': tone } as CSSProperties
   const items = itemsFor(screen, portrait)
-  const quit = <div className={`strip ${portrait ? 'top' : 'left'}`} onPointerDown={lStart} onPointerUp={lEnd} onPointerCancel={lEnd} aria-label="Maintenir pour quitter"><div className="gauge" style={portrait ? { width: `${quitP * 100}%` } : { height: `${quitP * 100}%` }} /></div>
   const act = <div className={`strip ${portrait ? 'bottom' : 'right'}`} onPointerDown={rDown} onPointerMove={rMove} onPointerUp={rUp} onPointerCancel={rUp} aria-label="Appui long : fait. Double appui : tour. Glisser : écran suivant" />
   return (
-    <div className={`ride dev${portrait ? ' port' : ''}`} style={style}>
-      {quit}
+    <div className={`ride dev${portrait ? ' port' : ''}`} style={style} onClick={e => { if (!(e.target as HTMLElement).closest('.strip, .ride-bar, .sheet, .sheet-back')) setBarUntil(Date.now() + BAR_MS) }}>
       <Device items={items} data={data} tone={tone} grid={portrait ? PORTRAIT : LANDSCAPE} className="full" />
       {act}
       {Date.now() < dotsUntil && screens.length > 1 && (
         <div className="dots" aria-hidden="true">{screens.map(s => <i key={s.id} className={s.id === screen.id ? 'on' : ''} />)}</div>
+      )}
+      {(Date.now() < barUntil || panel) && (
+        <div className="ride-bar" role="toolbar" aria-label="Sortie">
+          <button onClick={() => { setPanel('sensors'); setBarUntil(Infinity) }}><Icon name="bluetooth" size={22} />Capteurs</button>
+          <button onClick={() => setPanel('quit')}><Icon name="close" size={22} />Quitter</button>
+        </div>
+      )}
+      {panel === 'sensors' && <Sheet title="Capteurs" onClose={() => { setPanel(null); setBarUntil(Date.now() + BAR_MS) }}><SensorsBlock /></Sheet>}
+      {panel === 'quit' && (
+        <Sheet title="Terminer la sortie ?" onClose={() => { setPanel(null); setBarUntil(Date.now() + BAR_MS) }}>
+          <div className="stack">
+            <button className="btn primary big" onClick={onExit}>Terminer</button>
+            <button className="btn big" onClick={() => { setPanel(null); setBarUntil(Date.now() + BAR_MS) }}>Continuer</button>
+          </div>
+        </Sheet>
       )}
       {ride.warning() && <div className="ride-state" role="status">{ride.warning()}</div>}
     </div>

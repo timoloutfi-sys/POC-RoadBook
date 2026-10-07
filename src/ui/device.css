@@ -72,9 +72,11 @@
 @keyframes ban { 0% { opacity: 0; transform: translateY(-14px); } 8%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 
 /* Plein écran de sortie : bandes tactiles de 24 px de chaque côté. */
-.ride { position: fixed; inset: 0; z-index: 100; display: grid; grid-template-columns: 24px 1fr 24px; background: var(--d-bg, #06080a); touch-action: none; user-select: none; -webkit-user-select: none; }
+.ride { position: fixed; inset: 0; z-index: 100; display: grid; grid-template-columns: 1fr 24px; background: var(--d-bg, #06080a); touch-action: none; user-select: none; -webkit-user-select: none; }
 .ride .strip { position: relative; z-index: 5; }
-.strip.left .gauge { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--danger); opacity: .85; }
+.ride-bar { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 8; display: flex; gap: 10px; }
+.ride-bar button { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; border-radius: 99px; border: 1px solid var(--d-mut); background: rgba(0, 0, 0, .8); color: #fff; font-size: 18px; font-weight: 600; }
+.ride .sheet { touch-action: pan-y; user-select: auto; -webkit-user-select: auto; }
 .dots { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 6; pointer-events: none; transition: opacity .3s; }
 .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--d-mut); }
 .dots i.on { background: var(--d-acc); transform: scale(1.4); }
@@ -122,8 +124,7 @@
 .cell-empty { position: absolute; display: grid; place-items: center; border: 1px dashed color-mix(in srgb, var(--d-mut) 55%, transparent); border-radius: 8px; margin: 2px; box-sizing: border-box; background: transparent; color: var(--d-mut); font-size: 28px; cursor: pointer; z-index: 1; }
 .wg.sel .wi { border: 2px solid var(--d-acc); border-style: solid; box-shadow: 0 0 0 3px color-mix(in srgb, var(--d-acc) 35%, transparent); }
 .wg.sel { z-index: 2; }
-.ride.port { grid-template-columns: 1fr; grid-template-rows: 24px 1fr 24px; }
-.ride.port .strip.top .gauge { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--danger); opacity: .85; }
+.ride.port { grid-template-columns: 1fr; grid-template-rows: 1fr 24px; }
 .ride.port .dots { right: auto; left: 50%; top: auto; bottom: 34px; transform: translateX(-50%); flex-direction: row; }
 .dev.portrait.full { aspect-ratio: auto; }
 .dev.thumb.portrait, .dev.editing.portrait { aspect-ratio: 1 / 2; }

@@ -140,10 +140,13 @@ export function HomeTab({ go, onStart }: { go: (tab: string) => void; onStart: (
         </div>
       )}
 
-      <div className="row" style={{ gap: 6 }}>
-        <button className="btn primary big grow" onClick={() => void rollWith(target)}><Icon name="ride" size={22} />{resume ? 'Reprendre la sortie' : `Rouler · ${target?.name ?? 'sortie libre'}`}</button>
-        <button className="iconbtn" style={{ width: 52, height: 60 }} aria-label="Choisir le road book" onClick={() => setChoose(true)}><Icon name="down" size={22} /></button>
-      </div>
+      <button className="btn primary big" style={{ width: '100%' }} onClick={() => void rollWith(target)}><Icon name="ride" size={22} />{resume ? 'Reprendre la sortie' : `Rouler · ${target?.name ?? 'sortie libre'}`}</button>
+      {!resume && (
+        <div className="row" style={{ marginTop: 8 }}>
+          {list.length > 0 && <button className="btn grow" onClick={() => setChoose(true)}>Autre road book</button>}
+          {target && <button className="btn grow" onClick={() => void rollWith(null)}>Sortie libre</button>}
+        </div>
+      )}
       {target && !target.hasRoute && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>Sans GPX : sortie libre avec les cibles de ce road book.</p>}
 
       <button className="ready" onClick={() => setPrep(true)} aria-label="Avant de partir">

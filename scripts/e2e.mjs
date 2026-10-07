@@ -125,6 +125,23 @@ test('repère et point : choisis sur le profil, sans taper le km', async (p, url
   ok(km > 60 && km < 90, `point non posé au milieu : ${km}`)
 })
 
+test('sortie libre : bouton visible, barre Capteurs / Quitter au toucher, fin confirmée', async (p, url) => {
+  await open(p, url); await tab(p, 'Road books')
+  await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200)
+  await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
+  await tab(p, 'Accueil'); await p.waitForTimeout(300)
+  ok(await p.getByRole('button', { name: 'Autre road book' }).count() === 1, 'pas de bouton « Autre road book »')
+  await p.getByRole('button', { name: 'Sortie libre', exact: true }).tap(); await p.waitForTimeout(800)
+  ok(await p.locator('.ride').count() === 1, 'écran de sortie non ouvert')
+  ok(await p.getByRole('button', { name: 'Capteurs' }).count() === 1, 'pas de barre Capteurs à l’ouverture')
+  await p.getByRole('button', { name: 'Capteurs' }).tap(); await p.waitForTimeout(400)
+  ok(await p.locator('.sheet').count() === 1, 'capteurs non ouverts dans la sortie')
+  await p.locator('.sheet-back').tap({ position: { x: 20, y: 20 } }); await p.waitForTimeout(300)
+  await p.getByRole('button', { name: 'Quitter' }).tap(); await p.waitForTimeout(300)
+  await p.getByRole('button', { name: 'Terminer' }).tap(); await p.waitForTimeout(800)
+  ok(await p.locator('.ride').count() === 0, 'la sortie ne s’est pas fermée')
+})
+
 // ---------------------------------------------------------------------------------------------
 const filter = process.argv[2]
 const srv = await startServer(), browser = await launch()

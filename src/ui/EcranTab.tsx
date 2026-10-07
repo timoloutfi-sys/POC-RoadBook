@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { TEMPLATES, type ScreenDef } from '../storage/defaults'
-import { createScreen, duplicateScreen, removeScreen } from '../storage/screens'
+import { createScreen, removeScreen } from '../storage/screens'
 import { useStore } from '../storage/store'
 import { previewData } from '../ride/data'
 import { AlertsSection } from './AlertsSection'
@@ -114,10 +114,6 @@ export function EcranTab() {
           <div className="stack">
             {(Object.keys(TEMPLATES) as (keyof typeof TEMPLATES)[]).map(k => <button key={k} className="btn" onClick={() => add(k)}>{TEMPLATES[k].n}</button>)}
             <button className="btn" onClick={() => add('vide')}>Écran vide</button>
-          </div>
-          <h3 className="h2">Copier un écran</h3>
-          <div className="stack">
-            {screens.map(s => <button key={s.id} className="btn" onClick={() => { const c = duplicateScreen(s); set({ screens: [...screens, c] }); setCreating(false); setEditId(c.id) }}>{s.name}</button>)}
           </div>
         </Sheet>
       )}

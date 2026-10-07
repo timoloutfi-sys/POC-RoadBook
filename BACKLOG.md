@@ -4,6 +4,10 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Écrans › « Nouvel écran » : retirer « Copier un écran » (modèles et écran vide seulement).
+- [x] Accueil › lancer une sortie libre : bouton visible « Sortie libre » et « Autre road book » sous « Rouler ».
+- [x] Sortie › connecter les capteurs sans quitter l'écran (barre Capteurs au toucher).
+- [x] Sortie › quitter : plus d'appui long à gauche (ne marchait pas en portrait) → toucher l'écran, « Quitter », confirmation.
 - [x] Cibles › vue trop complexe : « Suggérer un plan » doit être en haut ; « Mes cibles » (plat/montée/descente) et « Par tronçon » pas intuitifs → à simplifier (voir la proposition).
 - [x] Parcours/Cibles › créer un tronçon, une section ou un point sans taper le km : choisir sur le profil (toucher ou glisser) ou prendre une montée détectée, un point existant, ou la position actuelle.
 - [x] Road books › carte de la liste : on voit seulement la courbe → montrer si le road book est travaillé : nombre de points, zones/cibles posées, plan fait ou pas, GPX présent (aperçu plus parlant, profil avec les zones et points repérés).
