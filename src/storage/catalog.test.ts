@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { previewData } from '../ride/data'
 import { tileOf } from '../ui/tiles'
-import { CATALOG, FAMILIES, familyOf, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
+import { CATALOG, FAMILIES, OPTIONS, familyOf, fitSize, isAllowed, nearestSize, type WidgetKind } from './catalog'
 import { COLS, PORTRAIT, ROWS, TEMPLATES, mkLayout, normalizeItems, type WidgetItem } from './defaults'
 import { addWidget, applyRect, fitting, placeWithPush, overlaps, portraitFrom } from './screens'
 
@@ -149,5 +149,15 @@ describe('déplacer en poussant les autres', () => {
   it('reste dans la grille et dans les tailles autorisées', () => {
     expect(placeWithPush([A], 'a', { x: 6, y: 0, w: 1, h: 1 })).toBeNull()
     expect(placeWithPush([A], 'a', { x: 0, y: 0, w: 2, h: 2 })).toBeNull()
+  })
+})
+
+describe('puissance moyenne 3/10/30 s', () => {
+  it('le widget Puissance affiche la moyenne choisie et l’annonce dans son titre', () => {
+    const d = previewData()
+    expect(d.power3).not.toBe(d.power30)
+    const o = (k: string) => (OPTIONS.effort ?? []).find(x => x.key === k)
+    expect(o('avg')!.choices.map(c => c.v)).toEqual([3, 10, 30])
+    expect(o('avg')!.def).toBe(10)
   })
 })

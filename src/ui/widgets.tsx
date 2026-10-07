@@ -17,10 +17,12 @@ const zoneColor = (d: WidgetData, z: number) => (d.source === 'power' ? POWER_ZO
 const zoneOfTarget = (d: WidgetData) => (d.source === 'power' ? d.tg.zone : hrZoneOfPowerZone(d.tg.zone))
 const evIcon = (k: Upcoming['kind']): IconName => (k === 'montee' ? 'montee' : k === 'zone' ? 'route' : (k as IconName))
 
-function EffortW({ d, sz, metric, wkg }: { d: WidgetData; sz: Size; metric?: 'power' | 'hr'; wkg?: boolean }) {
+function EffortW({ d, sz, metric, wkg, avg }: { d: WidgetData; sz: Size; metric?: 'power' | 'hr'; wkg?: boolean; avg?: number }) {
   const src = metric ?? d.source
+  const avgP = avg === 3 ? d.power3 : avg === 30 ? d.power30 : d.power
+  if (src === 'power' && avgP !== d.power) d = { ...d, effort: d.source === 'power' ? avgP : d.effort, power: avgP }
   if (src !== d.source) d = { ...d, source: src, effort: src === 'power' ? d.power : d.hr, band: src === 'power' ? d.tg.power : d.tg.hr ?? null, noLthr: src === 'hr' && d.noLthr }
-  const lab = src === 'power' ? 'Puissance' : 'FC'
+  const lab = src === 'power' ? (avg === 3 || avg === 30 ? `Puissance ${avg} s` : 'Puissance') : 'FC'
   if (d.noLthr) return <><div className="lab">{lab}</div><div className="val">{d.effort == null ? '--' : nf0(d.effort)}</div><div className="sub">Renseigne ta FC seuil</div></>
   if (d.effort == null || !isFinite(d.effort)) return <><div className="lab">{lab}</div><div className="val">--</div>{sz !== 'S' && <div className="sub">Pas de capteur</div>}</>
   const b = d.band, st = !b ? 'ok' : d.effort > b.max ? 'hi' : d.effort < b.min ? 'lo' : 'ok'
@@ -173,7 +175,7 @@ export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
   if (it.k === 'intarget') return <InTargetView d={d} w={it.w} />
   if (it.k === 'reserve') return <ReserveView d={d} w={it.w} h={it.h} />
   switch (it.k) {
-    case 'effort': return <EffortW d={d} sz={sz} wkg={!!o.wkg} />
+    case 'effort': return <EffortW d={d} sz={sz} wkg={!!o.wkg} avg={typeof o.avg === 'number' ? o.avg : undefined} />
     case 'hr': return <EffortW d={d} sz={sz} metric="hr" />
     case 'target': return <TargetW d={d} sz={sz} />
     case 'next': return o.stops || o.content === 'stops' ? <NextStopsW d={d} sz={sz} /> : <NextW d={d} w={it.w} h={it.h} content={String(o.content ?? 'all')} />

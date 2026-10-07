@@ -258,7 +258,7 @@ export function ScreenEditor({ screen, onClose }: Props) {
           {OPTIONS[selected.k]!.map(o => (
             <Field key={o.key} label={o.label}>
               <div className="seg" role="group" aria-label={o.label}>
-                {o.choices.map(c => <button key={String(c.v)} aria-pressed={(selected.o?.[o.key] ?? o.choices[0].v) === c.v} onClick={() => setOpt(o.key, c.v)}>{c.l}</button>)}
+                {o.choices.map(c => <button key={String(c.v)} aria-pressed={(selected.o?.[o.key] ?? o.def ?? o.choices[0].v) === c.v} onClick={() => setOpt(o.key, c.v)}>{c.l}</button>)}
               </div>
             </Field>
           ))}

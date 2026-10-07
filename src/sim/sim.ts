@@ -31,6 +31,8 @@ export interface SimParams {
   rand?: () => number
 }
 
+/** Moyenne des n dernières valeurs (moins s'il y en a moins). */
+export const avgLast = (buf: number[], n: number) => { const t = buf.slice(-n); return t.length ? t.reduce((a, c) => a + c, 0) / t.length : null }
 export const avg10 = (buf: number[], fallback: number) => (buf.length ? buf.reduce((a, c) => a + c, 0) / buf.length : fallback)
 
 /** Avance d'une seconde de roulage. */

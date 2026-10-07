@@ -46,7 +46,7 @@ describe('moteur de sortie', () => {
   })
   it('garde des tampons bornés', () => {
     const { e } = replay()
-    expect(e.pBuf.length).toBeLessThanOrEqual(10); expect(e.hrHist.length).toBeLessThanOrEqual(120)
+    expect(e.pBuf.length).toBeLessThanOrEqual(30); expect(e.hrHist.length).toBeLessThanOrEqual(120)
   })
 })
 

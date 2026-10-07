@@ -1,4 +1,4 @@
-import { avg10 } from '../sim/sim'
+import { avgLast } from '../sim/sim'
 import { evalRun, smoothSev, type EvalContext, type RunState } from '../alerts/engine'
 import { targetAt, type EffortSource, type Target } from '../strategy/target'
 import type { Prio } from '../strategy/types'
@@ -64,8 +64,8 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   const st = s.run
   if (m.fix != null) s.pos.fix(m.fix)
   if (b.route) st.d = s.pos.step(1, m.speed)
-  if (m.power != null) { s.pBuf.push(m.power); if (s.pBuf.length > 10) s.pBuf.shift() } else s.pBuf = []
-  const power = s.pBuf.length ? avg10(s.pBuf, 0) : null
+  if (m.power != null) { s.pBuf.push(m.power); if (s.pBuf.length > 30) s.pBuf.shift() } else s.pBuf = []
+  const power = avgLast(s.pBuf, 10)
   if (m.speed <= 0.8) { smoothSev(st, {}); return { moving: false, tgt: 0, power, target: null, signals: [] } }
 
   st.t++; s.movD += m.speed
@@ -73,7 +73,7 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   if (st.t % 5 === 0 && m.hr != null) { s.hrHist.push(m.hr); if (s.hrHist.length > 120) s.hrHist.shift() }
   const ctx: EvalContext = { alerts: b.alerts, points: b.points, sections: b.sections, periodic: b.periodic, maxPerHour: b.maxPerHour, source: m.source, now }
   const target = targetAt(b.route, b.sections, b.base, b.ftp, b.lthr, st.d, st.t / 3600)
-  const p10 = s.pBuf.length ? avg10(s.pBuf, NaN) || null : null
+  const p10 = power || null
   const val = m.source === 'power' ? p10 : m.hr, band = m.source === 'power' ? target.power : target.hr
   let tgt: 0 | 1 | 2 = 0
   if (val != null && band && st.t - st.targetSince >= (m.source === 'hr' ? 120 : 0)) tgt = val > band.max || val < band.min ? 2 : 1

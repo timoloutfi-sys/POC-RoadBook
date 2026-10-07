@@ -89,9 +89,9 @@ export const LEGACY: Record<string, { k: WidgetKind; o?: Record<string, string |
 }
 
 /** Réglages d'un widget : une liste de choix par réglage. */
-export interface OptionDef { key: string; label: string; choices: { v: string | number | boolean; l: string }[] }
+export interface OptionDef { key: string; label: string; /** Valeur par défaut si ce n'est pas la première. */ def?: string | number | boolean; choices: { v: string | number | boolean; l: string }[] }
 export const OPTIONS: Partial<Record<WidgetKind, OptionDef[]>> = {
-  effort: [{ key: 'wkg', label: 'Unité', choices: [{ v: false, l: 'W' }, { v: true, l: 'W/kg' }] }],
+  effort: [{ key: 'wkg', label: 'Unité', choices: [{ v: false, l: 'W' }, { v: true, l: 'W/kg' }] }, { key: 'avg', label: 'Moyenne', def: 10, choices: [{ v: 3, l: '3 s' }, { v: 10, l: '10 s' }, { v: 30, l: '30 s' }] }],
   speed: [{ key: 'avg', label: 'Mesure', choices: [{ v: false, l: 'Instantanée' }, { v: true, l: 'Moyenne' }] }],
   next: [{ key: 'content', label: 'Afficher', choices: [{ v: 'all', l: 'Points et notes' }, { v: 'points', l: 'Points' }, { v: 'notes', l: 'Notes' }, { v: 'stops', l: 'Arrêts' }] }],
   profile: [{ key: 'range', label: 'À venir', choices: [{ v: 5, l: '5 km' }, { v: 15, l: '15 km' }, { v: 25, l: '25 km' }] }],

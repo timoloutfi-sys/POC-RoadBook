@@ -44,6 +44,9 @@ export interface WidgetData {
   plan: PlanProgress | null
   /** Puissance (moy. 10 s), indépendante de la source qui pilote la cible. */
   power: number | null
+  /** Mêmes mesures lissées sur 3 s et 30 s, pour le widget Puissance. */
+  power3: number | null
+  power30: number | null
   /** Masse du coureur (kg), pour les W/kg. */
   mass: number
   /** Réserves, zones, dérive, glucides, tour ; null sans moteur (aperçu sans données). */
@@ -106,6 +109,8 @@ export interface Inputs {
   run: RunState
   /** Moyenne 10 s en watts. */
   power: number | null
+  power3?: number | null
+  power30?: number | null
   hr: number | null
   cad: number | null
   /** km/h */
@@ -146,7 +151,7 @@ export function buildData(i: Inputs): WidgetData {
     hrHist: i.hrHist, sev: run.sev, banner: i.banner, now: i.now, arrival: eta,
     noLthr: i.source === 'hr' && !lthr,
     plan: i.plan ?? null,
-    power: i.power, mass: i.rider.mass, m: i.m ?? null,
+    power: i.power, power3: i.power3 ?? i.power, power30: i.power30 ?? i.power, mass: i.rider.mass, m: i.m ?? null,
     slope: route ? +gradeAtDist(route.profile, run.d).toFixed(1) : null,
     climb: route ? climbView(route, km) : null,
     sun: route ? sunView(route, km, i.now) : null,
@@ -166,7 +171,7 @@ export function previewData(source: EffortSource = 'power'): WidgetData {
     now: new Date(2026, 5, 21, 14, 30), arrival: new Date(2026, 5, 21, 19, 5), noLthr: false,
     plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790, startedAt: new Date(2026, 5, 21, 13, 0).valueOf(), plannedEndS: 6 * 3600 },
     memo: 'Au ravito de Nogent : remplir les 2 bidons, une barre salée, ne pas traîner.',
-    power: 168, mass: 78, slope: 3.2, sun: { kind: 'set', at: new Date(2026, 5, 21, 21, 55) },
+    power: 168, power3: 181, power30: 163, mass: 78, slope: 3.2, sun: { kind: 'set', at: new Date(2026, 5, 21, 21, 55) },
     climb: { state: 'in', lenM: 4200, avg: 6.1, gainM: 256, doneM: 1500, toGoKm: 2.7, steps: [{ lenM: 600, grade: 4 }, { lenM: 900, grade: 6 }, { lenM: 800, grade: 8 }, { lenM: 700, grade: 5 }, { lenM: 1200, grade: 7 }] },
     m: {
       punch: 82, endurance: 91, drift: 2.4, zones: [1200, 2900, 900, 300, 100], zoneNow: 1, zoneSince: 5100, inTarget: 68, under: 700, inT: 2900, over: 600,

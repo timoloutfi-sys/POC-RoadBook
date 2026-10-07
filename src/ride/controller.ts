@@ -6,7 +6,7 @@ import { defaultMetricCfg, metricsView } from './metrics'
 import { eat, lap, newEngine, tick, type EngineState } from './engine'
 import { rideState } from './scope'
 import { SENSORS, SensorHub } from '../sensors/ble'
-import { avg10, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
+import { avg10, avgLast, newSim, simStep, type SimParams, type SimState } from '../sim/sim'
 import { useStore } from '../storage/store'
 import { effectiveFtp, effectiveLthr } from '../strategy/rider'
 import { targetAt, type EffortSource } from '../strategy/target'
@@ -207,7 +207,7 @@ class Ride {
     const v = this.hub.vals, g = this.gps, fresh = performance.now() - g.ts < 10000
     const elapsed = recorder.ride ? (Date.now() - recorder.ride.start) / 1000 : st.t
     return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, memo: c.notes, run: st, plan: this.progress(st.d / 1000, elapsed),
-      power: this.eng.pBuf.length ? avg10(this.eng.pBuf, 0) : null, hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
+      power: avgLast(this.eng.pBuf, 10), power3: avgLast(this.eng.pBuf, 3), power30: avgLast(this.eng.pBuf, 30), hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
       vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner, m: metricsView(this.eng.m, this.eng.cfg, source === 'power', st.t) })
   }
 
