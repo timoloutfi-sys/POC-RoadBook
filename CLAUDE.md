@@ -96,6 +96,8 @@ C'est le cœur de l'appli : chaque estimation doit être réaliste. Tests de ré
 - **Widgets** : définis par leurs données et leurs règles de mise en page (tailles autorisées), pas par le DOM ; lisibles sans animation et avec peu de couleurs (texte ou forme en plus de la couleur).
 - **Analyse** des sorties : sur le téléphone.
 
+- **Chantier matériel** : `docs/HARDWARE.md` (décisions, composants, questions ouvertes), `docs/FORMAT-PAQUET.md` (contrat soft/boîtier, versionné) et `hardware/BACKLOG.md`. Une conversation « hardware » part de ces fichiers ; le soft ne change le format du paquet qu'en mettant `docs/FORMAT-PAQUET.md` à jour.
+
 ## Points d'attention
 
 - **Web Bluetooth** : Chrome sur Android uniquement pour le POC. HTTPS obligatoire (GitHub Pages).
