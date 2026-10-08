@@ -74,9 +74,11 @@
 /* Plein écran de sortie : bandes tactiles de 24 px de chaque côté. */
 .ride { position: fixed; inset: 0; z-index: 100; display: grid; grid-template-columns: 1fr 24px; background: var(--d-bg, #06080a); touch-action: none; user-select: none; -webkit-user-select: none; }
 .ride .strip { position: relative; z-index: 5; }
-.ride-bar { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 8; display: flex; gap: 10px; }
-.ride-bar button { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; border-radius: 99px; border: 1px solid var(--d-mut); background: rgba(0, 0, 0, .8); color: #fff; font-size: 18px; font-weight: 600; }
-.ride .sheet { touch-action: pan-y; user-select: auto; -webkit-user-select: auto; }
+.ride-bar { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px; right: 12px; margin: 0 auto; max-width: 520px; z-index: 8; display: flex; gap: 8px; }
+.ride-bar button { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 6px; border-radius: 99px; border: 1px solid var(--d-mut); background: rgba(0, 0, 0, .8); color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+.ride-bar button svg { flex: none; }
+.ride.port .ride-bar { right: 12px; }
+.ride .sheet { color: var(--ink); touch-action: pan-y; user-select: auto; -webkit-user-select: auto; }
 .dots { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 6; pointer-events: none; transition: opacity .3s; }
 .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--d-mut); }
 .dots i.on { background: var(--d-acc); transform: scale(1.4); }

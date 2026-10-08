@@ -4,6 +4,7 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Sortie › barre Capteurs / Appli / Quitter dépassait des bords en portrait → trois boutons de même largeur dans l'écran ; feuilles lisibles (texte sombre sur fond sombre corrigé).
 - [x] Sortie › changer un réglage en cours de route sans terminer : bouton « Appli » dans la barre, bandeau « Sortie en cours » pour revenir.
 - [x] Sortie › tous les boutons « Rouler » passent par « Avant de partir » (road book, écran, capteurs) puis « Démarrer la sortie » ; bouton collant ; « 1 point » au singulier.
 - [x] Plan › zones (« Z2 · Endurance ») au lieu des watts/bpm, sauf cible personnalisée.
