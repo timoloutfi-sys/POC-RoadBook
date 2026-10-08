@@ -62,6 +62,8 @@ Critères : lisible en plein soleil, lisible de nuit, 25 h sur batterie, mise à
 | — | e‑paper GDEM035T81 3,5" | 384 × 184 (2,1 : 1) | 79,7 × 38,2 mm | 13,3 mm | non | non | — | **écarté** : rafraîchissement complet conseillé toutes les 5 mises à jour partielles, usure à 1 Hz, 0–50 °C |
 | — | TFT classique, AMOLED, écrans « barre » | | | | oui | oui | élevée | **écartés** : soleil ou autonomie ; les barres transflectives sont sur mesure |
 
+**Fiche du candidat C reçue (VIEWE LCM-UEED035HV-RX40-A001A, plan du 2024-12-09)** : 3,47" 320×480 transflectif (normalement noir), pilote ST7365 « ou compatible », −20 à 70 °C. Nappe **40 broches au pas de 0,5 mm** (19,5 mm sur 39 pas). Interface choisie par les broches IM0–IM2 (8080 8/16 bits ou SPI). Rétroéclairage : **6 LED blanches en parallèle, 120 mA au total, 2,9 V** (≈ 350 mW à pleine puissance), à piloter par un transistor et en PWM depuis l'ESP32, éteint de jour. Le plan est celui de la version tactile (« LCM+CTP ») : broches 1–4 = tactile, à confirmer pour la version sans tactile. Reste à obtenir : code d'initialisation ESP32 ou Arduino (ST7365 peu courant), réglage IM pour le SPI, consommation rétroéclairage éteint.
+
 **Proposition (à valider par le porteur)** : comparer **A et C côte à côte**, sur table puis dehors au soleil et de nuit, avant de choisir ; B reste l'option « plus grand en noir et blanc » si A est trop petit et la couleur pas indispensable.
 
 ## Liste de courses : prototype de table
