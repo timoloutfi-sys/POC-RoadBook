@@ -9,7 +9,7 @@ Une ligne par point, du plus important au moins important. Même méthode que `B
 - [ ] Essai 3 : lire le GPS, voir le fix et les coordonnées (dehors).
 - [ ] Essai 4 : se connecter en BLE à un capteur cardio, puis puissance/cadence/vitesse.
 - [ ] Essai 5 : recevoir un fichier du téléphone en BLE (débit réel) pour dimensionner le paquet.
-- [ ] Essai 6 bis : brancher capteurs de luminosité et de température (même câble que le GPS), vérifier les adresses I²C, lire lux et °C ; tester l'emplacement qui limite l'échauffement.
+- [ ] Essai 6 bis : brancher capteurs de luminosité et de température (même câble que le GPS), faire un scan I²C (GPS attendu en 0x10, BH1750 en 0x23, AHT20 en 0x38) et vérifier l'absence de conflit, lire lux et °C ; tester l'emplacement qui limite l'échauffement.
 - [ ] Essai 6 : mesurer la consommation avec le wattmètre et en déduire l'autonomie.
 - [ ] ⚠️ Indispensable produit final : jour/nuit automatique (lux + heure GPS) et température ; prévoir fenêtre du capteur de lumière et emplacement du capteur de température dans le boîtier 3D.
 - [ ] Définir l'enregistrement (`docs/FORMAT-PAQUET.md`) avec lux et température.
