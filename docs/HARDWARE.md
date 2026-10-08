@@ -40,12 +40,29 @@ Questions de départ, toutes tranchées avec le porteur du projet (débutant en 
 
 | # | Question | Décision | Raison |
 |---|---|---|---|
-| 1 | Écran | **Memory LCD Sharp 2,7" 400×240**, noir et blanc (LS027B7DH01 ; en prototype, la carte Adafruit 4694) | Lisible plein soleil, quelques mW, prix raisonnable (~45 €). Zone active 58,8 × 35,3 mm, contour 62,8 × 43 mm : boîtier ~8,5 × 6 cm, qui tient sur la partie plate d'un cintre de 42 cm à côté du GPS (`hardware/maquette-cintre.svg`). Le 4,4" (320×240, contour 94,8 × 75,2 mm, ~75 €) est trop large et trop cher pour la v1. Pas de lumière intégrée : éclairage frontal à étudier pour la nuit (hors prototype de table). |
+| 1 | Écran | **À trancher de nouveau** (souhait de couleur et de meilleure place sur le cintre, voir « Étude écran ») ; décision initiale : **Memory LCD Sharp 2,7" 400×240**, noir et blanc (LS027B7DH01 ; en prototype, la carte Adafruit 4694) | Lisible plein soleil, quelques mW, prix raisonnable (~45 €). Zone active 58,8 × 35,3 mm, contour 62,8 × 43 mm : boîtier ~8,5 × 6 cm, qui tient sur la partie plate d'un cintre de 42 cm à côté du GPS (`hardware/maquette-cintre.svg`). Le 4,4" (320×240, contour 94,8 × 75,2 mm, ~75 €) est trop large et trop cher pour la v1. Pas de lumière intégrée : éclairage frontal à étudier pour la nuit (hors prototype de table). |
 | 2 | Transfert du paquet | **Bluetooth BLE** (le téléphone pousse le paquet, le boîtier renvoie l'enregistrement) | Même technique que les capteurs (Web Bluetooth, Chrome Android), sans câble ni réglage réseau. Débit ~10 à 20 Ko/s, à mesurer : paquet binaire visé < 100 Ko, enregistrement de 25 h ~2 Mo (quelques minutes). L'USB-C sert à charger et programmer. Le Wi‑Fi est écarté (page HTTPS vers un boîtier HTTP local : probablement bloqué, à ne pas tester pour l'instant). |
 | 3 | Budget et nombre | **~100 à 150 €, 1 exemplaire** pour le prototype de table | Valider écran, GPS et Bluetooth avant toute dépense de boîtier. Voir « Liste de courses » : le total réaliste, port compris, est plutôt ~140 à 170 €. |
 | 4 | Capteurs dès le prototype | **Cardio, puissance, cadence, vitesse** (services BLE standard) | Les quatre sont nécessaires à la course. La vitesse et la cadence peuvent aussi venir du GPS et du capteur de puissance : à comparer en essai. |
 | 5 | Carte | **Cartes de développement toutes faites**, reliées par fils et câble ; pas de circuit sur mesure avant validation | Moins risqué pour un débutant. Choix : Adafruit ESP32‑S3 Feather (puce S3, chargeur de batterie intégré, jauge de batterie) + écran + GPS en modules. |
 | 6 | Capteurs d'ambiance | **Luminosité et température : indispensables au produit final**, donc intégrés dès le prototype de table (décision du porteur, 2026-10-08) | Bascule jour/nuit automatique (mesure + heure du GPS), réglage futur de la lumière frontale. Les ajouter tard imposerait de redessiner le boîtier (fenêtre du capteur de lumière, capteur de température éloigné de la chaleur) et le bus I²C. Coût : ~10 €. |
+
+## Étude écran (2026-10-08)
+
+Critères : lisible en plein soleil, lisible de nuit, 25 h sur batterie, mise à jour chaque seconde, forme longue et basse pour le cintre, grille 6 × 3 de l'appli (rapport 2 : 1), achetable à l'unité. Comparaison à l'échelle : `hardware/ecrans-candidats.svg`.
+
+**Constat** : aucun écran réflectif ou transflectif au rapport 2 : 1 n'est vendu à l'unité (seulement de l'e‑paper, écarté, ou des écrans « barre » sur mesure). Les candidats sont en 5 : 3 ou 3 : 2 ; la grille 6 × 3 tient en cases carrées si l'on réserve **une bande en haut** (bandeaux du parcours, rappels, état), ce qui est cohérent avec l'appli. À reporter côté soft : aperçu des écrans dans la grille du boîtier.
+
+| | Écran | Pixels (paysage) | Zone active | Case 6 × 3 | Couleur | Nuit | Énergie | Achat / risque |
+|---|---|---|---|---|---|---|---|---|
+| A | Sharp LS027B7DH01 2,7" | 400 × 240 (5 : 3) | 58,8 × 35,3 mm | 9,8 mm | non | éclairage frontal Azumo 11103‑06 (module actif chez DigiKey, ~78 $ relevé ancien) | panneau 50–175 µW (Azumo) | carte Adafruit 4694 ; le plus sûr |
+| B | Sharp LS032B7DD02 3,2" | 536 × 336 (1,6 : 1) | 68,1 × 42,7 mm | 11,3 mm | non | versions avec éclairage frontal annoncées (Youritech, fiche Azumo), sources contradictoires | même famille que A | ~39 $ DigiKey, délai fabricant 28 semaines ; pilote Arduino ancien (techtoys) ; pas de carte prête |
+| C | TFT transflectif 3,5" (ex. VIEWE 320×480, pilote ST7365) | 480 × 320 (3 : 2) | 73,4 × 49,0 mm | 12,2 mm | **oui, 65 000 couleurs** | rétroéclairage | non mesuré ; plus élevé que A/B, à mesurer | modules ~15–30 $ (AliExpress, à vérifier) ; techno des Garmin Edge 840/1040 et Hammerhead Karoo 3 |
+| — | JDI LPM027M128B 2,7" 8 couleurs (Azumo 12380) | 400 × 240 | 58,8 × 35,3 mm | 9,8 mm | 8 couleurs | éclairage frontal | très faible | **fin de vie JDI (mai 2022)** : prototype seulement, pas pour un produit |
+| — | e‑paper GDEM035T81 3,5" | 384 × 184 (2,1 : 1) | 79,7 × 38,2 mm | 13,3 mm | non | non | — | **écarté** : rafraîchissement complet conseillé toutes les 5 mises à jour partielles, usure à 1 Hz, 0–50 °C |
+| — | TFT classique, AMOLED, écrans « barre » | | | | oui | oui | élevée | **écartés** : soleil ou autonomie ; les barres transflectives sont sur mesure |
+
+**Proposition (à valider par le porteur)** : comparer **A et C côte à côte**, sur table puis dehors au soleil et de nuit, avant de choisir ; B reste l'option « plus grand en noir et blanc » si A est trop petit et la couleur pas indispensable.
 
 ## Liste de courses : prototype de table
 
@@ -103,6 +120,8 @@ Pour 25 h, hypothèse de travail : consommation moyenne ~60 à 120 mA (carte ESP
 6. Stockage : flash interne (4 Mo) ou microSD pour l'enregistrement de 25 h (~2 Mo + marge) ?
 
 ## Journal des décisions
+
+- **2026-10-08 (étude écran)** : le porteur veut de la couleur et une forme adaptée au cintre ; l'écran est remis à trancher. Étude ci‑dessus : e‑paper, TFT classique et JDI couleur (fin de vie) écartés pour le produit ; finalistes Sharp 2,7" (A), Sharp 3,2" (B), TFT transflectif 3,5" couleur (C). Proposition : essai comparatif A/C. Format du paquet inchangé.
 
 - **2026-10-08 (suite)** : capteurs de luminosité et de température = indispensables au produit final ; intégrés dès le prototype pour ne pas redessiner boîtier et bus plus tard. Références recommandées BH1750 + AHT20 (à vérifier). Pas de changement du format du paquet ; l'enregistrement les prévoira (lux, température).
 

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 560" font-family="sans-serif" font-size="12">
+<!-- Écrans candidats à l'échelle (1 mm = 3 px). Grille 6 × 3 de l'appli posée sur la zone active ; bande du haut (hachurée) = bandeaux et état. Données des fiches fabricants, voir docs/HARDWARE.md. -->
+<rect width="700" height="560" fill="#fff"/>
+<defs><pattern id="h" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#bbb" stroke-width="2"/></pattern></defs>
+<text x="350.0" y="22" text-anchor="middle" font-size="15" font-weight="bold">Écrans candidats à l'échelle (1 mm = 3 px)</text>
+<text x="350.0" y="40" text-anchor="middle" font-size="11" fill="#555">Grille 6 × 3 de l'appli sur la zone active · bande hachurée = bandeaux / état · contour = module nu (boîtier ≈ +10 mm par côté)</text>
+<text x="20" y="70" font-weight="bold" fill="#1a7f37">A · Sharp 2,7" LS027B7DH01 (+ éclairage Azumo)</text>
+<text x="20" y="85" font-size="11" fill="#444">400×240 · noir et blanc · réflectif · case 9,8 mm</text>
+<rect x="20" y="95" width="188.4" height="129.0" rx="4" fill="#eee" stroke="#666"/>
+<rect x="26.0" y="106.6" width="176.4" height="105.8" fill="#fff" stroke="#1a7f37" stroke-width="2"/>
+<rect x="26.0" y="106.6" width="176.4" height="17.6" fill="url(#h)"/>
+<line x1="55.4" y1="124.2" x2="55.4" y2="212.4" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="84.8" y1="124.2" x2="84.8" y2="212.4" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="114.2" y1="124.2" x2="114.2" y2="212.4" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="143.6" y1="124.2" x2="143.6" y2="212.4" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="173.0" y1="124.2" x2="173.0" y2="212.4" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="26.0" y1="153.6" x2="202.4" y2="153.6" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="26.0" y1="183.0" x2="202.4" y2="183.0" stroke="#1a7f37" stroke-opacity=".5"/>
+<text x="20" y="240.0" font-size="11" fill="#444">module 62.8 × 43 mm · actif 58.8 × 35.28 mm</text>
+<text x="360" y="70" font-weight="bold" fill="#1a7f37">B · Sharp 3,2" LS032B7DD02 (paysage)</text>
+<text x="360" y="85" font-size="11" fill="#444">536×336 · noir et blanc · réflectif · case 11,3 mm</text>
+<rect x="360" y="95" width="228.0" height="141.1" rx="4" fill="#eee" stroke="#666"/>
+<rect x="371.9" y="101.5" width="204.2" height="128.0" fill="#fff" stroke="#1a7f37" stroke-width="2"/>
+<rect x="371.9" y="101.5" width="204.2" height="25.9" fill="url(#h)"/>
+<line x1="405.9" y1="127.4" x2="405.9" y2="229.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="440.0" y1="127.4" x2="440.0" y2="229.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="474.0" y1="127.4" x2="474.0" y2="229.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="508.0" y1="127.4" x2="508.0" y2="229.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="542.1" y1="127.4" x2="542.1" y2="229.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="371.9" y1="161.5" x2="576.1" y2="161.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<line x1="371.9" y1="195.5" x2="576.1" y2="195.5" stroke="#1a7f37" stroke-opacity=".5"/>
+<text x="360" y="252.1" font-size="11" fill="#444">module 76 × 47.02 mm · actif 68.07 × 42.67 mm</text>
+<text x="20" y="320" font-weight="bold" fill="#1f5fbf">C · TFT transflectif 3,5" (paysage)</text>
+<text x="20" y="335" font-size="11" fill="#444">480×320 · couleur · rétroéclairé la nuit · case 12,2 mm</text>
+<rect x="20" y="345" width="241.8" height="156.8" rx="4" fill="#eee" stroke="#666"/>
+<rect x="30.7" y="349.9" width="220.3" height="146.9" fill="#fff" stroke="#1f5fbf" stroke-width="2"/>
+<rect x="30.7" y="349.9" width="220.3" height="36.7" fill="url(#h)"/>
+<line x1="67.5" y1="386.7" x2="67.5" y2="496.8" stroke="#1f5fbf" stroke-opacity=".5"/>
+<line x1="104.2" y1="386.7" x2="104.2" y2="496.8" stroke="#1f5fbf" stroke-opacity=".5"/>
+<line x1="140.9" y1="386.7" x2="140.9" y2="496.8" stroke="#1f5fbf" stroke-opacity=".5"/>
+<line x1="177.6" y1="386.7" x2="177.6" y2="496.8" stroke="#1f5fbf" stroke-opacity=".5"/>
+<line x1="214.3" y1="386.7" x2="214.3" y2="496.8" stroke="#1f5fbf" stroke-opacity=".5"/>
+<line x1="30.7" y1="423.4" x2="251.1" y2="423.4" stroke="#1f5fbf" stroke-opacity=".5"/>
+<line x1="30.7" y1="460.1" x2="251.1" y2="460.1" stroke="#1f5fbf" stroke-opacity=".5"/>
+<text x="20" y="517.8" font-size="11" fill="#444">module 80.6 × 52.26 mm · actif 73.44 × 48.96 mm</text>
+<text x="360" y="320" font-weight="bold" fill="#999">D · e-paper 3,5" GDEM035T81 — écarté</text>
+<text x="360" y="335" font-size="11" fill="#444">384×184 · noir et blanc · s'use à 1 Hz · case 13,3 × 12,7 mm</text>
+<rect x="360" y="345" width="275.2" height="135.1" rx="4" fill="#eee" stroke="#666"/>
+<rect x="378.1" y="355.3" width="239.0" height="114.5" fill="#fff" stroke="#999" stroke-width="2" stroke-dasharray="5 4"/>
+<line x1="417.9" y1="355.3" x2="417.9" y2="469.8" stroke="#999" stroke-opacity=".5"/>
+<line x1="457.8" y1="355.3" x2="457.8" y2="469.8" stroke="#999" stroke-opacity=".5"/>
+<line x1="497.6" y1="355.3" x2="497.6" y2="469.8" stroke="#999" stroke-opacity=".5"/>
+<line x1="537.5" y1="355.3" x2="537.5" y2="469.8" stroke="#999" stroke-opacity=".5"/>
+<line x1="577.3" y1="355.3" x2="577.3" y2="469.8" stroke="#999" stroke-opacity=".5"/>
+<line x1="378.1" y1="393.5" x2="617.1" y2="393.5" stroke="#999" stroke-opacity=".5"/>
+<line x1="378.1" y1="431.6" x2="617.1" y2="431.6" stroke="#999" stroke-opacity=".5"/>
+<text x="360" y="496.1" font-size="11" fill="#444">module 91.75 × 45.03 mm · actif 79.68 × 38.18 mm</text>
+</svg>

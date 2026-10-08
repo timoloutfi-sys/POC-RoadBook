@@ -4,6 +4,8 @@ Une ligne par point, du plus important au moins important. Même méthode que `B
 
 ## À faire
 - [ ] 🛒 Commander le prototype de table, capteurs lumière et température compris (liste dans `docs/HARDWARE.md`) ; vérifier stock, prix et broches soudées.
+- [ ] ❓ Choisir l'écran : comparer au soleil et de nuit le Sharp 2,7" (A) et un TFT transflectif 3,5" couleur (C), mesurer leur consommation (voir « Étude écran »).
+- [ ] Signaler au soft : aperçu des écrans dans la grille du boîtier (bande du haut + 6 × 3).
 - [ ] Essai 1 : alimenter la carte ESP32‑S3 en USB‑C et la programmer avec un « clignote une LED ».
 - [ ] Essai 2 : afficher un texte sur l'écran Memory LCD, juger la lisibilité intérieur/extérieur.
 - [ ] Essai 3 : lire le GPS, voir le fix et les coordonnées (dehors).
