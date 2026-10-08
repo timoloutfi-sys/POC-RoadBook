@@ -3,13 +3,16 @@
 Une ligne par point, du plus important au moins important. Même méthode que `BACKLOG.md` du soft.
 
 ## À faire
-- [ ] 🛒 Commander le prototype de table (liste dans `docs/HARDWARE.md`) ; vérifier stock, prix et broches soudées.
+- [ ] 🛒 Commander le prototype de table, capteurs lumière et température compris (liste dans `docs/HARDWARE.md`) ; vérifier stock, prix et broches soudées.
 - [ ] Essai 1 : alimenter la carte ESP32‑S3 en USB‑C et la programmer avec un « clignote une LED ».
 - [ ] Essai 2 : afficher un texte sur l'écran Memory LCD, juger la lisibilité intérieur/extérieur.
 - [ ] Essai 3 : lire le GPS, voir le fix et les coordonnées (dehors).
 - [ ] Essai 4 : se connecter en BLE à un capteur cardio, puis puissance/cadence/vitesse.
 - [ ] Essai 5 : recevoir un fichier du téléphone en BLE (débit réel) pour dimensionner le paquet.
+- [ ] Essai 6 bis : brancher capteurs de luminosité et de température (même câble que le GPS), vérifier les adresses I²C, lire lux et °C ; tester l'emplacement qui limite l'échauffement.
 - [ ] Essai 6 : mesurer la consommation avec le wattmètre et en déduire l'autonomie.
+- [ ] ⚠️ Indispensable produit final : jour/nuit automatique (lux + heure GPS) et température ; prévoir fenêtre du capteur de lumière et emplacement du capteur de température dans le boîtier 3D.
+- [ ] Définir l'enregistrement (`docs/FORMAT-PAQUET.md`) avec lux et température.
 - [ ] ❓ Trancher : éclairage de nuit, nombre de boutons, module GPS, batterie 25 h, stockage (voir « Questions ouvertes »).
 - [ ] Définir le format binaire du paquet et de l'enregistrement (`docs/FORMAT-PAQUET.md`).
 - [ ] Firmware : afficher un widget (Puissance) avec des données simulées sur l'écran choisi.

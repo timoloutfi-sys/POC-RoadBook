@@ -45,6 +45,7 @@ Questions de départ, toutes tranchées avec le porteur du projet (débutant en 
 | 3 | Budget et nombre | **~100 à 150 €, 1 exemplaire** pour le prototype de table | Valider écran, GPS et Bluetooth avant toute dépense de boîtier. Voir « Liste de courses » : le total réaliste, port compris, est plutôt ~140 à 170 €. |
 | 4 | Capteurs dès le prototype | **Cardio, puissance, cadence, vitesse** (services BLE standard) | Les quatre sont nécessaires à la course. La vitesse et la cadence peuvent aussi venir du GPS et du capteur de puissance : à comparer en essai. |
 | 5 | Carte | **Cartes de développement toutes faites**, reliées par fils et câble ; pas de circuit sur mesure avant validation | Moins risqué pour un débutant. Choix : Adafruit ESP32‑S3 Feather (puce S3, chargeur de batterie intégré, jauge de batterie) + écran + GPS en modules. |
+| 6 | Capteurs d'ambiance | **Luminosité et température : indispensables au produit final**, donc intégrés dès le prototype de table (décision du porteur, 2026-10-08) | Bascule jour/nuit automatique (mesure + heure du GPS), réglage futur de la lumière frontale. Les ajouter tard imposerait de redessiner le boîtier (fenêtre du capteur de lumière, capteur de température éloigné de la chaleur) et le bus I²C. Coût : ~10 €. |
 
 ## Liste de courses : prototype de table
 
@@ -58,12 +59,15 @@ Prix indicatifs relevés en octobre 2026 sur les pages des vendeurs : **stocks e
 | Câble | STEMMA QT / Qwiic, 100 mm | ~1 à 2 € | même vendeur que le GPS | Relie le GPS à la carte, sans soudure. |
 | Batterie | LiPo 3,7 V, connecteur JST‑PH 2 broches, **2 000 mAh** (Adafruit n° 2011 ou équivalent) | ~12 € | Adafruit, Pi Hut | Fonctionnement sans USB, charge, première mesure d'autonomie. Vérifier la polarité du connecteur avant de brancher (cf. « Ce que tu dois faire »). |
 | Plaque d'essai + fils | Breadboard demi‑taille + fils dupont mâle‑mâle | ~8 à 10 € | n'importe quel revendeur (GoTronic, Kubii, Amazon) | Raccorder l'écran et les boutons. |
+| Luminosité | Capteur de lumière I²C, STEMMA QT : **BH1750** (Adafruit n° 4681) ou VEML7700 (n° 4162) | ~5 € (prix de mémoire, à vérifier) | Adafruit, The Pi Hut | Jour/nuit automatique. Attention : le VEML7700 et le GPS PA1010D ont, à ma connaissance, la même adresse I²C (0x10) : prendre le BH1750 ou brancher le GPS en UART. À vérifier sur les fiches. |
+| Température | **AHT20** (Adafruit n° 4566) ; ou BME280 (n° 2652, ~15 €) si on veut aussi la pression/altitude | ~5 € (prix de mémoire, à vérifier) | Adafruit, The Pi Hut | Température ambiante. Mesure faussée par la chaleur du boîtier : tester plusieurs emplacements. |
+| Câbles STEMMA QT supplémentaires | 1 de plus, pour chaîner les capteurs | ~2 € | idem | Un seul bus pour GPS, lumière, température. |
 | Boutons | 4 boutons tactiles 6 mm | ~3 € | idem | Tester Fait, tour, écran suivant, quitter. |
 | Mesure | Wattmètre USB‑C (testeur de tension/courant) | ~12 à 15 € | idem | Mesurer la consommation, donc l'autonomie. |
 | Soudure (si nécessaire) | Fer à souder + étain, **ou** un atelier/ami qui en a | ~20 à 30 € | idem | Les cartes et l'écran Adafruit arrivent souvent avec des broches **non soudées** : à vérifier sur la fiche de chaque produit. |
 | Câble USB‑C | un câble donnée + charge | ~0 à 5 € | tu en as sûrement un | Programmer la carte et la charger. |
 
-**Total**: ~125 à 140 € sans fer à souder, ~145 à 170 € avec. Au‑dessus du budget de 150 € si tu dois acheter le fer : à toi de voir ce qu'on reporte (wattmètre, plaque d'essai).
+**Total**: ~135 à 150 € sans fer à souder, ~155 à 180 € avec (capteurs lumière et température inclus, ~10 €). Au‑dessus du budget de 150 € si tu dois acheter le fer : à toi de voir ce qu'on reporte (wattmètre, plaque d'essai).
 
 Pas encore dans la liste, volontairement : éclairage frontal de l'écran, boîtier 3D, fixation cintre, grosse batterie.
 
@@ -90,6 +94,7 @@ Pour 25 h, hypothèse de travail : consommation moyenne ~60 à 120 mA (carte ESP
 
 ## Questions ouvertes (restantes)
 
+0. Emplacement des capteurs sur le boîtier : fenêtre du capteur de lumière (orientée vers le ciel, pas masquée par le cintre ni la main), température éloignée de la carte, de la batterie et du soleil direct. À trancher avant de dessiner le boîtier 3D.
 1. Éclairage de nuit de l'écran : éclairage frontal ou lumière LED latérale ? (Après le prototype de table.)
 2. Boutons : combien, quelle disposition, étanchéité (gants, pluie).
 3. Module GPS : le PA1010D suffit‑il en précision et en consommation, ou faut‑il un u‑blox multi‑constellation ?
@@ -98,5 +103,7 @@ Pour 25 h, hypothèse de travail : consommation moyenne ~60 à 120 mA (carte ESP
 6. Stockage : flash interne (4 Mo) ou microSD pour l'enregistrement de 25 h (~2 Mo + marge) ?
 
 ## Journal des décisions
+
+- **2026-10-08 (suite)** : capteurs de luminosité et de température = indispensables au produit final ; intégrés dès le prototype pour ne pas redessiner boîtier et bus plus tard. Références recommandées BH1750 + AHT20 (à vérifier). Pas de changement du format du paquet ; l'enregistrement les prévoira (lux, température).
 
 - **2026-10-08** : écran Memory LCD Sharp 2,7" 400×240 ; transfert du paquet par BLE ; budget prototype ~100 à 150 € (un exemplaire) ; capteurs cardio, puissance, cadence, vitesse ; cartes toutes faites (Adafruit ESP32‑S3 Feather). Maquette d'encombrement : `hardware/maquette-cintre.svg`. Aucun changement du format du paquet (`FORMAT-PAQUET.md` reste en version 1).
