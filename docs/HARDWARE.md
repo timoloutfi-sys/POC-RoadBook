@@ -76,6 +76,27 @@ Critères : lisible en plein soleil, lisible de nuit, 25 h sur batterie, mise à
 
 **Proposition (à valider par le porteur)** : comparer **A et C côte à côte**, sur table puis dehors au soleil et de nuit, avant de choisir ; B reste l'option « plus grand en noir et blanc » si A est trop petit et la couleur pas indispensable.
 
+## Liste de courses retenue (2026-10-09, AliExpress)
+
+Choix du porteur : carte VIEWE ESP32‑S3 + écran transflectif 3,5" (variante 282×470) comme cœur du prototype, carte DevKitC‑1 N16R8 en secours et pour les essais.
+
+| # | Pièce | Lien | Prix vu |
+|---|---|---|---|
+| 1 | Carte VIEWE ESP32‑S3 + écran transflectif 3,5", **282×470** | https://www.aliexpress.us/item/3256808106979001.html | ~48,6 $ |
+| 2 | ESP32‑S3 DevKitC‑1 N16R8, broches soudées | https://www.aliexpress.us/item/3256809239619960.html | ~7,4 $ |
+| 3 | GPS ATGM336H avec antenne | https://www.aliexpress.us/item/3256809504929810.html | ~2,5 $ |
+| 4 | Lumière BH1750 (GY‑302) | https://www.aliexpress.us/item/3256810260002611.html | ~1 $ |
+| 5 | Température + pression AHT20 + BMP280 | https://www.aliexpress.us/item/3256811986526527.html | ~1 $ |
+| 6 | Module « UPS » 18650 : charge USB‑C + sortie 5 V, avec support | https://www.aliexpress.us/item/3256805853631700.html | ~2 $ |
+| 7 | Accu 18650 LiitoKala Lii‑35S 3 500 mAh (ou 18650 protégés achetés en Europe) | https://www.aliexpress.us/item/3256809359243362.html | ~7 $ |
+| 8 | Interrupteurs à glissière (lot) | https://www.aliexpress.us/item/3256805963053965.html | ~2 $ |
+| 9 | Fils dupont M‑M, M‑F, F‑F 20 cm | https://www.aliexpress.us/item/3256806498122535.html | ~2 $ |
+| 10 | Barrettes 2,54 mm, boutons 6×6, wattmètre USB‑C KWS‑1902C, fer à souder, carte microSD, câble USB‑C données | recherche AliExpress | ~30 € |
+
+Total ≈ 100–110 € (fer compris). Liens relevés sur le site américain d'AliExpress, qui redirige vers le site local.
+
+**Branchement prévu** (broches exactes à confirmer avec le schéma VIEWE à réception) : accu 18650 → module UPS (charge par USB‑C) → interrupteur → broche 5 V et GND de la carte VIEWE ; GPS → une UART libre de l'ESP32 (TX↔RX croisés) + 3,3 V + GND ; BH1750 et AHT20/BMP280 en parallèle sur un bus I²C (SDA, SCL, 3,3 V, GND ; adresses 0x23, 0x38, 0x76/0x77) ; 4 boutons entre une GPIO libre et GND ; capteurs vélo en Bluetooth ; enregistrement sur la microSD. Estimation : un accu 3 500 mAh ≈ 2 200 mAh sous 5 V, soit 15–27 h à 80–150 mA ; un second accu en parallèle si la mesure l'exige.
+
 ## Liste de courses : prototype de table
 
 Prix indicatifs relevés en octobre 2026 sur les pages des vendeurs : **stocks et prix changent, à vérifier avant de commander**. Hors Union européenne (Adafruit US), il peut s'y ajouter port, TVA et frais de douane.
