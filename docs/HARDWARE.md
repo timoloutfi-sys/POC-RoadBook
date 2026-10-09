@@ -78,12 +78,12 @@ Critères : lisible en plein soleil, lisible de nuit, 25 h sur batterie, mise à
 
 ## Liste de courses retenue (2026-10-09, AliExpress)
 
-Choix du porteur : **carte et écran séparés** — ESP32‑S3 DevKitC‑1 N16R8 + écran VIEWE transflectif 3,5" nu (UEED035HV‑RX40, variante « 3.5Trans no Touch », 40 broches au pas de 0,5 mm, pilote ST7365, rétroéclairage 6 LED / 120 mA / 2,9 V). Risque principal : code d'initialisation du ST7365 (à demander à VIEWE).
+Choix du porteur : **carte et écran séparés** — ESP32‑S3 DevKitC‑1 N16R8 + écran VIEWE transflectif 3,5" nu **avec tactile capacitif** (UEED035HV‑RX40, version « LCM+CTP » du plan reçu, tactile désactivable), 40 broches au pas de 0,5 mm, pilote ST7365, rétroéclairage 6 LED / 120 mA / 2,9 V). Risque principal : code d'initialisation du ST7365 (à demander à VIEWE).
 
 | # | Pièce | Lien | Prix vu |
 |---|---|---|---|
 | 1 | ESP32‑S3 DevKitC‑1 N16R8, broches soudées (×2 : une de secours) | https://www.aliexpress.us/item/3256809239619960.html | ~7,4 $ pièce |
-| 2 | Écran VIEWE transflectif 3,5" nu, « 3.5Trans no Touch » | annonce « Boutique VIEWE LCD » trouvée par le porteur (28,19 € + 6,37 € de port) ; proche : https://www.aliexpress.us/item/3256807995202221.html | ~35 € |
+| 2 | Écran VIEWE transflectif 3,5" nu, **version tactile** | annonce « Boutique VIEWE LCD » trouvée par le porteur, variante tactile ; proche : https://www.aliexpress.us/item/3256807995202221.html (« with Touch Screen », ~32 $) | ~35–40 € |
 | 3 | Adaptateurs de nappe 0,5 mm **40P** vers 2,54 mm (×2 : contacts haut et bas) | https://www.aliexpress.us/item/3256807928622872.html | ~1 $ pièce |
 | 4 | Module MOSFET (commande du rétroéclairage en PWM) | https://www.aliexpress.us/item/3256806245577537.html | ~1 $ |
 | 5 | Kit de résistances (dont 3,3–10 Ω pour le rétroéclairage) | recherche `resistor kit` | ~2 € |
@@ -98,7 +98,7 @@ Choix du porteur : **carte et écran séparés** — ESP32‑S3 DevKitC‑1 N16R
 
 Total ≈ 105–115 € (fer compris). Pas de microSD sur la DevKitC : l'enregistrement de 25 h (≈ 3–4 Mo à 1 Hz, estimation) tient dans les 16 Mo de flash.
 
-**Branchement prévu** (broches exactes à fixer à réception) : accu 18650 → module UPS (charge USB‑C) → interrupteur → broche 5V et GND de la DevKitC. Écran via l'adaptateur 40P : alimentations IOVCC et VCI en 3,3 V, GND, mode SPI choisi par IM0–IM2 (valeurs du tableau de la fiche VIEWE), SPI (horloge, données, CS, D/C, reset) sur des GPIO libres ; rétroéclairage : LED‑A au 3,3 V par une résistance de ~3,3 Ω (120 mA), LED‑K vers le MOSFET piloté en PWM. GPS → UART1 (TX↔RX croisés) + 3,3 V + GND ; BH1750 et AHT20/BMP280 en parallèle sur l'I²C (adresses 0x23, 0x38, 0x76/0x77) ; 4 boutons entre une GPIO et GND. Éviter les GPIO 35–37 (mémoire PSRAM des versions R8) et les broches de démarrage (0, 3, 45, 46). Estimation : un accu 3 500 mAh ≈ 2 200 mAh sous 5 V, soit 15–27 h à 80–150 mA hors rétroéclairage ; second accu si la mesure l'exige.
+**Branchement prévu** (broches exactes à fixer à réception) : accu 18650 → module UPS (charge USB‑C) → interrupteur → broche 5V et GND de la DevKitC. Écran via l'adaptateur 40P : alimentations IOVCC et VCI en 3,3 V, GND, mode SPI choisi par IM0–IM2 (valeurs du tableau de la fiche VIEWE), SPI (horloge, données, CS, D/C, reset) sur des GPIO libres ; tactile : broches 1–4 de la nappe (CTP_SCL, CTP_SDA, CTP_RST, CTP_INT) sur un **second bus I²C** de l'ESP32 (les contrôleurs tactiles courants répondent souvent à l'adresse 0x38, comme l'AHT20) ; rétroéclairage : LED‑A au 3,3 V par une résistance de ~3,3 Ω (120 mA), LED‑K vers le MOSFET piloté en PWM. GPS → UART1 (TX↔RX croisés) + 3,3 V + GND ; BH1750 et AHT20/BMP280 en parallèle sur l'I²C (adresses 0x23, 0x38, 0x76/0x77) ; 4 boutons entre une GPIO et GND. Éviter les GPIO 35–37 (mémoire PSRAM des versions R8) et les broches de démarrage (0, 3, 45, 46). Estimation : un accu 3 500 mAh ≈ 2 200 mAh sous 5 V, soit 15–27 h à 80–150 mA hors rétroéclairage ; second accu si la mesure l'exige.
 
 ## Liste de courses : prototype de table
 
