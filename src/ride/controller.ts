@@ -156,7 +156,10 @@ class Ride {
     const gpsFresh = g.ts > 0 && now - g.ts < 10000
     const sv = hub.vals.spd
     const speed = sv != null ? sv : gpsFresh ? g.speed : 0
-    const out = tick(this.eng, bundleOf(rideState()), { power: hub.vals.power ?? null, hr: hub.vals.hr ?? null, cad: hub.vals.cad ?? null, speed, fix: this.fixPending, source: this.source() }, now)
+    // Le profil peut changer en route (FC seuil, FTP) : les calculs de zones suivent, au lieu de garder la valeur du lancement de l'appli.
+    const bundle = bundleOf(rideState())
+    this.eng.cfg = defaultMetricCfg(bundle.ftp, bundle.lthr, bundle.mass)
+    const out = tick(this.eng, bundle, { power: hub.vals.power ?? null, hr: hub.vals.hr ?? null, cad: hub.vals.cad ?? null, speed, fix: this.fixPending, source: this.source() }, now)
     this.fixPending = null
     out.signals.forEach(signal)
     recorder.sample({

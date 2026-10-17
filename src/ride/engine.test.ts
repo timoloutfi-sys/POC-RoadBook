@@ -72,3 +72,15 @@ describe('paquet de sortie', () => {
     expect(() => deserializeBundle('{"v":99}')).toThrow()
   })
 })
+
+describe('zones cardiaques', () => {
+  it('se calculent dès que la FC seuil est connue, même renseignée après la création du moteur', () => {
+    const b = setup(), e = newEngine(newRun(), 0, b.route!.total)
+    e.cfg = { ...e.cfg, lthr: null }
+    tick(e, b, { power: null, hr: 150, cad: 80, speed: 8, fix: null, source: 'hr' }, 0)
+    expect(e.m.zones.reduce((a, c) => a + c, 0)).toBe(0)
+    e.cfg = { ...e.cfg, lthr: 170 }
+    tick(e, b, { power: null, hr: 150, cad: 80, speed: 8, fix: null, source: 'hr' }, 1000)
+    expect(e.m.zones.reduce((a, c) => a + c, 0)).toBe(1)
+  })
+})
