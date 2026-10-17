@@ -240,8 +240,12 @@ export function TileView({ t, w, h }: { t: Tile; w: number; h: number }) {
 
 
 /** Zone en cours : grand numéro, fond teinté de la couleur de la zone. */
+/** Pourquoi les zones restent à zéro : ni capteur, ni FC seuil pour lire la FC. Null quand tout va bien. */
+const zonesHint = (d: WidgetData) => (d.noLthr && d.hr != null ? 'Renseigne ta FC seuil' : d.hr == null && d.power == null ? 'Pas de capteur' : null)
+
 export function ZoneNowView({ d, w }: { d: WidgetData; w: number }) {
   const m = d.m, zdefs = d.source === 'power' ? POWER_ZONES : HR_ZONES
+  if (m && m.zoneNow < 0 && zonesHint(d)) return <div className="tl"><div className="lab">Zone</div><div className="sub dim">{zonesHint(d)}</div></div>
   if (!m || m.zoneNow < 0) return <div className="tl"><div className="lab">Zone</div><div className="sub dim">--</div></div>
   const z = zdefs[m.zoneNow], since = mmss(Math.max(0, d.t - m.zoneSince))
   return (
@@ -258,6 +262,7 @@ export function ZonesView({ d, w, h }: { d: WidgetData; w: number; h: number }) 
   const m = d.m, zdefs = d.source === 'power' ? POWER_ZONES : HR_ZONES
   if (!m) return <div className="tl"><div className="lab">Temps par zone</div><div className="sub dim">--</div></div>
   const tot = m.zones.reduce((a, b) => a + b, 0), max = Math.max(1, ...m.zones)
+  if (tot === 0 && zonesHint(d)) return <div className="tl"><div className="lab">Temps par zone</div><div className="sub dim">{zonesHint(d)}</div></div>
   const name = (i: number) => (i === 4 && d.source === 'power' ? 'Z5+' : `Z${i + 1}`)
   const t = (s: number) => (s >= 3600 ? fdur(s) : `${Math.round(s / 60)}′`)
   if ((h === 1 && w <= 2) || w === 1) {

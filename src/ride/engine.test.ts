@@ -39,6 +39,13 @@ describe('moteur de sortie', () => {
     tick(e, b, { power: 150, hr: 120, cad: 80, speed: 8, fix: 2000, source: 'power' }, 0)
     expect(e.run.d).toBe(2008)
   })
+  it('sortie libre : sans parcours, la distance suit la vitesse (bug du 17 oct. : enregistrement vide)', () => {
+    useStore.setState({ route: null, libre: true })
+    const b = bundleOf(rideState()), e = newEngine(newRun(), 0, undefined)
+    for (let t = 0; t < 120; t++) tick(e, b, { power: null, hr: 130, cad: null, speed: 7, fix: null, source: 'hr' }, t * 1000)
+    expect(Math.round(e.run.d)).toBe(840); expect(e.run.t).toBe(120)
+    useStore.setState({ libre: false })
+  })
   it('alimente les calculs de réserves à chaque seconde', () => {
     const { e } = replay()
     expect(e.m.zones.reduce((a, b) => a + b, 0)).toBe(600)

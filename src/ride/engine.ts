@@ -69,6 +69,8 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   if (m.speed <= 0.8) { smoothSev(st, {}); return { moving: false, tgt: 0, power, target: null, signals: [] } }
 
   st.t++; s.movD += m.speed
+  // Sortie libre : pas de parcours pour recaler, la distance est l'intégrale de la vitesse (sans cela l'enregistrement restait à 0 km et était jeté).
+  if (!b.route) st.d += m.speed
   if (m.power != null) { s.kj += m.power / 1000; s.kjSeen = true }
   if (st.t % 5 === 0 && m.hr != null) { s.hrHist.push(m.hr); if (s.hrHist.length > 120) s.hrHist.shift() }
   const ctx: EvalContext = { alerts: b.alerts, points: b.points, sections: b.sections, periodic: b.periodic, maxPerHour: b.maxPerHour, source: m.source, now }

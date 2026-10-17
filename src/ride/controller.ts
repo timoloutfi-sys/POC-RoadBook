@@ -1,6 +1,7 @@
 import { ackReminder, emit, newRun, type EvalContext, type RunState } from '../alerts/engine'
 import { getLibrary } from '../library/session'
 import { matchRoute } from '../gps/match'
+import { hav } from '../route/route'
 import { bundleOf } from './bundle'
 import { defaultMetricCfg, metricsView } from './metrics'
 import { eat, lap, newEngine, tick, type EngineState } from './engine'
@@ -132,6 +133,11 @@ class Ride {
   private onPos(pos: GeolocationPosition) {
     const c = pos.coords, g = this.gps
     let sp = c.speed
+    // Certains téléphones ne donnent pas la vitesse : on la déduit du déplacement entre deux positions.
+    if ((sp == null || !isFinite(sp)) && g.ts && g.lat != null && g.lon != null) {
+      const dt = (pos.timestamp - g.tsRaw) / 1000
+      if (dt > 0.5 && dt < 20) sp = hav(g.lat, g.lon, c.latitude, c.longitude) / dt
+    }
     if (sp == null || !isFinite(sp)) sp = 0
     g.speed = g.ts ? g.speed * 0.4 + sp * 0.6 : sp
     g.lat = c.latitude; g.lon = c.longitude; g.acc = c.accuracy; g.ts = performance.now(); g.tsRaw = pos.timestamp; g.err = null
