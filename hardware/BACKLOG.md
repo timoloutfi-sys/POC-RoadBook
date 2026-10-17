@@ -3,8 +3,19 @@
 Une ligne par point, du plus important au moins important. Même méthode que `BACKLOG.md` du soft.
 
 ## À faire
-- [ ] ❓ Cadrer les questions ouvertes de `docs/HARDWARE.md` (écran, transfert du paquet, budget, capteurs prioritaires).
-- [ ] Choisir une carte de développement pour le premier essai (ESP32‑S3 avec écran memory LCD, ou deux cartes séparées).
+- [ ] 🛒 Commander le prototype de table, capteurs lumière et température compris (liste dans `docs/HARDWARE.md`) ; vérifier stock, prix et broches soudées.
+- [ ] ❓ Choisir l'écran : comparer au soleil et de nuit le Sharp 2,7" (A) et un TFT transflectif 3,5" couleur (C), mesurer leur consommation (voir « Étude écran »).
+- [ ] Signaler au soft : aperçu des écrans dans la grille du boîtier (bande du haut + 6 × 3).
+- [ ] Essai 1 : alimenter la carte ESP32‑S3 en USB‑C et la programmer avec un « clignote une LED ».
+- [ ] Essai 2 : afficher un texte sur l'écran Memory LCD, juger la lisibilité intérieur/extérieur.
+- [ ] Essai 3 : lire le GPS, voir le fix et les coordonnées (dehors).
+- [ ] Essai 4 : se connecter en BLE à un capteur cardio, puis puissance/cadence/vitesse.
+- [ ] Essai 5 : recevoir un fichier du téléphone en BLE (débit réel) pour dimensionner le paquet.
+- [ ] Essai 6 bis : brancher capteurs de luminosité et de température (même câble que le GPS), faire un scan I²C (GPS attendu en 0x10, BH1750 en 0x23, AHT20 en 0x38) et vérifier l'absence de conflit, lire lux et °C ; tester l'emplacement qui limite l'échauffement.
+- [ ] Essai 6 : mesurer la consommation avec le wattmètre et en déduire l'autonomie.
+- [ ] ⚠️ Indispensable produit final : jour/nuit automatique (lux + heure GPS) et température ; prévoir fenêtre du capteur de lumière et emplacement du capteur de température dans le boîtier 3D.
+- [ ] Définir l'enregistrement (`docs/FORMAT-PAQUET.md`) avec lux et température.
+- [ ] ❓ Trancher : éclairage de nuit, nombre de boutons, module GPS, batterie 25 h, stockage (voir « Questions ouvertes »).
 - [ ] Définir le format binaire du paquet et de l'enregistrement (`docs/FORMAT-PAQUET.md`).
 - [ ] Firmware : afficher un widget (Puissance) avec des données simulées sur l'écran choisi.
 - [ ] Firmware : lire un capteur cardio Bluetooth (service FC standard) et l'afficher.
@@ -16,3 +27,6 @@ Une ligne par point, du plus important au moins important. Même méthode que `B
 ## En cours
 
 ## Fait
+- [x] Cadrer les questions ouvertes (écran, transfert, budget, capteurs, type de carte) : décisions du 2026-10-08 dans `docs/HARDWARE.md`.
+- [x] Choisir les cartes pour le premier essai (ESP32‑S3 Feather + écran Memory LCD 2,7" + GPS PA1010D).
+- [x] Maquette d'encombrement sur cintre : `hardware/maquette-cintre.svg`.
