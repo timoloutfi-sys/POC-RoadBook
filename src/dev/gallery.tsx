@@ -16,10 +16,13 @@ import { CATALOG } from '../storage/catalog'
 import { LANDSCAPE, PORTRAIT, TEMPLATES, mkLayout, type WidgetItem } from '../storage/defaults'
 import { portraitFrom } from '../storage/screens'
 import { Device } from '../ui/Device'
+import { HR_ZONES, POWER_ZONES } from '../strategy/zones'
 
 const q = new URLSearchParams(location.search)
 const view = q.get('v') ?? 'screens', night = q.get('n') !== '0', portrait = q.get('p') === '1'
 const src = (q.get('src') ?? 'power') as 'power' | 'hr'
+// ?zc=hex,hex,… : couleurs de zones à essayer (Z1 à Z7), pour comparer des palettes sans toucher l'appli.
+q.get('zc')?.split(',').forEach((c, i) => { if (POWER_ZONES[i]) POWER_ZONES[i].c = `#${c}`; if (HR_ZONES[i]) HR_ZONES[i].c = `#${c}` })
 const data = previewData(src)
 
 function Screens() {

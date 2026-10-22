@@ -91,19 +91,27 @@ details.fold > div { padding: 0 16px 14px; }
 .hcard { border: 0 !important; background: var(--i-bg2) !important; border-radius: 16px !important; }
 .pill { border: 0; background: var(--i-fill); }
 
-/* ---- Vue de course ---- */
+/* ---- Vue de course ----
+ * Couleurs d'état tirées du dictionnaire de Sanzo Wada, une variante claire (nuit) et une foncée (jour) pour chaque rôle,
+ * et associées dans le livre : Blue + Pale King's Blue (n° 49), Blue + Yellow Orange (n° 267),
+ * Blue + Eupatorium Purple (n° 215), Deep Lyons Blue + Diamine Green (n° 38), Scarlet + Red Violet (n° 136).
+ * Les neutres (fonds, textes) restent neutres, à la façon d'iOS ; le ton du jour se règle par --day-*.
+ */
 .dev {
-  --d-bg: color-mix(in srgb, #000000 calc(var(--n) * 100%), #f2f2f7);
-  --d-cell: color-mix(in srgb, #1c1c1e calc(var(--n) * 100%), #ffffff);
+  --day-bg: #f2f2f7; --day-cell: #ffffff; --day-ink: #000000; --day-mut: #6c6c70; --day-shadow: none;
+  --night-bg: #000000; --night-cell: #1c1c1e; --night-ink: #ffffff; --night-mut: #8e8e93;
+  --d-bg: color-mix(in srgb, var(--night-bg) calc(var(--n) * 100%), var(--day-bg));
+  --d-cell: color-mix(in srgb, var(--night-cell) calc(var(--n) * 100%), var(--day-cell));
   --d-line: transparent;
-  --d-ink: color-mix(in srgb, #ffffff calc(var(--n) * 100%), #000000);
-  --d-mut: color-mix(in srgb, #8e8e93 calc(var(--n) * 100%), #6c6c70);
-  --d-acc: color-mix(in srgb, #0a84ff calc(var(--n) * 100%), #007aff);
-  --d-ok: color-mix(in srgb, #30d158 calc(var(--n) * 100%), #248a3d);
-  --d-hi: color-mix(in srgb, #ff453a calc(var(--n) * 100%), #d70015);
-  --d-lo: color-mix(in srgb, #64d2ff calc(var(--n) * 100%), #0071a4);
-  --d-warn: color-mix(in srgb, #ff9f0a calc(var(--n) * 100%), #c93400);
+  --d-ink: color-mix(in srgb, var(--night-ink) calc(var(--n) * 100%), var(--day-ink));
+  --d-mut: color-mix(in srgb, var(--night-mut) calc(var(--n) * 100%), var(--day-mut));
+  --d-acc: color-mix(in srgb, #a7d4e4 calc(var(--n) * 100%), #006eb8);   /* Pale King's Blue / Blue */
+  --d-ok: color-mix(in srgb, #489b6e calc(var(--n) * 100%), #1a7444);    /* Green / Diamine Green */
+  --d-warn: color-mix(in srgb, #f99d1b calc(var(--n) * 100%), #c56127);  /* Yellow Orange / Vinaceous Tawny */
+  --d-hi: color-mix(in srgb, #e2625e calc(var(--n) * 100%), #cb2f43);    /* Eugenia Red A / Scarlet */
+  --d-lo: color-mix(in srgb, #5a82b3 calc(var(--n) * 100%), #1c4286);    /* Olympic Blue / Deep Lyons Blue */
 }
+.wi { box-shadow: calc((1 - var(--n)) * 1px) calc((1 - var(--n)) * 1px) 0 0 transparent, var(--day-shadow); }
 .wg { padding: 3px; }
 .wi { inset: 3px; border-radius: 18px; border: 0; padding: 8px 12px; }
 .lab { font-weight: 600; letter-spacing: 0; }

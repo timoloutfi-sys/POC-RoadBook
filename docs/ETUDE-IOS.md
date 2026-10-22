@@ -26,3 +26,30 @@ Prototype : `src/dev/ios.css` (chargé par `src/dev/iosTheme.ts` pour les captur
 - [Apple, typographie (HIG)](https://developer-mdn.apple.com/design/human-interface-guidelines/foundations/typography), [WWDC 2019 : couleurs sémantiques et mode sombre](https://developer.apple.com/kr/videos/play/wwdc2019/808/), [tailles de texte iOS](https://learnui.design/blog/ios-font-size-guidelines.html)
 - Liquid Glass (iOS 26) : [STRV](https://www.strv.com/blog/how-to-apply-liquid-glass-to-your-app), [Mindbowser](https://www.mindbowser.com/ios-26-liquid-glass-react-native-health-app-guide/)
 - Licence SF Pro : [forums développeurs Apple](https://developer.apple.com/forums/thread/733267)
+
+## Tons du jour et couleurs d'état (22 oct., suite)
+
+Retour : le jour était moche ; les couleurs Wada ne servent pas à colorer partout, seulement à vérifier que les couleurs existantes s'accordent.
+
+**Neutres** (fonds, cases, textes) : restent neutres, façon iOS. Quatre tons de jour à comparer (`docs/captures/jour/`) :
+
+| Ton | Fond | Case | Texte | Texte discret |
+|---|---|---|---|---|
+| A · Gris iOS | #f2f2f7 | #ffffff | #000000 | #6c6c70 |
+| B · Lin (chaud) | #ebe9e3 | #fbfaf7 | #1c1b18 | #77736b, ombre très légère |
+| C · Blanc | #ffffff | #f3f2ef | #111111 | #7a776f |
+| D · Sable | #e4e1d8 | #f7f5ef | #1d1b16 | #6f6a5f |
+
+**Couleurs d'état** : chaque couleur d'iOS remplacée par la couleur la plus proche du dictionnaire de Wada, en deux teintes (claire la nuit, foncée le jour) pour garder le contraste (≥ 4,5:1 pour le texte quand c'est possible) :
+
+| Rôle | Nuit | Jour |
+|---|---|---|
+| Accent, liens | Pale King's Blue #a7d4e4 | Blue #006eb8 |
+| Dans la cible | Green #489b6e | Diamine Green #1a7444 |
+| Au-dessus (début), retard | Yellow Orange #f99d1b | Vinaceous Tawny #c56127 |
+| Au-dessus (fort) | Eugenia Red A #e2625e | Scarlet #cb2f43 |
+| En dessous | Olympic Blue #5a82b3 | Deep Lyons Blue #1c4286 |
+| Navigation | Eupatorium Purple #bf5892 | idem |
+| Zones Z1 à Z7 | Warm Gray, Olympic Blue, Green, Yellow Ocher, Orange, Scarlet, Red Violet | idem |
+
+Ces couleurs sont associées dans le livre : Blue + Pale King's Blue (n° 49), Blue + Yellow Orange (n° 267), Blue + Eupatorium Purple (n° 215, accent et navigation), Deep Lyons Blue + Diamine Green (n° 38), Scarlet + Red Violet (n° 136), Blue + Yellow Ocher (n° 191).
