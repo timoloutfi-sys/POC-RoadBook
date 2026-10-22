@@ -31,8 +31,10 @@
     --accent-ink: #fff; color-scheme: light;
 }
 
-/* Accent : graphite, sans couleur (blanc la nuit, noir le jour). La couleur reste aux états, zones et alertes. */
-:root { --i-tint: var(--i-label); --i-tint-fill: var(--i-label); --i-on-tint: var(--i-bg); }
+/* Accent « Carmin », combinaison n° 221 de Wada (Carmine Red, Neutral Gray, Black) :
+   boutons carmin à texte blanc ; liens carmin le jour, gris neutre la nuit. */
+:root { --i-tint: #b6bfc1; --i-tint-fill: #a62c37; --i-on-tint: #fff; }
+:root[data-theme='light'] { --i-tint: #a62c37; }
 [data-theme='light'] .sheet::before { background: #c9c5bc; }
 [data-theme='light'] details.fold summary::after { color: #b3aea4; }
 [data-theme='light'] .sheet-back { background: rgba(0, 0, 0, .3); }
