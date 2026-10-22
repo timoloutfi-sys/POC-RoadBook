@@ -1,0 +1,128 @@
+/*
+ * Prototype « façon iOS » (dev, jamais publié) : couleurs système, listes groupées à coins arrondis,
+ * séparateurs fins, pas de bordures, typographie à la Apple (Inter à la place de SF Pro, interdit hors Apple).
+ * Chargé par-dessus l'appli via src/dev/iosTheme.ts pour les captures.
+ */
+:root {
+  /* Couleurs système iOS, mode sombre */
+  --i-bg: #000000; --i-bg2: #1c1c1e; --i-bg3: #2c2c2e;
+  --i-label: #ffffff; --i-label2: rgba(235, 235, 245, .6); --i-label3: rgba(235, 235, 245, .3);
+  --i-sep: rgba(84, 84, 88, .65); --i-fill: rgba(118, 118, 128, .24); --i-fill2: rgba(118, 118, 128, .32);
+  --i-tint: #0a84ff; --i-green: #30d158; --i-red: #ff453a; --i-orange: #ff9f0a; --i-yellow: #ffd60a;
+  --bg: var(--i-bg); --surface: var(--i-bg2); --raised: var(--i-bg3); --ink: var(--i-label); --muted: var(--i-label2); --line: var(--i-sep);
+  --accent: var(--i-tint); --accent-ink: #fff; --accent-fg: var(--i-tint); --danger: var(--i-red); --ok: var(--i-green);
+  --font: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --num: 'Inter Tight Variable', 'Inter Variable', system-ui, sans-serif;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  letter-spacing: -.01em;
+}
+body { font-size: 17px; line-height: 1.3; background: var(--i-bg); }
+
+/* Titre en grand, comme les écrans principaux d'iOS */
+.topbar { padding: 6px 8px 2px 16px; }
+.topbar h1 { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+.topbar .iconbtn { color: var(--i-tint); }
+
+/* En-têtes de section : petites capitales grises, alignées sur le texte des cellules */
+.h2 { font-size: 13px; font-weight: 500; letter-spacing: .02em; color: var(--i-label2); margin: 28px 0 7px 16px; }
+
+/* Barre d'onglets : matière translucide, trait fin, teinte sur l'onglet actif */
+.nav { background: rgba(22, 22, 24, .82); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-top: .5px solid var(--i-sep); }
+.nav button { min-height: 54px; border-top: 0; font-size: 10px; font-weight: 500; color: #8e8e93; gap: 3px; letter-spacing: .01em; }
+.nav button[aria-current='page'] { color: var(--i-tint); }
+.nav svg { width: 26px; height: 26px; }
+
+/* Boutons : rempli teinté (principal), gris (secondaire), texte seul (discret) */
+.btn { min-height: 50px; border: 0; border-radius: 12px; background: var(--i-fill); color: var(--i-tint); font-weight: 600; font-size: 17px; letter-spacing: -.02em; }
+.btn.primary { background: var(--i-tint); color: #fff; }
+.btn.big { min-height: 54px; font-size: 17px; border-radius: 14px; }
+.btn.ghost { background: none; }
+.btn.danger { color: var(--i-red); }
+.iconbtn { color: var(--i-tint); }
+
+/* Listes groupées à coins arrondis, séparateurs fins décalés après l'icône */
+.list { border-top: 0; background: var(--i-bg2); border-radius: 12px; overflow: hidden; }
+.list > li { border-bottom: 0; position: relative; }
+.list > li + li::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--i-sep); }
+.item { padding: 11px 16px; min-height: 52px; gap: 12px; }
+.item .km { color: var(--i-label2); font-size: 15px; min-width: 70px; }
+.item small { color: var(--i-label2); font-size: 15px; }
+.item svg { color: var(--i-tint); }
+
+/* Sections repliables = cellules groupées */
+details.fold { border: 0; background: var(--i-bg2); border-radius: 12px; margin-top: 10px; }
+details.fold summary { padding: 0 16px; min-height: 52px; font-weight: 500; }
+details.fold summary::after { content: '›'; font-size: 22px; color: #5a5a5e; transform: none; }
+details.fold[open] summary::after { transform: rotate(90deg); }
+details.fold > div { padding: 0 16px 14px; }
+
+/* Chiffres clés */
+.facts { gap: 8px; }
+.facts > div { background: var(--i-bg2); border-radius: 12px; padding: 10px 12px; }
+.facts b { font-family: var(--num); font-size: 28px; font-weight: 600; letter-spacing: -.03em; }
+.facts span { font-size: 13px; color: var(--i-label2); }
+.facts small { font-size: 12px; color: var(--i-label3); }
+
+/* Contrôle segmenté iOS */
+.seg { border: 0; background: var(--i-fill); border-radius: 9px; padding: 2px; gap: 0; }
+.seg button { min-height: 32px; background: none; border-radius: 7px; font-size: 13px; font-weight: 500; }
+.seg button[aria-pressed='true'], .seg button[aria-selected='true'] { background: #636366; color: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 3px 1px rgba(0, 0, 0, .04); }
+.rb-sub button { padding: 0 6px; }
+
+/* Champs */
+.field > span { font-size: 13px; font-weight: 400; color: var(--i-label2); padding-left: 4px; }
+.field input, .field select, .field textarea { border: 0; background: var(--i-bg3); border-radius: 10px; min-height: 44px; }
+
+/* Feuilles */
+.sheet { background: var(--i-bg2); border-radius: 20px 20px 0 0; }
+.sheet::before { width: 36px; height: 5px; background: #5a5a5e; border-radius: 3px; }
+.sheet h2 { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+.sheet .list, .sheet details.fold, .sheet .field input, .sheet .field select { background: var(--i-bg3); }
+
+/* Cartes */
+.card, .rb-card, .sensors-block, .undo { border: 0; background: var(--i-bg2); border-radius: 16px; }
+.rb-open b { font-size: 17px; font-weight: 600; }
+.rb-open > span, .rb-open small { color: var(--i-label2); }
+.chip-s { background: rgba(48, 209, 88, .16); color: var(--i-green); }
+.chip-o { background: var(--i-fill); }
+.rb-card > .rb-go { min-height: 34px; border-radius: 17px; padding: 0 14px; font-size: 15px; }
+.rb-prof path { stroke: var(--i-tint); }
+.ready { border: 0 !important; background: var(--i-bg2) !important; border-radius: 12px !important; padding: 12px 16px !important; }
+.hcard { border: 0 !important; background: var(--i-bg2) !important; border-radius: 16px !important; }
+.pill { border: 0; background: var(--i-fill); }
+
+/* ---- Vue de course ---- */
+.dev {
+  --d-bg: color-mix(in srgb, #000000 calc(var(--n) * 100%), #f2f2f7);
+  --d-cell: color-mix(in srgb, #1c1c1e calc(var(--n) * 100%), #ffffff);
+  --d-line: transparent;
+  --d-ink: color-mix(in srgb, #ffffff calc(var(--n) * 100%), #000000);
+  --d-mut: color-mix(in srgb, #8e8e93 calc(var(--n) * 100%), #6c6c70);
+  --d-acc: color-mix(in srgb, #0a84ff calc(var(--n) * 100%), #007aff);
+  --d-ok: color-mix(in srgb, #30d158 calc(var(--n) * 100%), #248a3d);
+  --d-hi: color-mix(in srgb, #ff453a calc(var(--n) * 100%), #d70015);
+  --d-lo: color-mix(in srgb, #64d2ff calc(var(--n) * 100%), #0071a4);
+  --d-warn: color-mix(in srgb, #ff9f0a calc(var(--n) * 100%), #c93400);
+}
+.wg { padding: 3px; }
+.wi { inset: 3px; border-radius: 18px; border: 0; padding: 8px 12px; }
+.lab { font-weight: 600; letter-spacing: 0; }
+.val { font-family: var(--num); font-weight: 600; letter-spacing: -.035em; }
+.val small { font-weight: 500; letter-spacing: 0; }
+.ride .strip { background: transparent; }
+
+/* Ajustements après relecture des captures */
+.dashbox { border: 0 !important; background: var(--i-bg2) !important; border-radius: 16px !important; }
+.goal-line { border: 0; background: var(--i-bg2); }
+.warn, .muted.warn { color: var(--i-orange) !important; }
+.list > li.muted { padding: 13px 16px !important; font-size: 15px; }
+/* Réglages groupés : plusieurs cellules dépliables d'affilée forment un seul bloc arrondi, séparé par des traits fins */
+.stack:has(> details.fold) { gap: 0; background: var(--i-bg2); border-radius: 12px; overflow: hidden; }
+.stack > details.fold { margin: 0; border-radius: 0; background: none; position: relative; }
+.stack > details.fold + details.fold::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; border-top: .5px solid var(--i-sep); }
+/* Chiffres un peu plus serrés pour tenir dans les cases */
+.val { letter-spacing: -.045em; font-size: min(42cqh, 22cqw); }
+.s-L .val { font-size: min(52cqh, 30cqw); }
+.s-S .val { font-size: min(38cqh, 27cqw); }
+.sheet .h2 { font-size: 13px; font-weight: 500; letter-spacing: .02em; text-transform: uppercase; color: var(--i-label2); margin: 24px 0 7px 16px; }
+.check { border-bottom: .5px solid var(--i-sep); }
