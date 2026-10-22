@@ -4,6 +4,7 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [ ] ❓ Navigation › widget « Navigation » (virage en petit, carte couleur en grand, hors parcours avec direction) : étude et visuels dans `docs/ETUDE-NAVIGATION.md`, 4 choix à trancher.
 - [x] Sortie › temps par zone cardiaque à zéro avec un capteur FC : le moteur gardait le profil (FC seuil) lu au lancement de l'appli → relu à chaque seconde (et donc modifiable en cours de sortie).
 - [x] Sortie libre › l'enregistrement ressortait vide : sans parcours la distance restait à 0 km, la sortie était jetée (< 0,1 km). Distance = intégrale de la vitesse ; vitesse déduite des positions si le téléphone ne la donne pas.
 - [x] Widgets zones › à zéro sans explication : « Pas de capteur » ou « Renseigne ta FC seuil » au lieu des zéros.
