@@ -57,3 +57,6 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Toute sortie démarre par la feuille « Avant de partir » (road book, écran, capteurs), puis « Démarrer la sortie » : aucun bouton « Rouler » ne lance directement l'écran de sortie, sauf « Reprendre » une sortie en cours.
 
 - Pendant une sortie, on peut revenir à l'appli sans la terminer (bouton « Appli » de la barre) : un bandeau « Sortie en cours » reste au-dessus de la navigation et ramène à l'écran de course d'un toucher. Les réglages modifiés (écrans, plan, alertes) s'appliquent à la sortie en cours.
+
+- Style (oct. 2026) : façon iOS, défini dans `src/ui/theme.css` (étude : `docs/ETUDE-IOS.md`). Police Inter, Inter Tight pour les gros chiffres. Neutres à la Apple : noir pur et blocs #1C1C1E la nuit, ton « Lin » le jour (#ebe9e3, cases #fbfaf7). Pas de contours : on sépare par le fond et par des traits fins décalés. Listes en blocs arrondis, une seule couleur d'accent (bleu).
+- Couleurs d'état, zones et alertes : prises dans le dictionnaire de Sanzo Wada (teinte claire la nuit, foncée le jour), pour s'accorder entre elles. On n'ajoute pas de couleur décorative : une couleur = un sens (accent, dans la cible, au-dessus, en dessous, zone, navigation).

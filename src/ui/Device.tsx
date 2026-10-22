@@ -7,8 +7,12 @@ import { placeWithPush } from '../storage/screens'
 import { Icon } from './icons'
 import { Widget, sizeOf } from './widgets'
 
-const sevColor = (k: number, a = 1, dir: 'hi' | 'lo' = 'hi') =>
-  dir === 'lo' ? `rgba(${Math.round(135 - 70 * k)},${Math.round(200 - 75 * k)},${Math.round(255 - 15 * k)},${a})` : `rgba(${Math.round(255 - 15 * k)},${Math.round(190 - 115 * k)},${Math.round(70 - 10 * k)},${a})`
+// Alertes de seuil, du léger au fort (couleurs de Wada) : au-dessus Yellow Orange → Scarlet, en dessous Pale King's Blue → Olympic Blue.
+const HI0 = [249, 157, 27], HI1 = [203, 47, 67], LO0 = [167, 212, 228], LO1 = [90, 130, 179]
+const sevColor = (k: number, a = 1, dir: 'hi' | 'lo' = 'hi') => {
+  const [c0, c1] = dir === 'lo' ? [LO0, LO1] : [HI0, HI1]
+  return `rgba(${c0.map((v, i) => Math.round(v + (c1[i] - v) * k)).join(',')},${a})`
+}
 
 interface Props {
   items: WidgetItem[]

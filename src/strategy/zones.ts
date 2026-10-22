@@ -1,23 +1,24 @@
+/** Couleurs des zones : dictionnaire de Sanzo Wada (Warm Gray, Olympic Blue, Green, Yellow Ocher, Orange, Scarlet, Red Violet). */
 export interface ZoneDef { n: string; l: string; lo: number; hi: number; c: string }
 
 /** 7 zones de puissance (Coggan), en fraction de FTP. */
 export const POWER_ZONES: ZoneDef[] = [
-  { n: 'Z1', l: 'Récupération', lo: 0, hi: 0.55, c: '#9AA5B1' },
-  { n: 'Z2', l: 'Endurance', lo: 0.55, hi: 0.75, c: '#3B82F6' },
-  { n: 'Z3', l: 'Tempo', lo: 0.75, hi: 0.9, c: '#22A55B' },
-  { n: 'Z4', l: 'Seuil', lo: 0.9, hi: 1.05, c: '#E0B000' },
-  { n: 'Z5', l: 'VO2max', lo: 1.05, hi: 1.2, c: '#F97316' },
-  { n: 'Z6', l: 'Anaérobie', lo: 1.2, hi: 1.5, c: '#E11D48' },
-  { n: 'Z7', l: 'Neuromusculaire', lo: 1.5, hi: 9, c: '#7C3AED' },
+  { n: 'Z1', l: 'Récupération', lo: 0, hi: 0.55, c: '#A1A39A' },
+  { n: 'Z2', l: 'Endurance', lo: 0.55, hi: 0.75, c: '#5A82B3' },
+  { n: 'Z3', l: 'Tempo', lo: 0.75, hi: 0.9, c: '#489B6E' },
+  { n: 'Z4', l: 'Seuil', lo: 0.9, hi: 1.05, c: '#E2B540' },
+  { n: 'Z5', l: 'VO2max', lo: 1.05, hi: 1.2, c: '#F37420' },
+  { n: 'Z6', l: 'Anaérobie', lo: 1.2, hi: 1.5, c: '#CB2F43' },
+  { n: 'Z7', l: 'Neuromusculaire', lo: 1.5, hi: 9, c: '#59256A' },
 ]
 
 /** 5 zones cardio (Coggan), en fraction de la FC au seuil. */
 export const HR_ZONES: ZoneDef[] = [
-  { n: 'Z1', l: 'Récupération', lo: 0, hi: 0.68, c: '#9AA5B1' },
-  { n: 'Z2', l: 'Endurance', lo: 0.68, hi: 0.83, c: '#3B82F6' },
-  { n: 'Z3', l: 'Tempo', lo: 0.83, hi: 0.94, c: '#22A55B' },
-  { n: 'Z4', l: 'Seuil', lo: 0.94, hi: 1.05, c: '#E0B000' },
-  { n: 'Z5', l: 'VO2max', lo: 1.05, hi: 1.15, c: '#F97316' },
+  { n: 'Z1', l: 'Récupération', lo: 0, hi: 0.68, c: '#A1A39A' },
+  { n: 'Z2', l: 'Endurance', lo: 0.68, hi: 0.83, c: '#5A82B3' },
+  { n: 'Z3', l: 'Tempo', lo: 0.83, hi: 0.94, c: '#489B6E' },
+  { n: 'Z4', l: 'Seuil', lo: 0.94, hi: 1.05, c: '#E2B540' },
+  { n: 'Z5', l: 'VO2max', lo: 1.05, hi: 1.15, c: '#F37420' },
 ]
 
 export const powerZoneOf = (ratio: number) => {

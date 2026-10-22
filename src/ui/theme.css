@@ -1,20 +1,38 @@
 /*
- * Prototype « façon iOS » (dev, jamais publié) : couleurs système, listes groupées à coins arrondis,
- * séparateurs fins, pas de bordures, typographie à la Apple (Inter à la place de SF Pro, interdit hors Apple).
- * Chargé par-dessus l'appli via src/dev/iosTheme.ts pour les captures.
+ * Thème de l'appli, « façon iOS » (voir docs/ETUDE-IOS.md) : neutres à la Apple, listes groupées à coins arrondis,
+ * séparateurs fins, pas de bordures, Inter (SF Pro est interdit hors Apple), Inter Tight pour les gros chiffres.
+ * Couleurs d'état tirées du dictionnaire de Sanzo Wada, claires la nuit, foncées le jour.
+ * Posé par-dessus index.css et device.css.
  */
 :root {
   /* Couleurs système iOS, mode sombre */
   --i-bg: #000000; --i-bg2: #1c1c1e; --i-bg3: #2c2c2e;
   --i-label: #ffffff; --i-label2: rgba(235, 235, 245, .6); --i-label3: rgba(235, 235, 245, .3);
   --i-sep: rgba(84, 84, 88, .65); --i-fill: rgba(118, 118, 128, .24); --i-fill2: rgba(118, 118, 128, .32);
-  --i-tint: #0a84ff; --i-green: #30d158; --i-red: #ff453a; --i-orange: #ff9f0a; --i-yellow: #ffd60a;
+  /* Wada : Pale King's Blue (liens), Blue (boutons), Green, Eugenia Red A, Yellow Orange */
+  --i-tint: #a7d4e4; --i-tint-fill: #006eb8; --i-green: #489b6e; --i-red: #e2625e; --i-orange: #f99d1b; --i-yellow: #e2b540;
+  --i-nav: rgba(22, 22, 24, .82);
   --bg: var(--i-bg); --surface: var(--i-bg2); --raised: var(--i-bg3); --ink: var(--i-label); --muted: var(--i-label2); --line: var(--i-sep);
   --accent: var(--i-tint); --accent-ink: #fff; --accent-fg: var(--i-tint); --danger: var(--i-red); --ok: var(--i-green);
   --font: 'Inter Variable', system-ui, -apple-system, sans-serif;
   --num: 'Inter Tight Variable', 'Inter Variable', system-ui, sans-serif;
   font-feature-settings: 'tnum' 1, 'cv11' 1;
   letter-spacing: -.01em;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Ton « Lin » : gris chaud, cases blanc cassé, texte presque noir */
+    --i-bg: #ebe9e3; --i-bg2: #fbfaf7; --i-bg3: #f1efea;
+    --i-label: #1c1b18; --i-label2: rgba(40, 36, 28, .6); --i-label3: rgba(40, 36, 28, .3);
+    --i-sep: rgba(60, 50, 30, .16); --i-fill: rgba(120, 112, 96, .12); --i-fill2: rgba(120, 112, 96, .2);
+    /* Wada, teintes foncées : Blue, Diamine Green, Scarlet, Vinaceous Tawny, Olive */
+    --i-tint: #006eb8; --i-tint-fill: #006eb8; --i-green: #1a7444; --i-red: #cb2f43; --i-orange: #c56127; --i-yellow: #837e31;
+    --i-nav: rgba(251, 250, 247, .86);
+    --accent-ink: #fff; color-scheme: light;
+  }
+  .sheet::before { background: #c9c5bc; }
+  details.fold summary::after { color: #b3aea4; }
+  .sheet-back { background: rgba(0, 0, 0, .3); }
 }
 body { font-size: 17px; line-height: 1.3; background: var(--i-bg); }
 
@@ -27,14 +45,14 @@ body { font-size: 17px; line-height: 1.3; background: var(--i-bg); }
 .h2 { font-size: 13px; font-weight: 500; letter-spacing: .02em; color: var(--i-label2); margin: 28px 0 7px 16px; }
 
 /* Barre d'onglets : matière translucide, trait fin, teinte sur l'onglet actif */
-.nav { background: rgba(22, 22, 24, .82); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-top: .5px solid var(--i-sep); }
+.nav { background: var(--i-nav); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border-top: .5px solid var(--i-sep); }
 .nav button { min-height: 54px; border-top: 0; font-size: 10px; font-weight: 500; color: #8e8e93; gap: 3px; letter-spacing: .01em; }
 .nav button[aria-current='page'] { color: var(--i-tint); }
 .nav svg { width: 26px; height: 26px; }
 
 /* Boutons : rempli teinté (principal), gris (secondaire), texte seul (discret) */
 .btn { min-height: 50px; border: 0; border-radius: 12px; background: var(--i-fill); color: var(--i-tint); font-weight: 600; font-size: 17px; letter-spacing: -.02em; }
-.btn.primary { background: var(--i-tint); color: #fff; }
+.btn.primary { background: var(--i-tint-fill); color: #fff; }
 .btn.big { min-height: 54px; font-size: 17px; border-radius: 14px; }
 .btn.ghost { background: none; }
 .btn.danger { color: var(--i-red); }
@@ -98,7 +116,7 @@ details.fold > div { padding: 0 16px 14px; }
  * Les neutres (fonds, textes) restent neutres, à la façon d'iOS ; le ton du jour se règle par --day-*.
  */
 .dev {
-  --day-bg: #f2f2f7; --day-cell: #ffffff; --day-ink: #000000; --day-mut: #6c6c70; --day-shadow: none;
+  --day-bg: #ebe9e3; --day-cell: #fbfaf7; --day-ink: #1c1b18; --day-mut: #77736b; --day-shadow: 0 1px 2px rgba(60, 50, 30, .08);
   --night-bg: #000000; --night-cell: #1c1c1e; --night-ink: #ffffff; --night-mut: #8e8e93;
   --d-bg: color-mix(in srgb, var(--night-bg) calc(var(--n) * 100%), var(--day-bg));
   --d-cell: color-mix(in srgb, var(--night-cell) calc(var(--n) * 100%), var(--day-cell));
@@ -134,3 +152,15 @@ details.fold > div { padding: 0 16px 14px; }
 .s-S .val { font-size: min(38cqh, 27cqw); }
 .sheet .h2 { font-size: 13px; font-weight: 500; letter-spacing: .02em; text-transform: uppercase; color: var(--i-label2); margin: 24px 0 7px 16px; }
 .check { border-bottom: .5px solid var(--i-sep); }
+
+/* Écrans, catalogue : cartes sans contour */
+.scr { border: 0; background: var(--i-bg2); border-radius: 16px; }
+.cat-size { border: 0; background: var(--i-bg3); border-radius: 12px; }
+.cat-size[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--i-tint-fill); }
+.fam { border-bottom: .5px solid var(--i-sep); }
+.ed-name { border: 0 !important; background: var(--i-bg2) !important; }
+
+@media (prefers-color-scheme: light) {
+  .seg button[aria-pressed='true'], .seg button[aria-selected='true'] { background: #fff; color: var(--i-label); box-shadow: 0 3px 8px rgba(60, 50, 30, .12), 0 1px 1px rgba(60, 50, 30, .06); }
+  .nav button { color: #8a857b; }
+}

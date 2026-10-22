@@ -73,7 +73,7 @@ Le plan reste calculé en puissance (le modèle physique sert à placer les effo
 
 ## Design et UX : Impeccable
 
-Le skill Impeccable est installé dans `.claude/skills/impeccable` (agents dans `.claude/agents`). `PRODUCT.md` porte la vérité produit, `docs/REGLES-UX.md` les règles d'interface. Pour un nouvel écran : direction validée avec l'utilisateur, puis construction ; à la fin : détecteur `.claude/skills/impeccable/scripts/impeccable detect --json <cibles>` et `npm run shots`. Captures au format Android (390 × 844 en portrait, 844 × 390 en paysage).
+Thème : `src/ui/theme.css` (style façon iOS, police Inter, couleurs d'état et zones du dictionnaire de Wada ; règles dans `docs/REGLES-UX.md`). Le skill Impeccable est installé dans `.claude/skills/impeccable` (agents dans `.claude/agents`). `PRODUCT.md` porte la vérité produit, `docs/REGLES-UX.md` les règles d'interface. Pour un nouvel écran : direction validée avec l'utilisateur, puis construction ; à la fin : détecteur `.claude/skills/impeccable/scripts/impeccable detect --json <cibles>` et `npm run shots`. Captures au format Android (390 × 844 en portrait, 844 × 390 en paysage).
 
 ## Modèle physique et réalisme
 
