@@ -62,3 +62,6 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Couleurs d'état, zones et alertes : prises dans le dictionnaire de Sanzo Wada (teinte claire la nuit, foncée le jour), pour s'accorder entre elles. On n'ajoute pas de couleur décorative : une couleur = un sens (accent, dans la cible, au-dessus, en dessous, zone, navigation).
 - L'appli suit le thème du téléphone (clair ou sombre), forçable dans Réglages → Apparence. Tout écran se vérifie dans les deux.
 - Accueil léger : une seule carte forte (prochaine sortie ou objectif), le bouton Rouler, puis des lignes discrètes (autres choix en texte, capteurs en icônes sur une ligne). Pas de paragraphe d'explication sur l'Accueil.
+- Navigation : un widget comme les autres, jamais de recalcul d'itinéraire. Tracé et consignes en carmin, chevron encre, ce qui est fait en gris ; « Hors parcours » en ocre avec la direction du tracé en mots (derrière à droite…) et une ligne pointillée vers lui. Carte calme : routes, eau, verdure, noms de rues, rien d'autre.
+- Navigation dans l'éditeur et les vignettes : un aperçu dessiné, jamais une vraie carte (pas de réseau ni de WebGL pour un aperçu).
+- La carte hors ligne se télécharge depuis le road book (Réglages) ; « Avant de partir » ne la mentionne que si l'écran de la sortie a un widget Navigation.

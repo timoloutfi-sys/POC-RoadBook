@@ -9,7 +9,7 @@ import { trackAt } from '../route/track'
 import { useStore } from '../storage/store'
 import { NAV, OFF } from './NavTile'
 
-type Line = GeoJSON.Feature<GeoJSON.LineString>
+type Line = { type: 'Feature'; properties: Record<string, never>; geometry: { type: 'LineString'; coordinates: [number, number][] } }
 const lineOf = (coords: [number, number][]): Line => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } })
 
 /** Tracé entre a et b (m). */

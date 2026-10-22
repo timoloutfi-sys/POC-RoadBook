@@ -28,6 +28,8 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
   const [btOn, setBtOn] = useState<boolean | null>(null)
   useEffect(() => { void bluetoothOn().then(setBtOn) }, [])
   const resume = ride.hasRide && ride.src === 'live'
+  // La carte hors ligne ne compte que si l'écran de la sortie a un widget Navigation.
+  const sc = screens.find(x => x.id === screenId), usesNav = !!sc && [...sc.items, ...(sc.portrait ?? [])].some(i => i.k === 'nav')
   return (
     <>
       <Field label="Road book">
@@ -49,7 +51,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
         {bt && btOn === false ? <Check s="ko" t="Bluetooth éteint" sm="Allume-le, ainsi que la position, dans les réglages du téléphone" /> : bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}
         {geo ? <Check s="ok" t="Position GPS disponible" /> : <Check s="ko" t="Position indisponible" />}
         {wl ? <Check s="ok" t="Écran maintenu allumé pendant la sortie" /> : <Check s="wa" t="Maintien de l'écran non pris en charge" sm="Désactive la mise en veille du téléphone" />}
-        {!libre && <OfflineMapCheck Check={p => <Check {...p} />} />}
+        {!libre && usesNav && <OfflineMapCheck Check={p => <Check {...p} />} />}
       </div>
 
       <h2 className="h2">Capteurs</h2>

@@ -39,7 +39,7 @@ Les compteurs (Garmin, Wahoo, Bryton, Karoo) donnent des alertes et des cibles d
 ## Operating Context
 
 - Le GPX vient d'ailleurs (Komoot, Ride with GPS, Strava) et n'est **jamais modifié** : on l'annote seulement.
-- Un écran, un rôle : pas de navigation ni de carte de guidage.
+- Navigation en option, dans un widget : suivre le tracé du road book (prochain virage, carte, hors parcours), jamais recalculer d'itinéraire ni créer de tracé (décision du 22 oct., `docs/ETUDE-NAVIGATION.md`).
 - Capteurs Bluetooth : puissance (0x1818), cardio (0x180D), vitesse et cadence (0x1816). Le GPS du téléphone recale la position sur le parcours.
 - Sorties très longues (jusqu'à 500 km, jour et nuit) : batterie externe, écran maintenu allumé.
 

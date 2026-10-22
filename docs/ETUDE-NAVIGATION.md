@@ -44,12 +44,18 @@ Couleurs : magenta pour la navigation (ne se confond ni avec les zones, ni avec 
 - Petites tailles **avec un mini fond de carte** : vue de dessus, zoom serré, sans attribution visible ; la consigne passe sur une plaque magenta (ou rouge hors parcours), ta position décalée à côté de la plaque.
 - Icône de position : trois propositions (`icones.png`) — A chevron de navigation, B pastille vélo, C point et cône. À choisir.
 
-## À trancher
+## Tranché (22 oct.)
 
-1. Icône de position : A, B ou C ?
-2. Couleur de la navigation : magenta (proposé) ou autre ?
-3. Annonce sonore et vibration avant un virage (et à quelle distance : 200 m ? 100 m ?) ?
-4. Hors ligne dès le premier lot, ou d'abord en ligne pour tester sur le vélo ?
+1. Icône de position : **A, chevron** (encre, liseré blanc ; il pointe toujours vers le haut puisque la carte tourne avec toi).
+2. Couleur : **carmin** (combinaison n° 221 de Wada, celle de l'appli). Hors parcours : **ocre** (Yellow Ocher, texte encre), pour ne pas se confondre avec le carmin.
+3. Annonce : **réglable** dans Réglages : bip et vibration, vibration, bip ou rien ; à 100, 150 (défaut), 200 ou 300 m ; une seconde annonce au virage ; un signal distinct hors parcours et au retour.
+4. **Hors ligne tout de suite** : couloir du parcours téléchargé depuis le road book (Réglages › Carte hors ligne) ; ~23 Mo pour la boucle démo de 150 km.
+
+## Fait
+
+- Widget Navigation (1×1 à 6×3), carte inclinée en grand, mini carte en petit, aperçu dessiné dans l'éditeur.
+- Captures : `docs/captures/navigation/appli-*.png` (carte réelle, jour et nuit, paysage et portrait ; réglages ; hors parcours).
+- Limites : virages lus sur la forme du tracé (pas de noms de rues ni de carrefours sans changement de cap) ; une carte non enregistrée se charge par le réseau s'il y en a.
 
 ## Sources
 

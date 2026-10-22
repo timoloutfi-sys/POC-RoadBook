@@ -90,6 +90,33 @@ test('catalogue : famille → taille → widget ajouté, on reste dans l’édit
   ok(await p.locator('.edit-dev .wg').count() === 1, 'widget non ajouté')
 })
 
+test('navigation : famille « Navigation » dans le catalogue, aperçu dessiné sans carte WebGL', async (p, url) => {
+  await open(p, url); await tab(p, 'Écrans')
+  await p.getByRole('button', { name: /Nouvel écran/ }).tap(); await p.waitForTimeout(200)
+  await p.getByRole('button', { name: 'Écran vide' }).tap(); await p.waitForTimeout(400)
+  await p.getByRole('button', { name: 'Widget', exact: true }).tap(); await p.waitForTimeout(500)
+  await p.locator('.fam', { hasText: 'Navigation' }).tap(); await p.waitForTimeout(300)
+  await p.locator('.cat-size').first().tap(); await p.waitForTimeout(500)
+  ok(await p.locator('.edit-dev .nav-w').count() === 1, 'widget Navigation non ajouté')
+  ok(await p.locator('.nav-prev').count() >= 1 && await p.locator('.nav-map').count() === 0, 'l’aperçu de l’éditeur charge une vraie carte')
+})
+
+test('navigation : réglage des annonces, carte hors ligne du road book et dans « Avant de partir »', async (p, url) => {
+  await open(p, url); await p.getByRole('button', { name: 'Profil et réglages' }).tap(); await p.waitForTimeout(400)
+  const g = p.getByRole('group', { name: 'Annonce des virages' })
+  ok(await g.count() === 1, 'pas de réglage « Annonce des virages »')
+  ok(await p.getByRole('group', { name: 'Distance de l’annonce' }).count() === 1, 'pas de distance d’annonce')
+  await g.getByRole('button', { name: 'Rien' }).tap(); await p.waitForTimeout(150)
+  ok(await p.getByRole('group', { name: 'Distance de l’annonce' }).count() === 0, 'distance proposée alors que l’annonce est coupée')
+  await p.getByRole('button', { name: 'Annuler' }).tap(); await p.waitForTimeout(300)
+  await tab(p, 'Road books'); await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200)
+  await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
+  await p.getByRole('tab', { name: 'Réglages' }).tap(); await p.waitForTimeout(300)
+  ok(await p.getByText('Carte hors ligne').count() === 1 && await p.getByRole('button', { name: 'Télécharger la carte' }).count() === 1, 'pas de bloc « Carte hors ligne »')
+  await tab(p, 'Accueil'); await p.locator('.ready').tap(); await p.waitForTimeout(400)
+  ok(await p.getByText('Carte pas enregistrée').count() === 0, '« Avant de partir » parle de carte alors que l’écran n’a pas de widget Navigation')
+})
+
 test('catalogue : toucher en dehors ferme, « ‹ » revient à la liste', async (p, url) => {
   await editor(p, url)
   await p.getByRole('button', { name: 'Widget', exact: true }).tap(); await p.waitForTimeout(400)
