@@ -7,6 +7,7 @@ import { HR_ZONES, POWER_ZONES, hrZoneOfPowerZone, powerZoneOf } from '../strate
 import type { WidgetItem } from '../storage/defaults'
 import { Icon, type IconName } from './icons'
 import { gapState, gapWord } from './state'
+import { NavW } from './NavTile'
 import { InTargetView, ReserveView, TileView, ZoneNowView, ZonesView, tileOf } from './tiles'
 
 export type Size = 'S' | 'M' | 'L'
@@ -183,6 +184,7 @@ export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
     case 'profile': return <ProfileW d={d} sz={sz} range={o.range} />
     case 'fuel': return <FuelW d={d} sz={sz} />
     case 'gap': return <GapW d={d} w={it.w} h={it.h} />
+    case 'nav': return <NavW nav={d.nav} w={it.w} h={it.h} />
     default: return null
   }
 }

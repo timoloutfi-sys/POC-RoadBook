@@ -9,6 +9,7 @@ export type WidgetKind =
   | 'profile' | 'climb' | 'next' | 'slope'
   | 'gap' | 'arrival' | 'time' | 'dist' | 'clock'
   | 'sunset' | 'sumeffort' | 'sumroute' | 'sumfuel'
+  | 'nav'
 
 export type Group = 'Effort' | 'Réserves' | 'Entraînement' | 'Parcours' | 'Temps et plan' | 'Synthèses' | 'Repères'
 export type Size = [w: number, h: number]
@@ -47,6 +48,7 @@ export const CATALOG: WidgetDef[] = [
   { k: 'profile', name: 'Profil', group: 'Parcours', desc: 'Relief à venir avec tes points et ta position.', sizes: [...S([2, 1]), ...row(3, 6, 1), ...row(3, 6, 2)], needs: ['route'] },
   { k: 'climb', name: 'Montée', group: 'Parcours', desc: 'Montée en cours ou prochaine, par paliers de pente.', sizes: S([2, 1], [4, 1], [2, 2], [4, 2]), needs: ['route'] },
   { k: 'next', name: 'Prochains points', group: 'Parcours', desc: 'Points et notes du road book à venir.', sizes: [...S([2, 1]), ...row(3, 6, 1), ...S([2, 2]), ...row(3, 6, 2)], needs: ['route'] },
+  { k: 'nav', name: 'Navigation', group: 'Parcours', desc: 'Prochain virage, carte du parcours, hors parcours.', sizes: S([1, 1], [2, 1], [3, 1], [2, 2], [3, 2], [4, 2], [3, 3], [4, 3], [6, 3]), needs: ['route'] },
   { k: 'slope', name: 'Pente', group: 'Parcours', desc: 'Pente sous les roues.', sizes: S([1, 1]), needs: ['route'] },
   { k: 'gap', name: 'Écart au plan', group: 'Temps et plan', desc: 'Avance ou retard sur l’heure prévue.', sizes: S([1, 1], [2, 1], [2, 2]), needs: ['route'] },
   { k: 'arrival', name: 'Arrivée', group: 'Temps et plan', desc: 'Heure d’arrivée estimée.', sizes: S([1, 1], [2, 1]), needs: ['route'] },
@@ -108,6 +110,7 @@ export const FAMILIES: Family[] = [
   { id: 'reserves', name: 'Réserves', desc: 'Dérive cardiaque, punch, endurance', variants: [{ k: 'drift', label: 'Dérive cardiaque' }, { k: 'punch', label: 'Punch' }, { k: 'endurance', label: 'Endurance' }, { k: 'reserve', label: 'Punch et endurance' }] },
   { id: 'nutrition', name: 'Nutrition', desc: 'Glucides, écart, prochain rappel, synthèse', variants: [{ k: 'carbs', label: 'Glucides / h' }, { k: 'carbgap', label: 'Écart glucides' }, { k: 'fuel', label: 'Prochain rappel' }, { k: 'sumfuel', label: 'Synthèse' }] },
   { id: 'relief', name: 'Relief', desc: 'Profil à venir et montée', variants: [{ k: 'profile', label: 'Profil' }, { k: 'climb', label: 'Montée' }] },
+  { id: 'nav', name: 'Navigation', desc: 'Virages et carte du parcours', variants: [{ k: 'nav', label: 'Navigation' }] },
   { id: 'points', name: 'Prochains points', desc: 'Points, notes, arrêts', variants: [{ k: 'next', label: 'Prochains points' }] },
   { id: 'valeur', name: 'Valeur', desc: 'Un chiffre au choix : écart au plan, cadence, vitesse, pente…', variants: [{ k: 'gap', label: 'Écart au plan' }, { k: 'cad', label: 'Cadence' }, { k: 'speed', label: 'Vitesse' }, { k: 'slope', label: 'Pente' }, { k: 'dist', label: 'Distance' }, { k: 'time', label: 'Roulage' }, { k: 'clock', label: 'Heure' }, { k: 'arrival', label: 'Arrivée' }, { k: 'sunset', label: 'Soleil' }] },
   { id: 'synthese', name: 'Synthèse', desc: 'Plusieurs valeurs en une grille', variants: [{ k: 'sumeffort', label: 'Effort' }, { k: 'sumroute', label: 'Parcours' }, { k: 'lap', label: 'Tour' }] },

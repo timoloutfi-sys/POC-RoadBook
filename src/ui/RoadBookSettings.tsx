@@ -7,6 +7,7 @@ import { blankAlert, blankReminder } from './AlertsSection'
 import { Field, Num } from './fields'
 import { AlertForm, alertSentence } from './forms'
 import { Sheet } from './Sheet'
+import { OfflineMapBlock } from './OfflineMap'
 
 const Mod = ({ on, reset }: { on: boolean; reset: () => void }) => on
   ? <span className="row mod"><span className="pill">modifié</span><button className="btn ghost" onClick={reset}>Rétablir</button></span>
@@ -66,6 +67,8 @@ export function RoadBookSettings() {
           </select>
         </Field>
       </div>
+
+      <OfflineMapBlock />
 
       <div className="card-block">
         <h2 className="h2" style={{ marginTop: 0 }}>Mémo</h2>

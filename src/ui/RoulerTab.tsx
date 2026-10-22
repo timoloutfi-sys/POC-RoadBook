@@ -8,6 +8,7 @@ import { pickScreen } from '../storage/screens'
 import { pickConfig, useStore } from '../storage/store'
 import { Field, Num } from './fields'
 import { SensorsBlock } from './SensorsBlock'
+import { OfflineMapCheck } from './OfflineMap'
 import { toast } from './toast'
 
 const Check = ({ s, t, sm }: { s: 'ok' | 'ko' | 'wa'; t: string; sm?: string }) => (
@@ -48,6 +49,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
         {bt && btOn === false ? <Check s="ko" t="Bluetooth éteint" sm="Allume-le, ainsi que la position, dans les réglages du téléphone" /> : bt ? <Check s="ok" t="Bluetooth disponible" /> : <Check s="ko" t="Bluetooth indisponible" sm="Chrome sur Android, en HTTPS" />}
         {geo ? <Check s="ok" t="Position GPS disponible" /> : <Check s="ko" t="Position indisponible" />}
         {wl ? <Check s="ok" t="Écran maintenu allumé pendant la sortie" /> : <Check s="wa" t="Maintien de l'écran non pris en charge" sm="Désactive la mise en veille du téléphone" />}
+        {!libre && <OfflineMapCheck Check={p => <Check {...p} />} />}
       </div>
 
       <h2 className="h2">Capteurs</h2>

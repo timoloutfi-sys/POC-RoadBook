@@ -27,6 +27,8 @@ const src = (q.get('src') ?? 'power') as 'power' | 'hr'
 // ?zc=hex,hex,… : couleurs de zones à essayer (Z1 à Z7), pour comparer des palettes sans toucher l'appli.
 q.get('zc')?.split(',').forEach((c, i) => { if (POWER_ZONES[i]) POWER_ZONES[i].c = `#${c}`; if (HR_ZONES[i]) HR_ZONES[i].c = `#${c}` })
 const data = previewData(src)
+// ?nav=off : la navigation hors parcours (tracé derrière à droite, à 140 m).
+if (q.get('nav') === 'off' && data.nav) data.nav = { ...data.nav, turn: null, inM: null, then: null, thenM: null, off: { m: 140, rel: 135, side: 'derrière à droite', lat: 0, lon: 0 } }
 
 function Screens() {
   const t = (q.get('t') ?? 'course') as keyof typeof TEMPLATES, land = mkLayout(t)

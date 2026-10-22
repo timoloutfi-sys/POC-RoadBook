@@ -36,8 +36,9 @@ export interface NavView {
   lat: number
   lon: number
   heading: number
-  /** Distance faite sur le parcours (m). */
+  /** Distance faite sur le parcours (m), et restante jusqu'à l'arrivée. */
   d: number
+  left: number
   /** Aperçu (éditeur, vignettes) : pas de vraie carte. */
   preview?: boolean
 }
@@ -55,13 +56,13 @@ export function navView(r: Route, d: number, gps?: NavGps | null): NavView {
   const turns = turnsOf(r), [t1, t2] = nextTurns(turns, d)
   if (gps?.off) {
     const o = offRoute(r.track, gps.lat, gps.lon, gps.heading, d), q = trackAt(r.track, o.dist)
-    return { turn: null, inM: null, then: null, thenM: null, off: { m: o.off, rel: o.rel, side: o.side, lat: q.lat, lon: q.lon }, lat: gps.lat, lon: gps.lon, heading: gps.heading ?? trackHeading(r, d), d }
+    return { turn: null, inM: null, then: null, thenM: null, off: { m: o.off, rel: o.rel, side: o.side, lat: q.lat, lon: q.lon }, lat: gps.lat, lon: gps.lon, heading: gps.heading ?? trackHeading(r, d), d, left: r.track.total - d }
   }
   // Sur le parcours, la position est celle recalée sur le tracé : le chevron reste sur la ligne.
   const here = trackAt(r.track, d)
   return {
     turn: t1, inM: t1 ? Math.max(0, t1.d - d) : null, then: t2, thenM: t1 && t2 ? t2.d - t1.d : null, off: null,
-    lat: here.lat, lon: here.lon, heading: trackHeading(r, d), d,
+    lat: here.lat, lon: here.lon, heading: trackHeading(r, d), d, left: r.track.total - d,
   }
 }
 

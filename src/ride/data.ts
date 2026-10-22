@@ -177,7 +177,7 @@ export function previewData(source: EffortSource = 'power'): WidgetData {
     now: new Date(2026, 5, 21, 14, 30), arrival: new Date(2026, 5, 21, 19, 5), noLthr: false,
     plan: { nextStop: { name: 'Station 24 h/24', kmAway: 12.4, at: new Date(2026, 5, 21, 15, 10), stopMin: 10 }, gapS: 180, kj: 820, kjPlan: 790, startedAt: new Date(2026, 5, 21, 13, 0).valueOf(), plannedEndS: 6 * 3600 },
     memo: 'Au ravito de Nogent : remplir les 2 bidons, une barre salée, ne pas traîner.',
-    nav: { turn: { d: 26450, angle: 88, side: 'droite', kind: 'normal' }, inM: 250, then: { d: 27750, angle: 45, side: 'gauche', kind: 'leger' }, thenM: 1300, off: null, lat: 0, lon: 0, heading: 0, d: 26200, preview: true },
+    nav: { turn: { d: 26450, angle: 88, side: 'droite', kind: 'normal' }, inM: 250, then: { d: 27750, angle: 45, side: 'gauche', kind: 'leger' }, thenM: 1300, off: null, lat: 0, lon: 0, heading: 0, d: 26200, left: 126600, preview: true },
     power: 168, power3: 181, power30: 163, mass: 78, slope: 3.2, sun: { kind: 'set', at: new Date(2026, 5, 21, 21, 55) },
     climb: { state: 'in', lenM: 4200, avg: 6.1, gainM: 256, doneM: 1500, toGoKm: 2.7, steps: [{ lenM: 600, grade: 4 }, { lenM: 900, grade: 6 }, { lenM: 800, grade: 8 }, { lenM: 700, grade: 5 }, { lenM: 1200, grade: 7 }] },
     m: {

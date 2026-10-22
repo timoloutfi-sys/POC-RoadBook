@@ -7,7 +7,7 @@ import { addWidget, applyRect, fitting, placeWithPush, overlaps, portraitFrom } 
 
 describe('catalogue', () => {
   it('chaque widget a au moins une taille et son nom, et ses tailles tiennent dans la grille', () => {
-    expect(CATALOG.length).toBe(29)
+    expect(CATALOG.length).toBe(30)
     for (const d of CATALOG) {
       expect(d.sizes.length).toBeGreaterThan(0); expect(d.name).toBeTruthy(); expect(d.desc).toBeTruthy()
       for (const [w, h] of d.sizes) { expect(w).toBeLessThanOrEqual(COLS); expect(h).toBeLessThanOrEqual(ROWS) }
@@ -59,7 +59,7 @@ describe('contenu des widgets', () => {
   const d = previewData()
   it('chaque widget du catalogue produit un contenu avec les données d’aperçu', () => {
     for (const k of CATALOG.map(c => c.k) as WidgetKind[]) {
-      if (['effort', 'hr', 'target', 'next', 'profile', 'fuel', 'gap'].includes(k)) continue
+      if (['effort', 'hr', 'target', 'next', 'profile', 'fuel', 'gap', 'nav'].includes(k)) continue
       const t = tileOf(k, d)
       expect(t.empty, k).toBeUndefined()
     }
@@ -110,8 +110,8 @@ describe('portrait et cases vides', () => {
 })
 
 describe('familles du catalogue', () => {
-  it('8 familles ; chaque widget du catalogue est dans une famille, aucun n’est oublié', () => {
-    expect(FAMILIES.length).toBe(8)
+  it('9 familles ; chaque widget du catalogue est dans une famille, aucun n’est oublié', () => {
+    expect(FAMILIES.length).toBe(9)
     const kinds = new Set(FAMILIES.flatMap(f => f.variants.map(v => v.k)))
     for (const d of CATALOG) expect(kinds.has(d.k), d.k).toBe(true)
     for (const k of kinds) expect(CATALOG.some(d => d.k === k), k).toBe(true)
