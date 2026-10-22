@@ -9,7 +9,9 @@ import App from './App.tsx'
 import { requestPersist } from './library/db'
 import { startLibrary } from './library/session'
 import { startPlanSync } from './strategy/sync'
+import { startAppearance } from './ui/appearance'
 
+startAppearance()
 startPlanSync()
 void requestPersist()
 void startLibrary()

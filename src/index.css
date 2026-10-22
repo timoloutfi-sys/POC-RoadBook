@@ -9,11 +9,10 @@
   font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;
 }
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #eef1f4; --surface: #ffffff; --raised: #f5f7f9; --ink: #15202b; --muted: #4f5c68; --line: #c9d2da;
-    --accent-fg: #7a5c00; --danger: #b42318; --ok: #0b7a3e; color-scheme: light;
-  }
+/* Clair : choisi dans Réglages, ou selon le téléphone (attribut posé par `applyAppearance`). */
+:root[data-theme='light'] {
+  --bg: #eef1f4; --surface: #ffffff; --raised: #f5f7f9; --ink: #15202b; --muted: #4f5c68; --line: #c9d2da;
+  --accent-fg: #7a5c00; --danger: #b42318; --ok: #0b7a3e; color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }

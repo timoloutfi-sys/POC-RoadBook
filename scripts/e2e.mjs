@@ -106,6 +106,18 @@ test('road books : boucle démo → carte avec profil', async (p, url) => {
   await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
   await p.locator('main button').first().tap(); await p.waitForTimeout(500)
   ok(await p.locator('.rb-card .rb-prof').count() === 1, 'pas de profil sur la carte')
+  // Bug du 22 oct. : les cartes collées en un seul bloc avec un trait entre elles.
+  const st = await p.locator('.list.rbs').evaluate(e => { const c = getComputedStyle(e); return { gap: parseFloat(c.rowGap), bg: c.backgroundColor } })
+  ok(st.gap >= 8 && st.bg === 'rgba(0, 0, 0, 0)', `cartes de road books collées (écart ${st.gap}px, fond ${st.bg})`)
+})
+
+test('apparence : Clair / Sombre forcés depuis les réglages', async (p, url) => {
+  await open(p, url); await p.getByRole('button', { name: 'Profil et réglages' }).tap(); await p.waitForTimeout(400)
+  if (await p.getByRole('button', { name: 'Plus tard' }).count()) { await p.getByRole('button', { name: 'Plus tard' }).tap(); await p.waitForTimeout(300); await p.getByRole('button', { name: 'Profil et réglages' }).tap(); await p.waitForTimeout(400) }
+  await p.getByRole('group', { name: 'Apparence' }).getByRole('button', { name: 'Clair' }).tap(); await p.waitForTimeout(150)
+  ok(await p.evaluate(() => document.documentElement.dataset.theme) === 'light', 'Clair ne passe pas l’appli en clair')
+  await p.getByRole('group', { name: 'Apparence' }).getByRole('button', { name: 'Sombre' }).tap(); await p.waitForTimeout(150)
+  ok(await p.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'Sombre ne passe pas l’appli en sombre')
 })
 
 test('repère et point : choisis sur le profil, sans taper le km', async (p, url) => {

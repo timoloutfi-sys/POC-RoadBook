@@ -110,9 +110,9 @@ export function HomeTab({ go, onStart, onRide, onPrep }: { go: (tab: string) => 
       )
     }
     return (
-      <div className="dashbox"><div className="row"><Icon name="flag" size={22} /><b className="grow">Pas encore d’objectif</b></div>
-        <span className="muted" style={{ fontSize: 14 }}>Donne une date à une course : l’accueil affichera le compte à rebours.</span>
-        <button className="btn" onClick={() => setFix(true)}><Icon name="plus" size={20} />Fixer un objectif</button></div>
+      <ul className="list home-goal"><li><button className="item" onClick={() => setFix(true)}>
+        <Icon name="flag" size={20} /><span className="t">Fixer un objectif<small>Une course datée et son compte à rebours</small></span><Icon name="chevron" size={18} />
+      </button></li></ul>
     )
   }
 
@@ -137,15 +137,14 @@ export function HomeTab({ go, onStart, onRide, onPrep }: { go: (tab: string) => 
 
       <button className="btn primary big" style={{ width: '100%' }} onClick={() => void rollWith(target)}><Icon name="ride" size={22} />{resume ? 'Reprendre la sortie' : `Rouler · ${target?.name ?? 'sortie libre'}`}</button>
       {!resume && (
-        <div className="row" style={{ marginTop: 8 }}>
-          {list.length > 0 && <button className="btn grow" onClick={() => setChoose(true)}>Autre road book</button>}
-          {target && <button className="btn grow" onClick={() => void rollWith(null)}>Sortie libre</button>}
+        <div className="home-alt">
+          {list.length > 0 && <button className="btn ghost" onClick={() => setChoose(true)}>Autre road book</button>}
+          {target && <button className="btn ghost" onClick={() => void rollWith(null)}>Sortie libre</button>}
         </div>
       )}
       {target && !target.hasRoute && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>Sans GPX : sortie libre avec les cibles de ce road book.</p>}
 
       <button className="ready" onClick={() => onPrep()} aria-label="Avant de partir">
-        <span className="muted">Prêt à partir</span>
         <span className="sicons">{KINDS.map(k => <span key={k} className={`st-${statusOf(k)}`} title={LABEL[k]}><Icon name={ICON[k]} size={22} /></span>)}<span className="st-on"><Icon name="gps" size={22} /></span></span>
         <span className="muted warn">{missing}</span>
       </button>

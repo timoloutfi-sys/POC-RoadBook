@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { cdaFromFlat } from '../physics/physics'
 import { effectiveFtp, effectiveLthr, ftpIsEstimated, type Rider } from '../strategy/rider'
 import { useStore } from '../storage/store'
-import type { RideTheme } from '../storage/defaults'
+import type { Accent, Appearance, RideTheme } from '../storage/defaults'
 import { Field, Num } from './fields'
 import { Sheet } from './Sheet'
 
@@ -13,6 +13,24 @@ const POS = [
   { n: 'Ultra avec sacoches (0,35)', v: 0.35 },
   { n: 'Position relevée (0,38)', v: 0.38 },
 ]
+const LOOKS: [Appearance, string][] = [['auto', 'Auto'], ['light', 'Clair'], ['dark', 'Sombre']]
+const ACCENTS: [Accent, string][] = [['graphite', 'Graphite'], ['ocre', 'Ocre'], ['sauge', 'Sauge'], ['terre', 'Terre']]
+
+/** Apparence de l'appli : appliquée tout de suite, sans attendre « Enregistrer ». */
+function AppearanceFields() {
+  const { appearance = 'auto', accent = 'graphite', set } = useStore()
+  return (
+    <>
+      <Field label="Apparence" hint="Auto : comme le téléphone">
+        <div className="seg" role="group" aria-label="Apparence">{LOOKS.map(([k, n]) => <button key={k} type="button" aria-pressed={appearance === k} onClick={() => set({ appearance: k })}>{n}</button>)}</div>
+      </Field>
+      <Field label="Couleur des boutons">
+        <div className="seg" role="group" aria-label="Couleur des boutons">{ACCENTS.map(([k, n]) => <button key={k} type="button" aria-pressed={accent === k} onClick={() => set({ accent: k })}>{n}</button>)}</div>
+      </Field>
+    </>
+  )
+}
+
 const ROAD = [
   { n: 'Route lisse, bons pneus', v: 0.004 },
   { n: 'Route normale', v: 0.005 },
@@ -72,6 +90,7 @@ export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () =
       </details>
       {!first && (
         <>
+          <AppearanceFields />
           <Field label="Thème de la vue de course">
             <select value={theme} onChange={e => setTheme(e.target.value as RideTheme)}><option value="auto">Auto selon le soleil</option><option value="day">Toujours clair</option><option value="night">Toujours sombre</option></select>
           </Field>
