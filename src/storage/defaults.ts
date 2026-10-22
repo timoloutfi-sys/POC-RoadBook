@@ -1,3 +1,4 @@
+import type { NavCueCfg } from '../ride/nav'
 import type { AlertRule, Periodic } from '../alerts/types'
 import { uid } from '../core/format'
 import { defaultRider, type Rider } from '../strategy/rider'
@@ -86,6 +87,8 @@ export interface Config {
   libreScreen?: string
   rideTheme: RideTheme
   appearance?: Appearance
+  /** Annonce des virages (bip, vibration) et sa distance. */
+  navCue?: NavCueCfg
   /** Plan de course choisi dans l'onglet Plan ; null tant que rien n'est choisi. */
   plan: PlanCfg | null
   /** Capteurs déjà connectés une fois : on les retrouve sans refaire toute la recherche. */

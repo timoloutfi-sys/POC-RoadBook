@@ -5,6 +5,7 @@ import type { Prio } from '../strategy/types'
 import type { RideBundle } from './bundle'
 import { defaultMetricCfg, newLapOf, newMetrics, stepMetrics, type LapStats, type MetricCfg, type Metrics } from './metrics'
 import { Position } from './position'
+import { navCues, newNavCues, turnsOf, type NavCue, type NavCueState } from './nav'
 
 /**
  * Moteur de sortie : pur, sans DOM ni store. Il ne lit que le paquet et les mesures ; appelé chaque seconde.
@@ -25,6 +26,8 @@ export interface EngineState {
   /** Réserves, zones, dérive, glucides, tour. */
   m: Metrics
   cfg: MetricCfg
+  /** Annonces de navigation déjà faites (virage annoncé, hors parcours). */
+  nav: NavCueState
 }
 
 export interface Measures {
@@ -36,6 +39,8 @@ export interface Measures {
   /** Dernier recalage du GPS sur le tracé (m), à fournir une seule fois ; null sinon. */
   fix: number | null
   source: EffortSource
+  /** Écart du GPS au tracé (m), null sans position fraîche. */
+  offM?: number | null
 }
 
 export interface TickOut {
@@ -46,11 +51,13 @@ export interface TickOut {
   power: number | null
   target: Target | null
   signals: Prio[]
+  /** Annonces de navigation de cette seconde. */
+  cues: NavCue[]
 }
 
 export function newEngine(run: RunState, d = 0, total?: number, cfg: MetricCfg = defaultMetricCfg(240, null, 80)): EngineState {
   const pos = new Position(total); pos.reset(d, total); run.d = d
-  return { run, pos, pBuf: [], movD: d, kj: 0, kjSeen: false, hrHist: [], m: newMetrics(cfg), cfg }
+  return { run, pos, pBuf: [], movD: d, kj: 0, kjSeen: false, hrHist: [], m: newMetrics(cfg), cfg, nav: newNavCues() }
 }
 
 /** « Fait » sur un rappel de nutrition : ajoute ses grammes de glucides. */
@@ -66,7 +73,8 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   if (b.route) st.d = s.pos.step(1, m.speed)
   if (m.power != null) { s.pBuf.push(m.power); if (s.pBuf.length > 30) s.pBuf.shift() } else s.pBuf = []
   const power = avgLast(s.pBuf, 10)
-  if (m.speed <= 0.8) { smoothSev(st, {}); return { moving: false, tgt: 0, power, target: null, signals: [] } }
+  const cues = b.route && b.navCueM > 0 ? navCues(s.nav, turnsOf(b.route), st.d, m.speed, m.offM ?? null, b.navCueM) : []
+  if (m.speed <= 0.8) { smoothSev(st, {}); return { moving: false, tgt: 0, power, target: null, signals: [], cues } }
 
   st.t++; s.movD += m.speed
   // Sortie libre : pas de parcours pour recaler, la distance est l'intégrale de la vitesse (sans cela l'enregistrement restait à 0 km et était jeté).
@@ -81,5 +89,5 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   if (val != null && band && st.t - st.targetSince >= (m.source === 'hr' ? 120 : 0)) tgt = val > band.max || val < band.min ? 2 : 1
   stepMetrics(s.m, s.cfg, { power: m.power, hr: m.hr, cad: (m.cad ?? 0) > 0 ? m.cad : null, speed: m.speed, t: st.t, band, val, source: m.source })
   const signals = evalRun(st, ctx, target, { power: p10, hr: m.hr, cad: (m.cad ?? 0) > 0 ? m.cad : null, speed: m.speed * 3.6 })
-  return { moving: true, tgt, power, target, signals }
+  return { moving: true, tgt, power, target, signals, cues }
 }

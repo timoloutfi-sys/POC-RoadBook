@@ -4,6 +4,7 @@ import { effectiveFtp, effectiveLthr, ftpIsEstimated, type Rider } from '../stra
 import { useStore } from '../storage/store'
 import type { Appearance, RideTheme } from '../storage/defaults'
 import { Field, Num } from './fields'
+import { defaultNavCue, type NavCueMode } from '../ride/nav'
 import { Sheet } from './Sheet'
 
 const POS = [
@@ -22,6 +23,26 @@ function AppearanceFields() {
     <Field label="Apparence" hint="Auto : comme le téléphone">
       <div className="seg" role="group" aria-label="Apparence">{LOOKS.map(([k, n]) => <button key={k} type="button" aria-pressed={appearance === k} onClick={() => set({ appearance: k })}>{n}</button>)}</div>
     </Field>
+  )
+}
+
+const CUES: [NavCueMode, string][] = [['both', 'Bip et vibration'], ['vibe', 'Vibration'], ['beep', 'Bip'], ['off', 'Rien']]
+const CUE_AT = [100, 150, 200, 300]
+
+/** Annonce des virages : appliquée tout de suite, comme l'apparence. */
+function NavCueFields() {
+  const { navCue = defaultNavCue(), set } = useStore()
+  return (
+    <>
+      <Field label="Annonce des virages">
+        <div className="seg" role="group" aria-label="Annonce des virages">{CUES.map(([k, n]) => <button key={k} type="button" aria-pressed={navCue.mode === k} onClick={() => set({ navCue: { ...navCue, mode: k } })}>{n}</button>)}</div>
+      </Field>
+      {navCue.mode !== 'off' && (
+        <Field label="Annoncer avant le virage">
+          <div className="seg" role="group" aria-label="Distance de l’annonce">{CUE_AT.map(m => <button key={m} type="button" aria-pressed={navCue.at === m} onClick={() => set({ navCue: { ...navCue, at: m } })}>{m} m</button>)}</div>
+        </Field>
+      )}
+    </>
   )
 }
 
@@ -85,6 +106,7 @@ export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () =
       {!first && (
         <>
           <AppearanceFields />
+          <NavCueFields />
           <Field label="Thème de la vue de course">
             <select value={theme} onChange={e => setTheme(e.target.value as RideTheme)}><option value="auto">Auto selon le soleil</option><option value="day">Toujours clair</option><option value="night">Toujours sombre</option></select>
           </Field>

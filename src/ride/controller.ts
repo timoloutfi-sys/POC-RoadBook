@@ -15,12 +15,15 @@ import { buildData, type WidgetData } from './data'
 import { gapOf, nextStopOf, plannedKjAt, rebase, type PlanProgress } from './progress'
 import { eleAt, recorder } from './recorder'
 import { timeline, type TimelineRow } from '../strategy/timeline'
-import { signal } from './signal'
+import { cue, signal } from './signal'
+import { bearing } from '../route/turns'
 
 export type RideSource = 'live' | 'sim'
 export interface SimOptions { speed: number; behavior: number; startKm: number; noPower: boolean }
 
-interface Gps { lat: number | null; lon: number | null; speed: number; acc: number | null; ts: number; tsRaw: number; pos: number; off: boolean; err: string | null }
+interface Gps { lat: number | null; lon: number | null; speed: number; acc: number | null; ts: number; tsRaw: number; pos: number; off: boolean; err: string | null
+  /** Cap de marche (degrés), écart au tracé (m). */
+  heading: number | null; offM: number | null }
 
 /** Sortie en cours : capteurs, GPS ou coureur virtuel, moteur d'alertes. Un seul exemplaire pour toute l'appli. */
 class Ride {
@@ -32,7 +35,7 @@ class Ride {
   get live(): RunState { return this.eng.run }
   sim: SimState = newSim()
   simOpts: SimOptions = { speed: 60, behavior: 0.3, startKm: 0, noPower: false }
-  gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, pos: 0, off: false, err: null }
+  gps: Gps = { lat: null, lon: null, speed: 0, acc: null, ts: 0, tsRaw: 0, pos: 0, off: false, err: null, heading: null, offM: null }
   private planCache: { res: unknown; rows: TimelineRow[]; etas: { km: number; t: number }[] } | null = null
   private timer: ReturnType<typeof setInterval> | null = null
   private watchId: number | null = null
@@ -139,12 +142,15 @@ class Ride {
       if (dt > 0.5 && dt < 20) sp = hav(g.lat, g.lon, c.latitude, c.longitude) / dt
     }
     if (sp == null || !isFinite(sp)) sp = 0
+    // Cap : celui du téléphone en roulant, sinon déduit du déplacement (au-delà de 8 m, pour ne pas suivre le bruit).
+    if (c.heading != null && isFinite(c.heading) && sp > 1.5) g.heading = c.heading
+    else if (g.lat != null && g.lon != null && hav(g.lat, g.lon, c.latitude, c.longitude) > 8) g.heading = bearing(g.lat, g.lon, c.latitude, c.longitude)
     g.speed = g.ts ? g.speed * 0.4 + sp * 0.6 : sp
     g.lat = c.latitude; g.lon = c.longitude; g.acc = c.accuracy; g.ts = performance.now(); g.tsRaw = pos.timestamp; g.err = null
     const route = rideState().route
     if (route) {
       const m = matchRoute(route, c.latitude, c.longitude, g.pos)
-      g.off = m.offRoute
+      g.off = m.offRoute; g.offM = m.off
       if (!m.offRoute) { g.pos = m.pos; this.fixPending = m.pos }
     }
   }
@@ -159,9 +165,11 @@ class Ride {
     // Le profil peut changer en route (FC seuil, FTP) : les calculs de zones suivent, au lieu de garder la valeur du lancement de l'appli.
     const bundle = bundleOf(rideState())
     this.eng.cfg = defaultMetricCfg(bundle.ftp, bundle.lthr, bundle.mass)
-    const out = tick(this.eng, bundle, { power: hub.vals.power ?? null, hr: hub.vals.hr ?? null, cad: hub.vals.cad ?? null, speed, fix: this.fixPending, source: this.source() }, now)
+    const out = tick(this.eng, bundle, { power: hub.vals.power ?? null, hr: hub.vals.hr ?? null, cad: hub.vals.cad ?? null, speed, fix: this.fixPending, source: this.source(), offM: gpsFresh ? g.offM : null }, now)
     this.fixPending = null
     out.signals.forEach(signal)
+    const mode = rideState().navCue?.mode ?? 'both'
+    out.cues.forEach(c => cue(c, mode))
     recorder.sample({
       t: Date.now(), km: st.d / 1000, speed, power: out.power, hr: hub.vals.hr ?? null,
       cad: hub.vals.cad ?? null, ele: eleAt(route, st.d), lat: gpsFresh ? g.lat : null, lon: gpsFresh ? g.lon : null, moving: out.moving, tgt: out.tgt,
@@ -211,13 +219,14 @@ class Ride {
     if (this.src === 'sim') {
       const s = this.sim
       return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, memo: c.notes, run: s, plan: this.progress(s.d / 1000, s.t),
-        power: avg10(s.buf, s.p), hr: s.hr, cad: s.cad, speed: s.v * 3.6, vAvg: s.t > 60 ? (s.d / s.t) * 3.6 : 28, hrHist: s.hrHist, now, banner })
+        power: avg10(s.buf, s.p), hr: s.hr, cad: s.cad, speed: s.v * 3.6, vAvg: s.t > 60 ? (s.d / s.t) * 3.6 : 28, hrHist: s.hrHist, now, banner, gps: null })
     }
     const v = this.hub.vals, g = this.gps, fresh = performance.now() - g.ts < 10000
     const elapsed = recorder.ride ? (Date.now() - recorder.ride.start) / 1000 : st.t
+    const gps = fresh && g.lat != null && g.lon != null ? { lat: g.lat, lon: g.lon, heading: g.heading, off: this.eng.nav.off } : null
     return buildData({ source, route: c.route, sections: c.sections, points: c.points, periodic: c.periodic, base: c.base, rider: c.rider, memo: c.notes, run: st, plan: this.progress(st.d / 1000, elapsed),
       power: avgLast(this.eng.pBuf, 10), power3: avgLast(this.eng.pBuf, 3), power30: avgLast(this.eng.pBuf, 30), hr: v.hr, cad: v.cad, speed: (v.spd != null ? v.spd : fresh ? g.speed : 0) * 3.6,
-      vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner, m: metricsView(this.eng.m, this.eng.cfg, source === 'power', st.t) })
+      vAvg: st.t > 60 ? (this.eng.movD / st.t) * 3.6 : 28, hrHist: this.eng.hrHist, now, banner, m: metricsView(this.eng.m, this.eng.cfg, source === 'power', st.t), gps })
   }
 
   /** Problème à signaler à l'écran (GPS, parcours), ou null quand tout va bien. */

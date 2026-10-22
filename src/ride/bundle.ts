@@ -4,7 +4,7 @@ import { effectiveFtp, effectiveLthr, type Rider } from '../strategy/rider'
 import type { BaseRules, RoutePoint, Section } from '../strategy/types'
 import type { rideState } from './scope'
 
-export const BUNDLE_VERSION = 1
+export const BUNDLE_VERSION = 2
 
 /**
  * Paquet de sortie : tout ce dont la sortie a besoin, et rien d'autre. Préparé sur le téléphone,
@@ -24,6 +24,8 @@ export interface RideBundle {
   lthr: number | null
   /** Masse du coureur (kg). */
   mass: number
+  /** Annonce des virages : distance avant le virage (m) ; 0 = pas d'annonce. */
+  navCueM: number
 }
 
 /** Paquet de la sortie à partir de l'état préparé (`rideState()` : road book courant, ou sortie libre). */
@@ -31,6 +33,7 @@ export function bundleOf(c: ReturnType<typeof rideState>): RideBundle {
   return {
     v: BUNDLE_VERSION, route: c.route, sections: c.sections, points: c.points, base: c.base,
     alerts: c.alerts, periodic: c.periodic, maxPerHour: c.maxPerHour, ftp: effectiveFtp(c.rider as Rider), lthr: effectiveLthr(c.rider as Rider), mass: c.rider.mass,
+    navCueM: c.navCue?.mode === 'off' ? 0 : c.navCue?.at ?? 150,
   }
 }
 
