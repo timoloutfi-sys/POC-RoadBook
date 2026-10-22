@@ -58,8 +58,6 @@ export interface ScreenDef {
 export type RideTheme = 'auto' | 'day' | 'night'
 /** Thème de l'appli (préparation) : suit le téléphone, ou forcé. */
 export type Appearance = 'auto' | 'light' | 'dark'
-/** Accent de l'appli : sans couleur (graphite) ou une teinte Wada. */
-export type Accent = 'graphite' | 'ocre' | 'sauge' | 'terre'
 
 export const defaultAlerts = (): AlertRule[] => [
   { id: uid(), on: true, name: 'Trop fort', metric: 'effort', op: '>', ref: 'max', val: 0, dur: 30, cool: 3, prio: 'action', msg: 'Trop fort : reviens sous {max}' },
@@ -88,7 +86,6 @@ export interface Config {
   libreScreen?: string
   rideTheme: RideTheme
   appearance?: Appearance
-  accent?: Accent
   /** Plan de course choisi dans l'onglet Plan ; null tant que rien n'est choisi. */
   plan: PlanCfg | null
   /** Capteurs déjà connectés une fois : on les retrouve sans refaire toute la recherche. */

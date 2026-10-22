@@ -31,15 +31,8 @@
     --accent-ink: #fff; color-scheme: light;
 }
 
-/* Accent de l'appli (boutons, liens, onglet actif), réglé dans Réglages → Apparence.
-   Pas de bleu ni de couleur d'état : « graphite » (sans couleur) ou une teinte Wada. */
+/* Accent : graphite, sans couleur (blanc la nuit, noir le jour). La couleur reste aux états, zones et alertes. */
 :root { --i-tint: var(--i-label); --i-tint-fill: var(--i-label); --i-on-tint: var(--i-bg); }
-:root[data-accent='ocre'] { --i-tint: #e2b540; --i-tint-fill: #e2b540; --i-on-tint: #1c1b18; }              /* Yellow Ocher */
-:root[data-theme='light'][data-accent='ocre'] { --i-tint: #644b1e; }                                               /* Sepia */
-:root[data-accent='sauge'] { --i-tint: #b4cdc2; --i-tint-fill: #648f7b; --i-on-tint: #112f2c; }            /* Glaucous Green, Pistachio Green */
-:root[data-theme='light'][data-accent='sauge'] { --i-tint: #004f46; --i-tint-fill: #004f46; --i-on-tint: #fff; }  /* Dusky Green */
-:root[data-accent='terre'] { --i-tint: #eeb480; --i-tint-fill: #ae5224; --i-on-tint: #fff; }              /* Pinkish Cinnamon, Burnt Sienna */
-:root[data-theme='light'][data-accent='terre'] { --i-tint: #ae5224; }
 [data-theme='light'] .sheet::before { background: #c9c5bc; }
 [data-theme='light'] details.fold summary::after { color: #b3aea4; }
 [data-theme='light'] .sheet-back { background: rgba(0, 0, 0, .3); }

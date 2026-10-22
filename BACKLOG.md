@@ -4,7 +4,7 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
-- [ ] ❓ Appli › couleur d'accent : le bleu ne plaît pas → graphite par défaut, ocre / sauge / terre à essayer dans Réglages → Apparence ; choix à confirmer.
+- [ ] ❓ Appli › couleur d'accent : bleu, puis 11 teintes refusées (« les tons ne vont pas du tout ») → graphite (sans couleur) en attendant une appli de référence choisie par l'utilisateur.
 - [x] Appli › « uniquement en mode sombre ? » : suivait déjà le téléphone ; ajout d'un réglage Apparence (Auto / Clair / Sombre).
 - [x] Road books › cartes collées en un seul bloc avec un trait → cartes séparées (test au doigt).
 - [x] Accueil › trop lourd, dense → objectif en une ligne, autres choix en texte, capteurs sur une ligne sans cadre.
