@@ -38,9 +38,15 @@ Couleurs : magenta pour la navigation (ne se confond ni avec les zones, ni avec 
 - **Virages et hors parcours** : `src/route/turns.ts` (pur, testé) — virages lus sur le tracé fin, secteur du tracé par rapport à ta direction. Réutilisable tel quel sur le boîtier.
 - **Boîtier** : écran couleur (déjà l'orientation de la conversation hardware : TFT VIEWE) ; carte du couloir convertie dans un format compact sur microSD, comme les projets ESP32 cités. À ajouter à `docs/FORMAT-PAQUET.md` le moment venu.
 
+## Décisions (22 oct.)
+
+- Carte **en perspective** (vue inclinée, ~50°) pour les grandes tailles.
+- Petites tailles **avec un mini fond de carte** : vue de dessus, zoom serré, sans attribution visible ; la consigne passe sur une plaque magenta (ou rouge hors parcours), ta position décalée à côté de la plaque.
+- Icône de position : trois propositions (`icones.png`) — A chevron de navigation, B pastille vélo, C point et cône. À choisir.
+
 ## À trancher
 
-1. Carte vue de dessus ou en perspective (3D inclinée) ?
+1. Icône de position : A, B ou C ?
 2. Couleur de la navigation : magenta (proposé) ou autre ?
 3. Annonce sonore et vibration avant un virage (et à quelle distance : 200 m ? 100 m ?) ?
 4. Hors ligne dès le premier lot, ou d'abord en ligne pour tester sur le vélo ?

@@ -77,14 +77,26 @@ const line = (a: number, b: number) => {
 }
 
 /** Carte tournée dans le sens de marche, tracé magenta, position en bas de la carte. */
-function NavMap({ lat, lon, head, zoom = 16, pitch = 0, offLine, h }: { lat: number; lon: number; head: number; zoom?: number; pitch?: number; offLine?: [number, number][]; h: number }) {
+type Icon = 'chevron' | 'velo' | 'cone'
+const ICON = (q.get('icon') ?? 'chevron') as Icon
+/** Trois propositions pour te représenter sur la carte. */
+const iconSvg = (k: Icon, px: number) => ({
+  // Chevron de navigation (style GPS de voiture) : bleu plein, liseré blanc, ombre.
+  chevron: `<svg viewBox="0 0 48 48" width="${px}" height="${px}" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))"><path d="M24 4 L41 42 L24 33 L7 42 Z" fill="#1f6feb" stroke="#fff" stroke-width="4" stroke-linejoin="round"/></svg>`,
+  // Pastille vélo : rond bleu, pictogramme vélo blanc, petit cap devant.
+  velo: `<svg viewBox="0 0 48 48" width="${px}" height="${px}" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))"><path d="M24 1 L30 9 L18 9 Z" fill="#1f6feb"/><circle cx="24" cy="27" r="18" fill="#1f6feb" stroke="#fff" stroke-width="3.5"/><g fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="16.5" cy="31" r="5"/><circle cx="31.5" cy="31" r="5"/><path d="M16.5 31 L21 23 L28 23 L31.5 31 M21 23 L24 31 L28 23 M19.5 20.5 H23 M28 23 L27 19.5 H30"/></g></svg>`,
+  // Point et cône de vision (style plan de téléphone).
+  cone: `<svg viewBox="0 0 48 48" width="${px}" height="${px}"><defs><linearGradient id="cg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#1f6feb" stop-opacity=".55"/><stop offset="1" stop-color="#1f6feb" stop-opacity="0"/></linearGradient></defs><path d="M24 26 L8 2 Q24 -4 40 2 Z" fill="url(#cg)"/><circle cx="24" cy="26" r="10" fill="#1f6feb" stroke="#fff" stroke-width="4"/></svg>`,
+})[k]
+
+function NavMap({ lat, lon, head, zoom = 16, pitch = 0, offLine, h, icon = ICON, small, padLeft = 0 }: { lat: number; lon: number; head: number; zoom?: number; pitch?: number; offLine?: [number, number][]; h: number; icon?: Icon; small?: boolean; padLeft?: number }) {
   const el = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const map = new maplibregl.Map({
       container: el.current!, style: `https://tiles.openfreemap.org/styles/${night ? 'dark' : 'liberty'}`, center: [lon, lat], zoom, bearing: head, pitch,
       interactive: false, attributionControl: false, canvasContextAttributes: { preserveDrawingBuffer: true },
     })
-    map.setPadding({ top: h * 0.5, bottom: 0, left: 0, right: 0 })
+    map.setPadding({ top: h * (small ? 0.35 : 0.5), bottom: 0, left: padLeft, right: 0 })
     map.on('load', () => {
       // Carte calme : routes, eau, verdure et noms de rues ; ni commerces, ni arrêts de bus, ni bâtiments, ni numéros de route.
       for (const l of map.getStyle().layers) {
@@ -102,15 +114,15 @@ function NavMap({ lat, lon, head, zoom = 16, pitch = 0, offLine, h }: { lat: num
         map.addLayer({ id: 'back', type: 'line', source: 'back', paint: { 'line-color': '#e5484d', 'line-width': 4, 'line-dasharray': [1.5, 1.5] } })
       }
       const m = document.createElement('div')
-      m.innerHTML = `<svg viewBox="0 0 48 48" width="44" height="44"><circle cx="24" cy="24" r="22" fill="#1f6feb" fill-opacity=".18"/><circle cx="24" cy="24" r="15" fill="#fff"/><path d="M24 11 L33 33 L24 28 L15 33 Z" fill="#1f6feb"/></svg>`
+      m.innerHTML = iconSvg(icon, small ? 30 : 46)
       new maplibregl.Marker({ element: m, rotation: head, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat([lon, lat]).addTo(map)
     })
     return () => map.remove()
-  }, [lat, lon, head, zoom, pitch, offLine, h])
+  }, [lat, lon, head, zoom, pitch, offLine, h, icon, small, padLeft])
   return (
     <>
       <div ref={el} style={{ position: 'absolute', inset: 0, borderRadius: 8, overflow: 'hidden' }} />
-      <span style={{ position: 'absolute', right: 4, bottom: 2, font: '500 9px Barlow', color: '#555', background: 'rgba(255,255,255,.7)', padding: '0 4px', borderRadius: 3 }}>© OpenStreetMap · OpenFreeMap</span>
+      {!small && <span style={{ position: 'absolute', right: 4, bottom: 2, font: '500 9px Barlow', color: '#555', background: 'rgba(255,255,255,.7)', padding: '0 4px', borderRadius: 3 }}>© OpenStreetMap · OpenFreeMap</span>}
     </>
   )
 }
@@ -128,30 +140,54 @@ function Box({ w, h, children, label }: { w: number; h: number; children: ReactN
   )
 }
 
-const lab: CSSProperties = { font: '600 15px Barlow', color: 'var(--d-mut)' }
 const big = (px: number): CSSProperties => ({ fontFamily: 'var(--num)', fontWeight: 700, fontSize: px, lineHeight: 1, color: 'var(--d-ink)' })
 
+/** Mini fond de carte des petites tailles : vue de dessus, zoom serré, sans noms ; le texte passe sur une plaque. */
+const Mini = ({ offMode, h, padLeft = 0 }: { offMode?: boolean; h: number; padLeft?: number }) => {
+  const o = trackAt(t, off.dist)
+  return offMode
+    ? <NavMap lat={offLat} lon={offLon} head={offHeading} zoom={15.6} h={h} small padLeft={padLeft} offLine={[[offLon, offLat], [o.lon, o.lat]]} />
+    : <NavMap lat={here.lat} lon={here.lon} head={heading} zoom={15.6} h={h} small padLeft={padLeft} />
+}
+const plate = (red?: boolean): CSSProperties => ({ background: red ? 'rgba(229,72,77,.94)' : 'rgba(214,36,159,.94)', color: '#fff', borderRadius: 10, boxShadow: '0 2px 6px rgba(0,0,0,.25)' })
+
 function Turn1x1() {
-  return <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', alignContent: 'center', gap: 2, color: NAV }}><TurnArrow turn={t1} size={70} /><div style={big(30)}>{fm(t1!.d - POS)}</div></div>
+  return (
+    <>
+      <Mini h={CELL_H} />
+      <div style={{ ...plate(), position: 'absolute', left: 6, right: 6, top: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '2px 4px' }}><TurnArrow turn={t1} size={34} color="#fff" /><span style={{ ...big(24), color: '#fff' }}>{fm(t1!.d - POS)}</span></div>
+    </>
+  )
 }
 function Turn2x1() {
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', color: NAV }}>
-      <TurnArrow turn={t1} size={86} />
-      <div><div style={big(44)}>{fm(t1!.d - POS)}</div><div style={{ ...lab, color: 'var(--d-ink)', fontSize: 17 }}>{turnWord(t1!)}</div>{t2 && <div style={lab}>puis {turnWord(t2).toLowerCase()} · {fm(t2.d - t1!.d)}</div>}</div>
-    </div>
+    <>
+      <Mini h={CELL_H} padLeft={CELL_W * 1.2} />
+      <div style={{ ...plate(), position: 'absolute', left: 6, top: 6, bottom: 6, width: '58%', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px' }}>
+        <TurnArrow turn={t1} size={46} color="#fff" />
+        <div><div style={{ ...big(28), color: '#fff' }}>{fm(t1!.d - POS)}</div><div style={{ font: '600 14px Barlow' }}>{turnWord(t1!)}</div>{t2 && <div style={{ font: '600 12px Barlow', opacity: 0.85 }}>puis {fm(t2.d - t1!.d)}</div>}</div>
+      </div>
+    </>
   )
 }
 function Off2x1() {
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px', color: '#e5484d', background: 'color-mix(in srgb, #e5484d 12%, transparent)' }}>
-      <OffArrow rel={off.rel} size={80} />
-      <div><div style={{ font: '700 19px Barlow', color: '#e5484d' }}>Hors parcours</div><div style={big(36)}>{fm(off.off)}</div><div style={{ ...lab, color: 'var(--d-ink)', fontSize: 17 }}>tracé {off.side}</div></div>
-    </div>
+    <>
+      <Mini offMode h={CELL_H} padLeft={CELL_W * 1.2} />
+      <div style={{ ...plate(true), position: 'absolute', left: 6, top: 6, bottom: 6, width: '58%', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px' }}>
+        <OffArrow rel={off.rel} size={42} />
+        <div><div style={{ font: '700 14px Barlow' }}>Hors parcours</div><div style={{ ...big(26), color: '#fff' }}>{fm(off.off)}</div><div style={{ font: '600 13px Barlow' }}>tracé {off.side}</div></div>
+      </div>
+    </>
   )
 }
 function Off1x1() {
-  return <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', alignContent: 'center', gap: 2, color: '#e5484d', background: 'color-mix(in srgb, #e5484d 12%, transparent)' }}><OffArrow rel={off.rel} size={62} /><div style={big(26)}>{fm(off.off)}</div></div>
+  return (
+    <>
+      <Mini offMode h={CELL_H} />
+      <div style={{ ...plate(true), position: 'absolute', left: 6, right: 6, top: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '2px 4px' }}><OffArrow rel={off.rel} size={30} /><span style={{ ...big(22), color: '#fff' }}>{fm(off.off)}</span></div>
+    </>
+  )
 }
 /** Bandeau de virage, collé en haut de la carte : flèche, distance, consigne ; le virage suivant à droite en grand. */
 const TurnBand = ({ compact }: { compact?: boolean }) => (
@@ -171,13 +207,13 @@ const OffBand = ({ compact }: { compact?: boolean }) => (
   </div>
 )
 
-function MapWidget({ w, h, pitch = 0, offMode }: { w: number; h: number; pitch?: number; offMode?: boolean }) {
+function MapWidget({ w, h, pitch = 50, offMode }: { w: number; h: number; pitch?: number; offMode?: boolean }) {
   const pxH = h * CELL_H, o = offMode ? trackAt(t, off.dist) : null
   return (
     <>
       {offMode
-        ? <NavMap lat={offLat} lon={offLon} head={offHeading} zoom={15} h={pxH} offLine={[[offLon, offLat], [o!.lon, o!.lat]]} />
-        : <NavMap lat={here.lat} lon={here.lon} head={heading} zoom={w * h >= 6 ? 15 : 14.6} pitch={pitch} h={pxH} />}
+        ? <NavMap lat={offLat} lon={offLon} head={offHeading} zoom={14.9} pitch={pitch} h={pxH} offLine={[[offLon, offLat], [o!.lon, o!.lat]]} />
+        : <NavMap lat={here.lat} lon={here.lon} head={heading} zoom={w * h >= 6 ? 15.6 : 15.2} pitch={pitch} h={pxH} />}
       {offMode ? <OffBand compact={w * h <= 4} /> : <TurnBand compact={w * h <= 4} />}
     </>
   )
@@ -204,7 +240,7 @@ function Cartes() {
 }
 
 /** Écran complet : la navigation à côté des widgets d'effort, comme dans l'appli. */
-function Ecran({ portrait, pitch }: { portrait?: boolean; pitch?: number }) {
+function Ecran({ portrait, pitch = 50 }: { portrait?: boolean; pitch?: number }) {
   const grid = portrait ? PORTRAIT : LANDSCAPE, d = previewData()
   const items: WidgetItem[] = portrait
     ? [{ id: 'a', k: 'effort', x: 0, y: 3, w: 2, h: 2 }, { id: 'b', k: 'hr', x: 2, y: 3, w: 1, h: 1 }, { id: 'c', k: 'speed', x: 2, y: 4, w: 1, h: 1 }, { id: 'd', k: 'dist', x: 0, y: 5, w: 2, h: 1 }, { id: 'e', k: 'clock', x: 2, y: 5, w: 1, h: 1 }]
@@ -224,7 +260,15 @@ function Ecran({ portrait, pitch }: { portrait?: boolean; pitch?: number }) {
   )
 }
 
+function Icones() {
+  const one = (k: Icon, l: string) => (
+    <Box w={2} h={2} label={l}><NavMap lat={here.lat} lon={here.lon} head={heading} zoom={15.8} pitch={50} h={2 * CELL_H} icon={k} /></Box>
+  )
+  return <div style={{ padding: 16, display: 'flex', gap: 18 }}>{one('chevron', 'A · chevron de navigation')}{one('velo', 'B · pastille vélo')}{one('cone', 'C · point et cône')}</div>
+}
+
 const V: Record<string, () => ReactNode> = {
+  icones: () => <Icones />,
   petits: () => <Petits />, cartes: () => <Cartes />,
   ecran: () => <Ecran />, ecran3d: () => <Ecran pitch={50} />, portrait: () => <Ecran portrait />,
 }
