@@ -41,15 +41,18 @@ const fm = (m: number) => (m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1
 const NAV = '#d6249f', DONE = '#8a96a3'
 const turnWord = (x: Turn) => (x.kind === 'demi' ? 'Demi-tour' : x.kind === 'serre' ? `Serré à ${x.side}` : x.kind === 'leger' ? `Légèrement à ${x.side}` : `À ${x.side}`)
 
-/** Flèche de virage : un trait qui monte puis tourne de l'angle du virage. */
+/** Flèche de virage : tige verticale, courbe de l'angle du virage, pointe pleine dans l'axe de sortie. */
 function TurnArrow({ turn, size = 64, color = 'currentColor' }: { turn: Turn | null; size?: number; color?: string }) {
-  const a = turn ? (turn.side === 'droite' ? 1 : -1) * Math.min(turn.angle, 170) : 0
-  const r = (a * Math.PI) / 180, x2 = 50 + 34 * Math.sin(r), y2 = 44 - 34 * Math.cos(r)
-  const hx = (k: number) => x2 + 14 * Math.sin(r + k), hy = (k: number) => y2 - 14 * Math.cos(r + k)
+  const a = turn ? (turn.side === 'droite' ? 1 : -1) * Math.min(turn.angle, 160) : 0
+  const r = (a * Math.PI) / 180, sx = Math.sin(r), cy = Math.cos(r)
+  // Coude en (50, 52) ; sortie de 26 unités dans la direction du virage ; pointe de 16.
+  const ex = 50 + 26 * sx, ey = 52 - 26 * cy, tx = ex + 16 * sx, ty = ey - 16 * cy
+  const px = -cy, py = -sx
+  const head = `M${tx.toFixed(1)} ${ty.toFixed(1)} L${(ex + 13 * px).toFixed(1)} ${(ey + 13 * py).toFixed(1)} L${(ex - 13 * px).toFixed(1)} ${(ey - 13 * py).toFixed(1)} Z`
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden>
-      <path d={`M50 94 L50 44 L${x2.toFixed(1)} ${y2.toFixed(1)}`} fill="none" stroke={color} strokeWidth="13" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={`M${hx(Math.PI - 0.6).toFixed(1)} ${hy(Math.PI - 0.6).toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} L${hx(Math.PI + 0.6).toFixed(1)} ${hy(Math.PI + 0.6).toFixed(1)}`} fill="none" stroke={color} strokeWidth="13" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`M50 96 L50 64 Q50 52 ${(50 + 12 * sx).toFixed(1)} ${(52 - 12 * cy).toFixed(1)} L${ex.toFixed(1)} ${ey.toFixed(1)}`} fill="none" stroke={color} strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={head} fill={color} stroke={color} strokeWidth="4" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -81,19 +84,25 @@ function NavMap({ lat, lon, head, zoom = 16, pitch = 0, offLine, h }: { lat: num
       container: el.current!, style: `https://tiles.openfreemap.org/styles/${night ? 'dark' : 'liberty'}`, center: [lon, lat], zoom, bearing: head, pitch,
       interactive: false, attributionControl: false, canvasContextAttributes: { preserveDrawingBuffer: true },
     })
-    map.setPadding({ top: h * 0.45, bottom: 0, left: 0, right: 0 })
+    map.setPadding({ top: h * 0.5, bottom: 0, left: 0, right: 0 })
     map.on('load', () => {
+      // Carte calme : routes, eau, verdure et noms de rues ; ni commerces, ni arrêts de bus, ni bâtiments, ni numéros de route.
+      for (const l of map.getStyle().layers) {
+        const id = l.id
+        const keepLabel = /^(highway[-_]name|road[-_]label|water[-_]name|place[-_](city|town|village|suburb))/i.test(id)
+        if (/poi|building|transit|aerodrome|aeroway|housenumber|bus|rail|ferry|boundary|shield|oneway|bridge_pattern|tunnel_pattern/i.test(id) || (l.type === 'symbol' && !keepLabel)) map.setLayoutProperty(id, 'visibility', 'none')
+      }
       map.addSource('done', { type: 'geojson', data: line(0, offLine ? 5200 : POS) })
       map.addSource('todo', { type: 'geojson', data: line(offLine ? 0 : POS, t.total) })
-      map.addLayer({ id: 'todo-c', type: 'line', source: 'todo', paint: { 'line-color': '#fff', 'line-width': 11 }, layout: { 'line-cap': 'round', 'line-join': 'round' } })
-      map.addLayer({ id: 'todo', type: 'line', source: 'todo', paint: { 'line-color': NAV, 'line-width': 6 }, layout: { 'line-cap': 'round', 'line-join': 'round' } })
+      map.addLayer({ id: 'todo-c', type: 'line', source: 'todo', paint: { 'line-color': '#fff', 'line-width': 12 }, layout: { 'line-cap': 'round', 'line-join': 'round' } })
+      map.addLayer({ id: 'todo', type: 'line', source: 'todo', paint: { 'line-color': NAV, 'line-width': 7 }, layout: { 'line-cap': 'round', 'line-join': 'round' } })
       if (!offLine) map.addLayer({ id: 'done', type: 'line', source: 'done', paint: { 'line-color': DONE, 'line-width': 5, 'line-opacity': 0.8 }, layout: { 'line-cap': 'round' } })
       if (offLine) {
         map.addSource('back', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: offLine } } })
         map.addLayer({ id: 'back', type: 'line', source: 'back', paint: { 'line-color': '#e5484d', 'line-width': 4, 'line-dasharray': [1.5, 1.5] } })
       }
       const m = document.createElement('div')
-      m.innerHTML = `<svg viewBox="0 0 40 40" width="34" height="34"><path d="M20 3 L34 35 L20 27 L6 35 Z" fill="#1f6feb" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`
+      m.innerHTML = `<svg viewBox="0 0 48 48" width="44" height="44"><circle cx="24" cy="24" r="22" fill="#1f6feb" fill-opacity=".18"/><circle cx="24" cy="24" r="15" fill="#fff"/><path d="M24 11 L33 33 L24 28 L15 33 Z" fill="#1f6feb"/></svg>`
       new maplibregl.Marker({ element: m, rotation: head, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat([lon, lat]).addTo(map)
     })
     return () => map.remove()
@@ -144,16 +153,20 @@ function Off2x1() {
 function Off1x1() {
   return <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', alignContent: 'center', gap: 2, color: '#e5484d', background: 'color-mix(in srgb, #e5484d 12%, transparent)' }}><OffArrow rel={off.rel} size={62} /><div style={big(26)}>{fm(off.off)}</div></div>
 }
-/** Bandeau de virage posé sur la carte. */
-const TurnChip = ({ small }: { small?: boolean }) => (
-  <div style={{ position: 'absolute', left: 8, top: 8, display: 'flex', alignItems: 'center', gap: 8, padding: small ? '4px 10px 4px 4px' : '6px 14px 6px 6px', borderRadius: 12, background: NAV, color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.3)' }}>
-    <TurnArrow turn={t1} size={small ? 40 : 56} color="#fff" />
-    <div><div style={{ fontFamily: 'var(--num)', fontWeight: 700, fontSize: small ? 26 : 34, lineHeight: 1 }}>{fm(t1!.d - POS)}</div>{!small && <div style={{ font: '600 15px Barlow' }}>{turnWord(t1!)}</div>}</div>
+/** Bandeau de virage, collé en haut de la carte : flèche, distance, consigne ; le virage suivant à droite en grand. */
+const TurnBand = ({ compact }: { compact?: boolean }) => (
+  <div style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', alignItems: 'center', gap: 10, padding: compact ? '6px 10px' : '8px 14px', background: NAV, color: '#fff' }}>
+    <TurnArrow turn={t1} size={compact ? 40 : 52} color="#fff" />
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontFamily: 'var(--num)', fontWeight: 700, fontSize: compact ? 28 : 34, lineHeight: 1 }}>{fm(t1!.d - POS)}</div>
+      {!compact && <div style={{ font: '600 16px Barlow', opacity: 0.95 }}>{turnWord(t1!)}</div>}
+    </div>
+    {!compact && t2 && <div style={{ display: 'flex', alignItems: 'center', gap: 4, font: '600 15px Barlow', opacity: 0.85 }}>puis <TurnArrow turn={t2} size={26} color="#fff" /> {fm(t2.d - t1!.d)}</div>}
   </div>
 )
-const OffChip = () => (
-  <div style={{ position: 'absolute', left: 8, top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px 6px 6px', borderRadius: 12, background: '#e5484d', color: '#fff' }}>
-    <OffArrow rel={off.rel} size={50} />
+const OffBand = ({ compact }: { compact?: boolean }) => (
+  <div style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', alignItems: 'center', gap: 10, padding: compact ? '6px 10px' : '8px 14px', background: '#e5484d', color: '#fff' }}>
+    <OffArrow rel={off.rel} size={compact ? 38 : 48} />
     <div><div style={{ font: '700 18px Barlow' }}>Hors parcours</div><div style={{ font: '600 15px Barlow' }}>tracé {off.side} · {fm(off.off)}</div></div>
   </div>
 )
@@ -165,7 +178,7 @@ function MapWidget({ w, h, pitch = 0, offMode }: { w: number; h: number; pitch?:
       {offMode
         ? <NavMap lat={offLat} lon={offLon} head={offHeading} zoom={15} h={pxH} offLine={[[offLon, offLat], [o!.lon, o!.lat]]} />
         : <NavMap lat={here.lat} lon={here.lon} head={heading} zoom={w * h >= 6 ? 15 : 14.6} pitch={pitch} h={pxH} />}
-      {offMode ? <OffChip /> : <TurnChip small={w * h <= 4} />}
+      {offMode ? <OffBand compact={w * h <= 4} /> : <TurnBand compact={w * h <= 4} />}
     </>
   )
 }
@@ -204,7 +217,7 @@ function Ecran({ portrait, pitch }: { portrait?: boolean; pitch?: number }) {
       <div className="wg" style={{ left: nav.x * cw, top: nav.y * ch, width: nav.w * cw, height: nav.h * ch, position: 'absolute' }}>
         <div className="wi" style={{ position: 'absolute', inset: 2, padding: 0, overflow: 'hidden' }}>
           <NavMap lat={here.lat} lon={here.lon} head={heading} zoom={pitch ? 15.6 : 15} pitch={pitch ?? 0} h={nav.h * ch} />
-          <TurnChip />
+          <TurnBand />
         </div>
       </div>
     </div>

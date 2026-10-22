@@ -25,7 +25,7 @@ Un seul widget **Navigation**, toutes tailles :
 
 - **1×1** : flèche du prochain virage + distance. Hors parcours : boussole rouge qui pointe vers le tracé + distance.
 - **2×1** : flèche, distance, « À gauche », et le virage suivant (« puis à droite · 1,3 km »). Hors parcours : « Hors parcours · 140 m · tracé derrière à droite ».
-- **2×2 et plus** : carte en couleur tournée dans ton sens de marche, toi en bas, le tracé en magenta (déjà fait en gris), le prochain virage dans une pastille magenta en haut à gauche. Hors parcours : pastille rouge « Hors parcours · tracé derrière · 140 m » et ligne pointillée rouge jusqu'au tracé.
+- **2×2 et plus** : carte en couleur, épurée (routes, eau, verdure et noms de rues ; ni commerces, ni arrêts, ni bâtiments), tournée dans ton sens de marche, toi en bas, le tracé en magenta (déjà fait en gris). Le prochain virage dans un bandeau magenta collé en haut (flèche, distance, consigne, et « puis ↱ 1,3 km »). Hors parcours : bandeau rouge « Hors parcours · tracé derrière · 140 m » et ligne pointillée rouge jusqu’au tracé.
 - **Plein écran ou presque** (4×3, portrait 3×3) : la même carte, avec les widgets d'effort à côté. Variante en perspective (vue 3D inclinée) à trancher.
 - **Nuit** : carte sombre (même tracé magenta), basculée avec le reste de l'écran.
 
