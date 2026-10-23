@@ -89,6 +89,8 @@ export interface Config {
   appearance?: Appearance
   /** Annonce des virages (bip, vibration) et sa distance. */
   navCue?: NavCueCfg
+  /** Diagnostic de la carte de navigation (compteurs affichés sur la carte), pour les essais. */
+  navDebug?: boolean
   /** Plan de course choisi dans l'onglet Plan ; null tant que rien n'est choisi. */
   plan: PlanCfg | null
   /** Capteurs déjà connectés une fois : on les retrouve sans refaire toute la recherche. */

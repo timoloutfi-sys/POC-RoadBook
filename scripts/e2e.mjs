@@ -106,6 +106,8 @@ test('navigation : réglage des annonces, carte hors ligne du road book et dans 
   const g = p.getByRole('group', { name: 'Annonce des virages' })
   ok(await g.count() === 1, 'pas de réglage « Annonce des virages »')
   ok(await p.getByRole('group', { name: 'Distance de l’annonce' }).count() === 1, 'pas de distance d’annonce')
+  ok(await p.getByText(/^Version [0-9a-f]{7}|^Version dev/).count() === 1, 'pas de numéro de version dans Réglages')
+  ok(await p.getByRole('switch', { name: /Diagnostic de la carte/ }).count() === 1, 'pas de diagnostic de la carte')
   await g.getByRole('button', { name: 'Rien' }).tap(); await p.waitForTimeout(150)
   ok(await p.getByRole('group', { name: 'Distance de l’annonce' }).count() === 0, 'distance proposée alors que l’annonce est coupée')
   await p.getByRole('button', { name: 'Annuler' }).tap(); await p.waitForTimeout(300)

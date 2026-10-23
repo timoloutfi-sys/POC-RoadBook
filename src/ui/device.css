@@ -240,11 +240,16 @@
 .wi:has(> .nav-w) { padding: 0; overflow: hidden; }
 .nav-w { position: absolute; inset: 0; --nav-land: color-mix(in srgb, #2c2c2e calc(var(--n) * 100%), #ece8df); --nav-road: color-mix(in srgb, #48484a calc(var(--n) * 100%), #fff); }
 .nav-map, .nav-prev { position: absolute; inset: 0; width: 100%; height: 100%; }
-.nav-map { background: var(--nav-land); contain: strict; }
+.nav-map { background: var(--nav-land); }
+/* Chrome Android : une carte WebGL dans une case aux coins arrondis qui rogne (overflow) clignote quand l'écran se redessine ;
+   la case de la carte devient un calque à part, qui garde sa découpe. */
+.wi:has(> .nav-w) { transform: translateZ(0); isolation: isolate; }
 .nav-map.tilt { height: 160%; }
 .nav-map .maplibregl-canvas { outline: none; }
 .nav-me { position: absolute; z-index: 1; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); pointer-events: none; }
 .nav-plate { position: absolute; left: 6px; top: 6px; bottom: 6px; max-width: calc(100% - 12px); display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); white-space: nowrap; }
+/* La plaque laisse ta position visible à droite (la carte te place aux trois quarts de la largeur). */
+.wg .nav-plate:not(.one) { max-width: 56%; overflow: hidden; }
 .nav-plate.one { right: 6px; bottom: auto; justify-content: center; padding: 2px 4px; gap: 2px; }
 .nav-band { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 10px; padding: 8px 14px; }
 .nav-txt { min-width: 0; }
@@ -252,3 +257,4 @@
 .nav-then { font-weight: 600; font-size: 12px; opacity: .85; }
 .nav-then.row-then { display: flex; align-items: center; gap: 4px; font-size: 15px; }
 .nav-attr { position: absolute; right: 4px; bottom: 2px; font-size: 9px; color: #555; background: rgba(255, 255, 255, .7); padding: 0 4px; border-radius: 3px; }
+.nav-diag { position: absolute; left: 4px; right: 4px; bottom: 14px; z-index: 2; font: 600 11px/1.2 var(--font); color: #fff; background: rgba(0, 0, 0, .7); padding: 2px 6px; border-radius: 4px; pointer-events: none; }

@@ -31,7 +31,7 @@ const CUE_AT = [100, 150, 200, 300]
 
 /** Annonce des virages : appliquée tout de suite, comme l'apparence. */
 function NavCueFields() {
-  const { navCue = defaultNavCue(), set } = useStore()
+  const { navCue = defaultNavCue(), navDebug = false, set } = useStore()
   return (
     <>
       <Field label="Annonce des virages">
@@ -42,6 +42,10 @@ function NavCueFields() {
           <div className="seg" role="group" aria-label="Distance de l’annonce">{CUE_AT.map(m => <button key={m} type="button" aria-pressed={navCue.at === m} onClick={() => set({ navCue: { ...navCue, at: m } })}>{m} m</button>)}</div>
         </Field>
       )}
+      <label className="row" style={{ padding: '4px 0', flexWrap: 'nowrap' }}>
+        <span className="grow">Diagnostic de la carte<small style={{ display: 'block', color: 'var(--muted)' }}>Compteurs sur la carte pendant la sortie, pour les essais</small></span>
+        <input type="checkbox" role="switch" style={{ width: 28, height: 28 }} checked={navDebug} onChange={e => set({ navDebug: e.target.checked })} />
+      </label>
     </>
   )
 }
@@ -115,6 +119,7 @@ export function ProfileSheet({ first, onClose }: { first: boolean; onClose: () =
         </>
       )}
       <div className="row"><button className="btn primary grow" onClick={save}>Enregistrer</button><button className="btn" onClick={first ? dismiss : onClose}>{first ? 'Plus tard' : 'Annuler'}</button></div>
+      <p className="muted" style={{ fontSize: 13, marginTop: 12, textAlign: 'center' }}>Version {__BUILD__}</p>
     </Sheet>
   )
 }

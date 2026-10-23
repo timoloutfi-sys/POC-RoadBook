@@ -4,6 +4,7 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [ ] ❓ Navigation › la carte flashe toujours (rien n'a changé) : version affichée dans Réglages (vérifier que le téléphone a la dernière), case de la carte isolée en calque, diagnostic activable (Réglages › Diagnostic de la carte) → capture des compteurs à envoyer.
 - [x] Navigation › la carte flashe encore (tout sauf le chevron et le bandeau) : Chrome Android montrait une image vide de la carte quand l'écran se redessinait → la carte garde sa dernière image (preserveDrawingBuffer). À confirmer sur le téléphone.
 - [x] Tour › le chrono démarrait en retard et se figeait : il ne comptait que le temps en mouvement → chronomètre (tourne aussi à l'arrêt), moyennes sur le temps en mouvement ; test au doigt.
 - [x] Navigation › le fond de carte apparaît et disparaît : tuiles annulées rendues vides (la carte bougeait 4 fois par seconde) → annulation propagée, carte déplacée une fois par seconde au plus, rendu isolé. Test unitaire ; à confirmer sur le téléphone.

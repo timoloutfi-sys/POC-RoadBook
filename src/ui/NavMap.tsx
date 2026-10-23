@@ -55,7 +55,11 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const state = useRef<{ tone: MapTone | null; doneAt: number; route: Route | null; at: number; lat: number; lon: number; head: number }>({ tone: null, doneAt: -1, route: null, at: 0, lat: 0, lon: 0, head: 0 })
-  const route = useStore(s => s.route)
+  const route = useStore(s => s.route), debug = useStore(s => !!s.navDebug)
+  // Diagnostic (Réglages) : ce que fait la carte sur le téléphone, pour trouver ce qui la fait clignoter.
+  const diag = useRef<Record<string, number>>({ créée: 0 })
+  const diagEl = useRef<HTMLSpanElement>(null)
+  const bump = (k: string) => { diag.current[k] = (diag.current[k] ?? 0) + 1 }
   const last = useRef(nav)
   last.current = nav
 
@@ -98,7 +102,12 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
       const ro = new ResizeObserver(() => { if (!el.current) return; m.resize(); pad() })
       ro.observe(el.current)
       m.once('remove', () => ro.disconnect())
-      m.on('style.load', () => addLayers(m))
+      m.on('style.load', () => { bump('style'); addLayers(m) })
+      bump('créée')
+      m.on('resize', () => bump('taille'))
+      m.on('webglcontextlost', () => bump('contexte perdu'))
+      m.on('error', () => bump('erreur'))
+      m.on('dataloading', e => { if ((e as { dataType?: string }).dataType === 'source') bump('tuiles') })
       map.current = m
       Object.assign(state.current, { tone, at: performance.now(), lat: n.lat, lon: n.lon, head: n.heading })
     }).catch(() => { /* pas de style (hors ligne, carte pas enregistrée) : la consigne reste lisible sans fond */ })
@@ -116,6 +125,7 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
     const moved = Math.abs(nav.lat - st.lat) + Math.abs(nav.lon - st.lon) > 1e-5 || Math.abs(((nav.heading - st.head + 540) % 360) - 180) > 2
     if (moved && now - st.at > 950) {
       st.at = now; st.lat = nav.lat; st.lon = nav.lon; st.head = nav.heading
+      bump('mouvements')
       m.easeTo({ center: [nav.lon, nav.lat], bearing: nav.heading, duration: 1000, easing: x => x, padding: padOf(el.current, pitch, side) })
     }
     if (!m.isStyleLoaded()) return
@@ -128,7 +138,8 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
       state.current.tone = tone
       void mapStyle(tone).then(s => map.current?.setStyle(s as unknown as StyleSpecification)).catch(() => {})
     }
-  }, [nav])
+    if (debug && diagEl.current) diagEl.current.textContent = Object.entries(diag.current).map(([k, v]) => `${k} ${v}`).join(' · ')
+  }, [nav, debug])
 
-  return <><div ref={el} className={`nav-map${pitch ? ' tilt' : ''}`} /><Chevron small={small} pitch={pitch} side={side} /></>
+  return <><div ref={el} className={`nav-map${pitch ? ' tilt' : ''}`} /><Chevron small={small} pitch={pitch} side={side} />{debug && <span ref={diagEl} className="nav-diag" />}</>
 }
