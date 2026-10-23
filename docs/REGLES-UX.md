@@ -68,3 +68,4 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Une action liée à un widget se fait en le touchant, et le widget dit le geste quand il a la place (Tour : « Toucher : nouveau tour », les moyennes du tour fini passent en bandeau). Ce toucher n'ouvre pas la barre de la sortie.
 - La carte de navigation ne bouge qu'une fois par seconde, et seulement si on a avancé ou tourné ; une tuile annulée n'est jamais rendue vide (sinon le fond clignote).
 - Le chrono du Tour est un chronomètre : il démarre au toucher et tourne aussi à l'arrêt ; seules ses moyennes (vitesse, puissance, FC) ne comptent que le temps en mouvement. Le temps de roulage, lui, ne compte que quand on avance.
+- Un widget garde le même identifiant d'une image à l'autre et d'une orientation à l'autre (portrait déduit du paysage compris) : sinon il est recréé à chaque image (carte qui clignote, compteurs qui repartent).

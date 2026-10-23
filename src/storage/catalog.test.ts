@@ -90,6 +90,12 @@ describe('portrait et cases vides', () => {
       expect(p[0].w * p[0].h).toBeGreaterThanOrEqual(p[p.length - 1].w * p[p.length - 1].h)
     }
   })
+  it('portrait déduit : mêmes identifiants qu’en paysage, d’un appel à l’autre (sinon tous les widgets sont recréés 4 fois par seconde)', () => {
+    const land = mkLayout('course'), a = portraitFrom(land), b = portraitFrom(land)
+    expect(a.map(i => i.id)).toEqual(b.map(i => i.id))
+    expect(new Set(a.map(i => i.id)).size).toBe(a.length)
+    for (const it of a) expect(land.some(l => l.id === it.id)).toBe(true)
+  })
   it('le profil large devient 3 colonnes en portrait', () => {
     const p = portraitFrom([{ id: 'a', k: 'profile', x: 0, y: 0, w: 4, h: 1 }])
     expect(p[0].w).toBe(3)

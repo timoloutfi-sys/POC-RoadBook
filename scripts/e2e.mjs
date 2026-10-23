@@ -177,6 +177,10 @@ test('tour : toucher le widget Tour termine le tour et en démarre un nouveau, s
   await tab(p, 'Accueil'); await p.getByRole('button', { name: 'Sortie libre', exact: true }).tap(); await p.waitForTimeout(500)
   await p.getByRole('button', { name: 'Démarrer la sortie' }).tap(); await p.waitForTimeout(800)
   const lap = p.locator('.wg[aria-label="Tour"]')
+  // Bug du 23 oct. : en portrait déduit du paysage, les widgets changeaient d'identifiant à chaque image et étaient recréés 4 fois par seconde.
+  await p.evaluate(() => { window.__w = document.querySelector('.ride .wg') })
+  await p.waitForTimeout(1200)
+  ok(await p.evaluate(() => window.__w.isConnected), 'les widgets de la sortie sont recréés à chaque image (portrait)')
   ok(await lap.count() === 1, 'pas de widget Tour sur l’écran Sortie libre')
   ok((await lap.textContent()).includes('Tour 1'), 'le premier tour n’est pas « Tour 1 »')
   // Bug du 23 oct. : le chrono du tour démarrait en retard et se figeait (il ne comptait que le temps en mouvement).

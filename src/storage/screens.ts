@@ -111,7 +111,9 @@ export function portraitFrom(items: WidgetItem[]): WidgetItem[] {
       let put = false
       for (let y = 0; y <= g.rows - size[1] && !put; y++)
         for (let x = 0; x <= g.cols - size[0] && !put; x++)
-          if (!overlaps(out, { x, y, w: size[0], h: size[1] })) { out.push({ ...it, id: uid(), x, y, w: size[0], h: size[1] }); put = true }
+          // Même identifiant que le widget paysage : la vue de course déduit le portrait à chaque image (4 fois par seconde) ;
+          // un nouvel identifiant faisait recréer tous les widgets à chaque fois (la carte de navigation clignotait).
+          if (!overlaps(out, { x, y, w: size[0], h: size[1] })) { out.push({ ...it, x, y, w: size[0], h: size[1] }); put = true }
       if (put) break
       // Plus petite taille autorisée, si la place manque.
       const [w, h] = size
