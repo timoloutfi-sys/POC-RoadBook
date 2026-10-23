@@ -177,6 +177,9 @@ test('tour : toucher le widget Tour termine le tour et en démarre un nouveau, s
   const lap = p.locator('.wg[aria-label="Tour"]')
   ok(await lap.count() === 1, 'pas de widget Tour sur l’écran Sortie libre')
   ok((await lap.textContent()).includes('Tour 1'), 'le premier tour n’est pas « Tour 1 »')
+  // Bug du 23 oct. : le chrono du tour démarrait en retard et se figeait (il ne comptait que le temps en mouvement).
+  const t0 = (await lap.locator('.val').textContent()).trim(); await p.waitForTimeout(2600)
+  ok((await lap.locator('.val').textContent()).trim() !== t0, `le chrono du tour reste figé à l’arrêt (${t0})`)
   await lap.tap(); await p.waitForTimeout(600)
   ok((await lap.textContent()).includes('Tour 2'), 'toucher le widget Tour ne démarre pas de nouveau tour')
   ok(await p.getByRole('button', { name: 'Capteurs' }).count() === 0, 'toucher le widget Tour ouvre la barre')

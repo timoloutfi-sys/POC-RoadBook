@@ -3,7 +3,7 @@ import { evalRun, smoothSev, type EvalContext, type RunState } from '../alerts/e
 import { targetAt, type EffortSource, type Target } from '../strategy/target'
 import type { Prio } from '../strategy/types'
 import type { RideBundle } from './bundle'
-import { defaultMetricCfg, newLapOf, newMetrics, stepMetrics, type LapStats, type MetricCfg, type Metrics } from './metrics'
+import { defaultMetricCfg, lapClock, newLapOf, newMetrics, stepMetrics, type LapStats, type MetricCfg, type Metrics } from './metrics'
 import { Position } from './position'
 import { navCues, newNavCues, turnsOf, type NavCue, type NavCueState } from './nav'
 
@@ -73,6 +73,8 @@ export function tick(s: EngineState, b: RideBundle, m: Measures, now: number): T
   if (b.route) st.d = s.pos.step(1, m.speed)
   if (m.power != null) { s.pBuf.push(m.power); if (s.pBuf.length > 30) s.pBuf.shift() } else s.pBuf = []
   const power = avgLast(s.pBuf, 10)
+  // Le chrono du tour tourne chaque seconde ; avant, il ne comptait que le temps en mouvement et semblait bloqué (démarrage lent, arrêts).
+  lapClock(s.m)
   const cues = b.route && b.navCueM > 0 ? navCues(s.nav, turnsOf(b.route), st.d, m.speed, m.offM ?? null, b.navCueM) : []
   if (m.speed <= 0.8) { smoothSev(st, {}); return { moving: false, tgt: 0, power, target: null, signals: [], cues } }
 

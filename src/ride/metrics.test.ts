@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { carbShare, defaultMetricCfg, driftPct, endurancePct, inTargetPct, lapNow, newLapOf, newMetrics, phoneMinutesLeft, punchPct, stepMetrics, type MetricIn } from './metrics'
+import { carbShare, defaultMetricCfg, driftPct, endurancePct, inTargetPct, lapClock, lapNow, newLapOf, newMetrics, phoneMinutesLeft, punchPct, stepMetrics, type MetricIn } from './metrics'
 
 const cfg = defaultMetricCfg(250, 170, 75)
 const run = (m = newMetrics(cfg), n: number, f: (t: number) => Partial<MetricIn>, t0 = 0) => {
@@ -80,9 +80,16 @@ describe('dérive cardiaque', () => {
 describe('tour et téléphone', () => {
   it('moyennes du tour puis remise à zéro', () => {
     const m = run(undefined, 100, () => ({}))
+    for (let i = 0; i < 100; i++) lapClock(m)
     expect(Math.round(lapNow(m).p!)).toBe(200)
     const l = newLapOf(m)
-    expect(l.dur).toBe(100); expect(l.v).toBeCloseTo(28.8); expect(m.lap.dur).toBe(0); expect(m.laps).toBe(1)
+    expect(l.dur).toBe(100); expect(l.v).toBeCloseTo(28.8); expect(lapNow(m).dur).toBe(0); expect(m.laps).toBe(1)
+  })
+  it('chrono du tour : tourne aussi à l’arrêt (feu rouge), la vitesse moyenne ne compte que le temps en mouvement', () => {
+    const m = run(undefined, 60, () => ({}))
+    for (let i = 0; i < 90; i++) lapClock(m)
+    const l = lapNow(m)
+    expect(l.dur).toBe(90); expect(l.v).toBeCloseTo(28.8)
   })
   it('autonomie : pente sur 30 min après 15 min', () => {
     const s: [number, number][] = Array.from({ length: 21 }, (_, i) => [i * 60, 0.9 - i * 0.005])

@@ -16,9 +16,15 @@ export interface MetricCfg {
 }
 export const defaultMetricCfg = (ftp: number, lthr: number | null, mass: number): MetricCfg => ({ ftp, lthr, mass, wprime: 18000 })
 
+/** Tour : `dur` = chrono depuis le début du tour (arrêts compris, comme un chronomètre) ; moyennes sur le temps en mouvement. */
 export interface LapStats { dur: number; dist: number; p: number | null; hr: number | null; cad: number | null; v: number }
-interface LapAcc { dur: number; dist: number; pS: number; pN: number; hrS: number; hrN: number; cadS: number; cadN: number }
-const newLap = (): LapAcc => ({ dur: 0, dist: 0, pS: 0, pN: 0, hrS: 0, hrN: 0, cadS: 0, cadN: 0 })
+/** `mov` : secondes en mouvement (moyennes) ; `el` : secondes écoulées depuis le début du tour (chrono affiché). */
+interface LapAcc { mov: number; el: number; dist: number; pS: number; pN: number; hrS: number; hrN: number; cadS: number; cadN: number }
+const newLap = (): LapAcc => ({ mov: 0, el: 0, dist: 0, pS: 0, pN: 0, hrS: 0, hrN: 0, cadS: 0, cadN: 0 })
+const statsOf = (l: LapAcc): LapStats => ({ dur: l.el, dist: l.dist, p: l.pN ? l.pS / l.pN : null, hr: l.hrN ? l.hrS / l.hrN : null, cad: l.cadN ? l.cadS / l.cadN : null, v: l.mov ? (l.dist / l.mov) * 3.6 : 0 })
+
+/** Une seconde de chrono du tour, en mouvement ou à l'arrêt (le chrono ne s'arrête pas aux feux, les moyennes oui). */
+export const lapClock = (m: Metrics) => { m.lap.el++ }
 
 /** Taille du tampon de dérive : 120 groupes de 5 s = 10 min. */
 const DRIFT_BINS = 120
@@ -124,7 +130,7 @@ export function stepMetrics(m: Metrics, c: MetricCfg, x: MetricIn) {
 
   // Tour.
   const l = m.lap
-  l.dur++; l.dist += x.speed
+  l.mov++; l.dist += x.speed
   if (x.power != null) { l.pS += x.power; l.pN++ }
   if (x.hr != null) { l.hrS += x.hr; l.hrN++ }
   if (x.cad != null) { l.cadS += x.cad; l.cadN++ }
@@ -156,15 +162,13 @@ export const carbGap = (m: Metrics) => Math.round(m.carbEaten - m.carbBurned)
 
 /** Nouveau tour : renvoie les moyennes du tour qui se termine. */
 export function newLapOf(m: Metrics): LapStats {
-  const l = m.lap
-  const s: LapStats = { dur: l.dur, dist: l.dist, p: l.pN ? l.pS / l.pN : null, hr: l.hrN ? l.hrS / l.hrN : null, cad: l.cadN ? l.cadS / l.cadN : null, v: l.dur ? (l.dist / l.dur) * 3.6 : 0 }
+  const s = statsOf(m.lap)
   m.lastLap = s; m.laps++; m.lap = newLap()
   return s
 }
 /** Moyennes du tour en cours. */
 export function lapNow(m: Metrics): LapStats {
-  const l = m.lap
-  return { dur: l.dur, dist: l.dist, p: l.pN ? l.pS / l.pN : null, hr: l.hrN ? l.hrS / l.hrN : null, cad: l.cadN ? l.cadS / l.cadN : null, v: l.dur ? (l.dist / l.dur) * 3.6 : 0 }
+  return statsOf(m.lap)
 }
 
 /**
