@@ -96,7 +96,10 @@ export async function resolve(url: string, signal?: AbortSignal): Promise<ArrayB
     const net = kind === 't' ? urlOf(meta.tpl, key) : kind === 's' ? meta.sprite + key.replace(/^sprite/, '') : meta.glyphs.replace('{fontstack}', encodeURIComponent(key.split('/')[0])).replace('{range}', key.split('/')[1])
     const b = await getBin(net, signal)
     return json ? JSON.parse(new TextDecoder().decode(b)) : b
-  } catch {
+  } catch (e) {
+    // Requête annulée (la carte a bougé) : on la laisse échouer. Rendre une tuile vide la fixait blanche dans le cache de la carte,
+    // et le fond « apparaissait et disparaissait » au fil des mouvements.
+    if (signal?.aborted || (e instanceof DOMException && e.name === 'AbortError')) throw e
     return json ? {} : new ArrayBuffer(0)
   }
 }

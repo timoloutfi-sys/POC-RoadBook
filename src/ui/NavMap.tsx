@@ -54,7 +54,7 @@ const toneOf = (el: Element | null): MapTone => {
 export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; small: boolean; pitch: number; side?: number }) {
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
-  const state = useRef<{ tone: MapTone | null; doneAt: number; route: Route | null }>({ tone: null, doneAt: -1, route: null })
+  const state = useRef<{ tone: MapTone | null; doneAt: number; route: Route | null; at: number; lat: number; lon: number; head: number }>({ tone: null, doneAt: -1, route: null, at: 0, lat: 0, lon: 0, head: 0 })
   const route = useStore(s => s.route)
   const last = useRef(nav)
   last.current = nav
@@ -85,7 +85,7 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
       const n = last.current
       const m = new maplibregl.Map({
         container: el.current, style: style as unknown as StyleSpecification, center: [n.lon, n.lat], zoom: small ? 15.6 : 15.4, bearing: n.heading, pitch,
-        interactive: false, attributionControl: false, fadeDuration: 0,
+        interactive: false, attributionControl: false, fadeDuration: 0, refreshExpiredTiles: false, maxTileCacheSize: 400,
       })
       // Toi en bas de la case : marge en haut pour la vue de dessus ; pour la vue inclinée, la carte déborde sous la case (`.tilt`),
       // car une marge avec inclinaison laisse le bas de la carte vide (tuiles non chargées).
@@ -97,7 +97,7 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
       m.once('remove', () => ro.disconnect())
       m.on('style.load', () => addLayers(m))
       map.current = m
-      state.current.tone = tone
+      Object.assign(state.current, { tone, at: performance.now(), lat: n.lat, lon: n.lon, head: n.heading })
     }).catch(() => { /* pas de style (hors ligne, carte pas enregistrée) : la consigne reste lisible sans fond */ })
     return () => { gone = true; map.current?.remove(); map.current = null }
     // La carte se crée une fois par parcours et par taille ; la position suit dans l'effet suivant.
@@ -107,7 +107,14 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
   useEffect(() => {
     const m = map.current
     if (!m) return
-    m.easeTo({ center: [nav.lon, nav.lat], bearing: nav.heading, duration: 900, easing: x => x, padding: padOf(el.current, pitch, side) })
+    // L'écran se redessine 4 fois par seconde : la carte, elle, ne bouge qu'une fois par seconde et seulement si on a avancé
+    // ou tourné (moins de tuiles demandées puis annulées, pas de saccades).
+    const st = state.current, now = performance.now()
+    const moved = Math.abs(nav.lat - st.lat) + Math.abs(nav.lon - st.lon) > 1e-5 || Math.abs(((nav.heading - st.head + 540) % 360) - 180) > 2
+    if (moved && now - st.at > 950) {
+      st.at = now; st.lat = nav.lat; st.lon = nav.lon; st.head = nav.heading
+      m.easeTo({ center: [nav.lon, nav.lat], bearing: nav.heading, duration: 1000, easing: x => x, padding: padOf(el.current, pitch, side) })
+    }
     if (!m.isStyleLoaded()) return
     const r = state.current.route
     if (r && Math.abs(nav.d - state.current.doneAt) > 30) { (m.getSource('done') as GeoJSONSource | undefined)?.setData(part(r, 0, nav.d)); state.current.doneAt = nav.d }
