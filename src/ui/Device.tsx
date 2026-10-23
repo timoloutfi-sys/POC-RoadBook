@@ -38,6 +38,12 @@ interface Props {
   onTap?: (it: WidgetItem) => boolean
 }
 
+/** Coins de l'écran touchés par le widget (classes c-tl, c-tr, c-bl, c-br) : ils suivent l'arrondi de l'écran du téléphone. */
+const cornerOf = (it: { x: number; y: number; w: number; h: number }, cols: number, rows: number) => {
+  const l = it.x === 0, r = it.x + it.w === cols, t = it.y === 0, b = it.y + it.h === rows
+  return `${l && t ? ' c-tl' : ''}${r && t ? ' c-tr' : ''}${l && b ? ' c-bl' : ''}${r && b ? ' c-br' : ''}`
+}
+
 /** La grille 6 × 3 d'un écran de course, avec la lueur d'alerte sur les bords et le bandeau d'annonce. */
 export function Device({ items, data, tone, editable, onChange, thumb, className, grid = LANDSCAPE, selected, onSelect, onEmpty, hint, onTap }: Props) {
   const COLS = grid.cols, ROWS = grid.rows
@@ -107,7 +113,7 @@ export function Device({ items, data, tone, editable, onChange, thumb, className
           ...(sev && (it.k === 'effort' || it.k === 'hr' || it.k === 'cad' || it.k === 'speed') ? { '--valc': sevColor(sev.k, 1, sev.dir), '--wbg': sevColor(sev.k, 0.06 + 0.14 * sev.k, sev.dir), '--wbd': sevColor(sev.k, 0.4 + 0.4 * sev.k, sev.dir) } : {}),
         } as CSSProperties
         return (
-          <div key={it.id} className={`wg s-${sizeOf(it)}${sev && it.k !== 'target' ? ' alert' : ''}${selected === it.id ? ' sel' : ''}${lifted ? ' lifted' : ''}${live ? ' anim' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} onClick={e => { if (editable) onSelect?.(it.id); else if (onTap?.(it)) e.stopPropagation() }} aria-label={WIDGETS[it.k]}>
+          <div key={it.id} className={`wg s-${sizeOf(it)}${cornerOf(it, COLS, ROWS)}${sev && it.k !== 'target' ? ' alert' : ''}${selected === it.id ? ' sel' : ''}${lifted ? ' lifted' : ''}${live ? ' anim' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} onClick={e => { if (editable) onSelect?.(it.id); else if (onTap?.(it)) e.stopPropagation() }} aria-label={WIDGETS[it.k]}>
             <div className="wi"><Widget it={it} d={data} /></div>
             {editable && (
               <>

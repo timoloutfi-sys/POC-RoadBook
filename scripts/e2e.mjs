@@ -176,6 +176,10 @@ test('tour : toucher le widget Tour termine le tour et en démarre un nouveau, s
   await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
   await tab(p, 'Accueil'); await p.getByRole('button', { name: 'Sortie libre', exact: true }).tap(); await p.waitForTimeout(500)
   await p.getByRole('button', { name: 'Démarrer la sortie' }).tap(); await p.waitForTimeout(800)
+  // Retour du 23 oct. : une bande de 24 px restait vide au bord ; l'écran de course prend toute la surface.
+  const box = await p.locator('.ride .dev.full').boundingBox(), vp = p.viewportSize()
+  ok(Math.abs(box.width - vp.width) < 1 && Math.abs(box.height - vp.height) < 1, `écran de course plus petit que le téléphone (${box.width}×${box.height})`)
+  ok(await p.locator('.ride .wg.c-tl').count() === 1, 'pas d’arrondi suivant le coin de l’écran')
   const lap = p.locator('.wg[aria-label="Tour"]')
   // Bug du 23 oct. : en portrait déduit du paysage, les widgets changeaient d'identifiant à chaque image et étaient recréés 4 fois par seconde.
   await p.evaluate(() => { window.__w = document.querySelector('.ride .wg') })

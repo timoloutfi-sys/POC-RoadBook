@@ -72,8 +72,13 @@
 @keyframes ban { 0% { opacity: 0; transform: translateY(-14px); } 8%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 
 /* Plein écran de sortie : bandes tactiles de 24 px de chaque côté. */
-.ride { position: fixed; inset: 0; z-index: 100; display: grid; grid-template-columns: 1fr 24px; background: var(--d-bg, #06080a); touch-action: none; user-select: none; -webkit-user-select: none; }
-.ride .strip { position: relative; z-index: 5; }
+.ride { position: fixed; inset: 0; z-index: 100; display: block; background: var(--d-bg, #06080a); touch-action: none; user-select: none; -webkit-user-select: none;
+  /* Toute la surface du téléphone ; on ne laisse que l'encoche de la caméra (safe-area). */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Rayon des coins de l'écran du téléphone (Android : 30 à 50 px) : les widgets des coins le suivent. */
+  --scr-r: 40px; }
+/* Bande des gestes (Fait, écran suivant) posée sur le bord, au-dessus des widgets : elle ne prend plus de place. */
+.ride .strip { position: absolute; z-index: 5; top: 0; bottom: 0; right: 0; width: 24px; }
 .ride-bar { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px; right: 12px; margin: 0 auto; max-width: 520px; z-index: 8; display: flex; gap: 8px; }
 .ride-bar button { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 6px; border-radius: 99px; border: 1px solid var(--d-mut); background: rgba(0, 0, 0, .8); color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
 .ride-bar button svg { flex: none; }
@@ -126,7 +131,7 @@
 .cell-empty { position: absolute; display: grid; place-items: center; border: 1px dashed color-mix(in srgb, var(--d-mut) 55%, transparent); border-radius: 8px; margin: 2px; box-sizing: border-box; background: transparent; color: var(--d-mut); font-size: 28px; cursor: pointer; z-index: 1; }
 .wg.sel .wi { border: 2px solid var(--d-acc); border-style: solid; box-shadow: 0 0 0 3px color-mix(in srgb, var(--d-acc) 35%, transparent); }
 .wg.sel { z-index: 2; }
-.ride.port { grid-template-columns: 1fr; grid-template-rows: 1fr 24px; }
+.ride.port .strip { top: auto; left: 0; width: auto; height: 24px; }
 .ride.port .dots { right: auto; left: 50%; top: auto; bottom: 34px; transform: translateX(-50%); flex-direction: row; }
 .dev.portrait.full { aspect-ratio: auto; }
 .dev.thumb.portrait, .dev.editing.portrait { aspect-ratio: 1 / 2; }
@@ -258,3 +263,14 @@
 .nav-then.row-then { display: flex; align-items: center; gap: 4px; font-size: 15px; }
 .nav-attr { position: absolute; right: 4px; bottom: 2px; font-size: 9px; color: #555; background: rgba(255, 255, 255, .7); padding: 0 4px; border-radius: 3px; }
 .nav-diag { position: absolute; left: 4px; right: 4px; bottom: 14px; z-index: 2; font: 600 11px/1.2 var(--font); color: #fff; background: rgba(0, 0, 0, .7); padding: 2px 6px; border-radius: 4px; pointer-events: none; }
+
+/* Coins arrondis de l'écran : le widget de chaque coin prend un arrondi concentrique (comme iOS), et son contenu s'écarte du coin. */
+.ride .wg.c-tl .wi { border-top-left-radius: calc(var(--scr-r) - 3px); }
+.ride .wg.c-tr .wi { border-top-right-radius: calc(var(--scr-r) - 3px); }
+.ride .wg.c-bl .wi { border-bottom-left-radius: calc(var(--scr-r) - 3px); }
+.ride .wg.c-br .wi { border-bottom-right-radius: calc(var(--scr-r) - 3px); }
+.ride .wg.c-tl .wi:not(:has(> .nav-w)) { padding-left: 18px; padding-top: 12px; }
+.ride .wg.c-bl .wi:not(:has(> .nav-w)) { padding-left: 18px; padding-bottom: 12px; }
+.ride .wg.c-tl .nav-band { padding-left: 20px; }
+.ride .wg.c-bl .nav-plate, .ride .wg.c-tl .nav-plate { left: 12px; }
+.ride .wg.c-br .nav-attr { right: 20px; }

@@ -69,3 +69,4 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - La carte de navigation ne bouge qu'une fois par seconde, et seulement si on a avancé ou tourné ; une tuile annulée n'est jamais rendue vide (sinon le fond clignote).
 - Le chrono du Tour est un chronomètre : il démarre au toucher et tourne aussi à l'arrêt ; seules ses moyennes (vitesse, puissance, FC) ne comptent que le temps en mouvement. Le temps de roulage, lui, ne compte que quand on avance.
 - Un widget garde le même identifiant d'une image à l'autre et d'une orientation à l'autre (portrait déduit du paysage compris) : sinon il est recréé à chaque image (carte qui clignote, compteurs qui repartent).
+- Vue de course : toute la surface du téléphone (seule l'encoche de la caméra est évitée) ; la bande des gestes se pose sur le bord sans prendre de place ; les widgets des coins suivent l'arrondi de l'écran et leur contenu s'en écarte.
