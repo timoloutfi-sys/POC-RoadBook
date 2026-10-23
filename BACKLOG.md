@@ -4,6 +4,8 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Sortie › loupe beaucoup trop grande (tout l'écran) → le widget grossit sur place (~×1,5). Changement d'écran en glissant retiré (il défilait entre tous les écrans). Tests au doigt.
+- [ ] Sortie › changer d'écran pendant la sortie : choisir quels écrans défilent (par road book ou par type de sortie), puis le geste. À étudier plus tard.
 - [x] Sortie › un toucher sur l'écran ouvrait la barre ; envie de toucher un widget pour une info : appui long = menu, toucher un widget = action (Tour, Rappel, Navigation, Profil, Puissance) ou loupe, glisser = écran suivant ; bande du bord supprimée. Tests au doigt.
 - [x] Sortie › l'écran n'utilise pas toute la surface et s'adapte mal aux coins arrondis : bande de 24 px réservée au bord supprimée (gestes posés par-dessus), coins concentriques avec l'arrondi du téléphone ; test au doigt.
 - [x] Navigation › la carte flashe en portrait (pas en paysage) : le portrait déduit du paysage donnait de nouveaux identifiants aux widgets à chaque image → tous recréés 4 fois par seconde. Identifiants gardés ; tests unitaire et au doigt.

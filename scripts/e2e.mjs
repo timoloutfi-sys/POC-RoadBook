@@ -196,7 +196,7 @@ test('tour : toucher le widget Tour termine le tour et en démarre un nouveau, s
   ok(await p.locator('.banner', { hasText: 'Tour 1' }).count() === 1, 'pas de bandeau avec les moyennes du tour terminé')
 })
 
-test('sortie libre : bouton visible, menu à l’appui long, loupe au toucher, glisser = écran suivant, fin confirmée', async (p, url) => {
+test('sortie libre : bouton visible, menu à l’appui long, loupe au toucher, pas de changement d’écran en glissant, fin confirmée', async (p, url) => {
   await open(p, url); await tab(p, 'Road books')
   await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200)
   await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
@@ -213,6 +213,9 @@ test('sortie libre : bouton visible, menu à l’appui long, loupe au toucher, g
   await p.touchscreen.tap(195, 400); await p.waitForTimeout(300)
   ok(await p.getByRole('button', { name: 'Capteurs' }).count() === 0, 'un simple toucher ouvre encore la barre')
   ok(await p.getByRole('dialog', { name: /en grand$/ }).count() === 1, 'toucher un widget sans action ne l’affiche pas en grand')
+  // Retour du 23 oct. : la loupe prenait tout l'écran ; elle grossit le widget sur place.
+  const lb = await p.locator('.ride-loupe-box').boundingBox(), vw = p.viewportSize()
+  ok(lb.width * lb.height < vw.width * vw.height * 0.5, `loupe trop grande (${Math.round(lb.width)}×${Math.round(lb.height)})`)
   await p.getByRole('dialog', { name: /en grand$/ }).tap(); await p.waitForTimeout(300)
   ok(await p.getByRole('dialog', { name: /en grand$/ }).count() === 0, 'la loupe ne se ferme pas au toucher')
   await longPress(p, 195, 400)
@@ -229,10 +232,11 @@ test('sortie libre : bouton visible, menu à l’appui long, loupe au toucher, g
   ok(await p.locator('.ride-away').count() === 1, 'pas de bandeau « Sortie en cours »')
   await p.locator('.ride-away').tap(); await p.waitForTimeout(600)
   ok(await p.locator('.ride').count() === 1, 'retour à la sortie impossible')
-  // Glisser à l'horizontale : écran suivant (il y a deux écrans par défaut).
+  // Décision du 23 oct. : pas de changement d'écran en glissant (il défilait entre tous les écrans) ; un glissement ne fait rien.
   const before = await p.locator('.ride .wg').evaluateAll(w => w.map(e => e.getAttribute('aria-label')).join())
   await touchDrag(p, 330, 300, 60, 310); await p.waitForTimeout(300)
-  ok(await p.locator('.ride .wg').evaluateAll(w => w.map(e => e.getAttribute('aria-label')).join()) !== before, 'glisser ne change pas d’écran')
+  ok(await p.locator('.ride .wg').evaluateAll(w => w.map(e => e.getAttribute('aria-label')).join()) === before, 'glisser change encore d’écran')
+  ok(await p.getByRole('dialog', { name: /en grand$/ }).count() === 0, 'un glissement ouvre la loupe')
   await longPress(p, 195, 400)
   await p.getByRole('button', { name: 'Quitter' }).tap(); await p.waitForTimeout(300)
   await p.getByRole('button', { name: 'Terminer' }).tap(); await p.waitForTimeout(800)

@@ -272,9 +272,9 @@
 .ride .wg.c-bl .nav-plate, .ride .wg.c-tl .nav-plate { left: 12px; }
 .ride .wg.c-br .nav-attr { right: 20px; }
 
-/* Loupe : un widget touché s'affiche en grand quelques secondes, à sa plus grande taille (plus de détails). */
-.ride-loupe { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: color-mix(in srgb, var(--d-bg) 70%, transparent); }
-.ride-loupe-box { width: 94%; height: 88%; position: relative; }
+/* Loupe : un widget touché grossit sur place quelques secondes (taille autorisée suivante, plus de détails). */
+.ride-loupe { position: absolute; inset: 0; z-index: 7; background: color-mix(in srgb, var(--d-bg) 45%, transparent); }
+.ride-loupe-box { position: absolute; }
 .ride-loupe-box .dev { background: transparent; }
 .ride-loupe-box .wi { box-shadow: 0 10px 40px rgba(0, 0, 0, .3); }
 /* Aide et retour d'un toucher (« Fait », « Profil : 15 km ») : une pastille en haut, qui ne bloque rien. */

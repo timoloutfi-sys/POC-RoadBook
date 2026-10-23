@@ -3,7 +3,7 @@ import { nightAmount } from '../core/daynight'
 import { unlockAudio } from '../ride/signal'
 import { ride } from '../ride/controller'
 import { useStore } from '../storage/store'
-import { itemsFor, stepScreen } from '../storage/screens'
+import { itemsFor } from '../storage/screens'
 import { TAP, WIDGETS, fitSize, nextOption } from '../storage/catalog'
 import { LANDSCAPE, PORTRAIT, type WidgetItem } from '../storage/defaults'
 import { Device } from './Device'
@@ -19,17 +19,16 @@ const LONG_MS = 600, BAR_MS = 4000, LOUPE_MS = 6000, OVERVIEW_MS = 10000, HINT_M
  *   Un toucher par erreur (pluie, gant) n'ouvre plus rien.
  * - Toucher un widget : son action (Tour = nouveau tour, Rappel = Fait, Navigation = vue d'ensemble, Profil et Puissance =
  *   réglage suivant) ; sans action, il s'affiche en grand quelques secondes (loupe). Toucher le bandeau d'un rappel = Fait.
- * - Glisser à l'horizontale n'importe où : écran suivant ou précédent.
+ * Pas de changement d'écran en glissant pour l'instant (il faudra d'abord choisir quels écrans défilent).
  */
 export function RideView({ onExit, onAway }: { onExit: () => void; onAway: () => void }) {
   const screens = useStore(s => s.screens), activeId = useStore(s => s.activeScreen), theme = useStore(s => s.rideTheme)
-  const route = useStore(s => s.route), set = useStore(s => s.set)
+  const route = useStore(s => s.route)
   const [, setTick] = useState(0)
   const [barUntil, setBarUntil] = useState(0)
   const [panel, setPanel] = useState<null | 'sensors' | 'quit'>(null)
-  const [dotsUntil, setDotsUntil] = useState(0)
   const [loupe, setLoupe] = useState<{ it: WidgetItem; until: number } | null>(null)
-  const [hint, setHint] = useState<{ msg: string; until: number }>({ msg: 'Appui long : menu · Glisser : écran suivant', until: Date.now() + 3500 })
+  const [hint, setHint] = useState<{ msg: string; until: number }>({ msg: 'Appui long : menu', until: Date.now() + 3500 })
   // Réglages changés d'un toucher pendant la sortie (profil, puissance, vue d'ensemble) : propres à la sortie, l'écran enregistré ne change pas.
   const [over, setOver] = useState<Record<string, Record<string, string | number | boolean>>>({})
   const [portrait, setPortrait] = useState(() => window.matchMedia('(orientation: portrait)').matches)
@@ -53,9 +52,7 @@ export function RideView({ onExit, onAway }: { onExit: () => void; onAway: () =>
   const data = ride.data(now)
   const say = (msg: string) => setHint({ msg, until: Date.now() + HINT_MS })
 
-  const goto = (dir: 1 | -1) => { set({ activeScreen: stepScreen(screens, screen.id, dir) }); setDotsUntil(Date.now() + 1000) }
-
-  // Gestes sur tout l'écran : appui long = menu, glisser à l'horizontale = écran suivant. Un geste fait, le « click » qui suit est ignoré.
+  // Appui long n'importe où = menu ; le « click » qui suit est ignoré. Un doigt qui glisse n'est pas un toucher.
   const G = useRef<{ x: number; y: number; moved: boolean; t: ReturnType<typeof setTimeout> | null } | null>(null)
   const consumed = useRef(false)
   const inUi = (e: { target: EventTarget }) => !!(e.target as HTMLElement).closest('.ride-bar, .sheet, .sheet-back')
@@ -67,12 +64,11 @@ export function RideView({ onExit, onAway }: { onExit: () => void; onAway: () =>
     G.current = g
   }
   const move = (e: React.PointerEvent) => { const g = G.current; if (g && Math.hypot(e.clientX - g.x, e.clientY - g.y) > 12) { g.moved = true; if (g.t) clearTimeout(g.t) } }
-  const up = (e: React.PointerEvent) => {
+  const up = () => {
     const g = G.current; G.current = null
     if (!g) return
     if (g.t) clearTimeout(g.t)
-    const dx = e.clientX - g.x, dy = e.clientY - g.y
-    if (!consumed.current && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { consumed.current = true; goto(dx < 0 ? 1 : -1) }
+    if (g.moved) consumed.current = true
   }
 
   // Toucher un widget : son action, sinon la loupe.
@@ -103,19 +99,24 @@ export function RideView({ onExit, onAway }: { onExit: () => void; onAway: () =>
   const style = { '--n': tone } as CSSProperties
   const items = itemsFor(screen, portrait).map(i => (over[i.id] ? { ...i, o: { ...i.o, ...over[i.id] } } : i))
   const L = loupe && t < loupe.until ? loupe.it : null
-  const lsize = L ? (fitSize(L.k, (portrait ? PORTRAIT : LANDSCAPE).cols, (portrait ? PORTRAIT : LANDSCAPE).rows) ?? [L.w, L.h]) : null
+  // Loupe : le widget grossi d'environ une fois et demie (taille autorisée suivante), centré sur sa place, pas tout l'écran.
+  const grid = portrait ? PORTRAIT : LANDSCAPE
+  const lsize = L ? (fitSize(L.k, Math.min(grid.cols, Math.ceil(L.w * 1.5)), Math.min(grid.rows, Math.ceil(L.h * 1.5))) ?? [L.w, L.h]) : null
+  const lbox = L && lsize ? (() => {
+    const w = lsize[0] / grid.cols, h = lsize[1] / grid.rows
+    const cx = (L.x + L.w / 2) / grid.cols, cy = (L.y + L.h / 2) / grid.rows
+    const left = Math.min(1 - w, Math.max(0, cx - w / 2)), top = Math.min(1 - h, Math.max(0, cy - h / 2))
+    return { left: `${left * 100}%`, top: `${top * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` }
+  })() : null
   return (
     <div className={`ride dev${portrait ? ' port' : ''}`} style={style} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onClick={tapBack}>
       <Device items={items} data={data} tone={tone} grid={portrait ? PORTRAIT : LANDSCAPE} className="full" onTap={tapWidget} />
       {L && lsize && (
         <div className="ride-loupe" role="dialog" aria-label={`${WIDGETS[L.k]} en grand`} onClick={e => { e.stopPropagation(); if (!consumed.current) setLoupe(null) }}>
-          <div className="ride-loupe-box"><Device items={[{ ...L, x: 0, y: 0, w: lsize[0], h: lsize[1] }]} data={data} tone={tone} grid={{ cols: lsize[0], rows: lsize[1] }} className="full" /></div>
+          <div className="ride-loupe-box" style={lbox ?? undefined}><Device items={[{ ...L, x: 0, y: 0, w: lsize[0], h: lsize[1] }]} data={data} tone={tone} grid={{ cols: lsize[0], rows: lsize[1] }} className="full" /></div>
         </div>
       )}
       {t < hint.until && <div className="ride-hint" role="status">{hint.msg}</div>}
-      {Date.now() < dotsUntil && screens.length > 1 && (
-        <div className="dots" aria-hidden="true">{screens.map(s => <i key={s.id} className={s.id === screen.id ? 'on' : ''} />)}</div>
-      )}
       {(t < barUntil || panel) && (
         <div className="ride-bar" role="toolbar" aria-label="Sortie">
           <button onClick={() => { setPanel('sensors'); setBarUntil(Infinity) }}><Icon name="bluetooth" size={22} />Capteurs</button>
