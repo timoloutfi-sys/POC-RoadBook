@@ -62,7 +62,7 @@ export function RoulerTab({ onStart }: { onStart: (src: RideSource) => void }) {
         <button className="btn primary big" onClick={() => onStart('live')}>{resume ? 'Reprendre la sortie' : 'Démarrer la sortie'}</button>
         {resume && <button className="btn" onClick={() => { ride.newRide(); bump(n => n + 1); toast('Nouvelle sortie prête.') }}>Nouvelle sortie</button>}
       </div>
-      <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>Pendant la sortie : toucher l’écran = capteurs et quitter ; toucher le widget Tour = nouveau tour ; bord droit : appui long = Fait, glisser = écran suivant.</p>
+      <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>Pendant la sortie : appui long = menu (capteurs, appli, quitter) ; toucher un widget = son action (Tour : nouveau tour, Rappel : fait) ou le voir en grand ; glisser = écran suivant.</p>
 
       <details className="fold">
         <summary>Répéter la sortie (simulation)</summary>

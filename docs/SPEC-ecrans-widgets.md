@@ -168,8 +168,7 @@ _Réalisé (étape 6) : paysage et portrait, sélection, déplacer, agrandir aux
 **Aperçu** : jour / nuit, puissance / cardio.
 
 **Gestes de course**
-- En portrait : bande du bas = rappel « Fait » (appui long), tour (double appui) et écran suivant (glisser) ; bande du haut = quitter (appui long 1,5 s).
-- En paysage : comme aujourd'hui, avec le double appui pour le tour.
+- Remplacé le 23 oct. : appui long n'importe où = menu, toucher un widget = action ou loupe, glisser à l'horizontale = écran suivant (`docs/REGLES-UX.md`, actions des widgets dans `storage/catalog.ts`, `TAP`).
 
 ## 7. Corrections du modèle (analyse du 5 oct.)
 

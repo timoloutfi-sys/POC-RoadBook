@@ -51,10 +51,10 @@ const toneOf = (el: Element | null): MapTone => {
  * Carte de la navigation : tournée dans ton sens de marche, toi en bas, le tracé en carmin, ce qui est fait en gris.
  * Lit la carte enregistrée (protocole `rbk://`), ou le réseau à défaut ; suit le jour et la nuit de l'écran.
  */
-export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; small: boolean; pitch: number; side?: number }) {
+export default function NavMap({ nav, small, pitch, side = 0, overview = false }: { nav: NavView; small: boolean; pitch: number; side?: number; overview?: boolean }) {
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
-  const state = useRef<{ tone: MapTone | null; doneAt: number; route: Route | null; at: number; lat: number; lon: number; head: number }>({ tone: null, doneAt: -1, route: null, at: 0, lat: 0, lon: 0, head: 0 })
+  const state = useRef<{ tone: MapTone | null; doneAt: number; route: Route | null; at: number; lat: number; lon: number; head: number; ov: boolean }>({ tone: null, doneAt: -1, route: null, at: 0, lat: 0, lon: 0, head: 0, ov: false })
   const route = useStore(s => s.route), debug = useStore(s => !!s.navDebug)
   // Diagnostic (Réglages) : ce que fait la carte sur le téléphone, pour trouver ce qui la fait clignoter.
   const diag = useRef<Record<string, number>>({ créée: 0 })
@@ -123,10 +123,13 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
     // ou tourné (moins de tuiles demandées puis annulées, pas de saccades).
     const st = state.current, now = performance.now()
     const moved = Math.abs(nav.lat - st.lat) + Math.abs(nav.lon - st.lon) > 1e-5 || Math.abs(((nav.heading - st.head + 540) % 360) - 180) > 2
-    if (moved && now - st.at > 950) {
-      st.at = now; st.lat = nav.lat; st.lon = nav.lon; st.head = nav.heading
+    // Vue d'ensemble (toucher pendant la sortie) : vue de haut, dézoomée, 10 s ; le retour se fait en douceur.
+    const ovChange = overview !== st.ov
+    if (ovChange || (moved && now - st.at > 950)) {
+      st.at = now; st.lat = nav.lat; st.lon = nav.lon; st.head = nav.heading; st.ov = overview
       bump('mouvements')
-      m.easeTo({ center: [nav.lon, nav.lat], bearing: nav.heading, duration: 1000, easing: x => x, padding: padOf(el.current, pitch, side) })
+      m.easeTo({ center: [nav.lon, nav.lat], bearing: nav.heading, duration: ovChange ? 600 : 1000, ...(ovChange ? {} : { easing: (x: number) => x }), padding: padOf(el.current, pitch, side),
+        zoom: overview ? 12.8 : small ? 15.6 : 15.4, pitch: overview ? 0 : pitch })
     }
     if (!m.isStyleLoaded()) return
     const r = state.current.route
@@ -139,7 +142,7 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
       void mapStyle(tone).then(s => map.current?.setStyle(s as unknown as StyleSpecification)).catch(() => {})
     }
     if (debug && diagEl.current) diagEl.current.textContent = Object.entries(diag.current).map(([k, v]) => `${k} ${v}`).join(' · ')
-  }, [nav, debug])
+  }, [nav, debug, overview])
 
   return <><div ref={el} className={`nav-map${pitch ? ' tilt' : ''}`} /><Chevron small={small} pitch={pitch} side={side} />{debug && <span ref={diagEl} className="nav-diag" />}</>
 }

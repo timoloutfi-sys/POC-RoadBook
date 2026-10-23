@@ -199,10 +199,12 @@ class Ride {
   }
 
   /** « Fait » : valide le dernier rappel. */
-  ack() {
+  /** Vrai si un rappel attendait sa validation. */
+  ack(): boolean {
     const ok = ackReminder(this.run, rideState().periodic, performance.now())
     if (ok && this.src === 'live') { const g = rideState().periodic.find(p => p.id === this.live.lastPerId)?.grams; if (g) eat(this.eng, g) }
     if (ok && this.src === 'live') recorder.event({ type: 'reminder', km: this.live.d / 1000, ok: true })
+    return !!ok
   }
 
   /** Reprend une sortie restée ouverte après un arrêt de Chrome. */

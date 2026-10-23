@@ -139,7 +139,6 @@ details.fold > div { padding: 0 16px 14px; }
 .lab { font-weight: 600; letter-spacing: 0; }
 .val { font-family: var(--num); font-weight: 600; letter-spacing: -.035em; }
 .val small { font-weight: 500; letter-spacing: 0; }
-.ride .strip { background: transparent; }
 
 /* Ajustements après relecture des captures */
 .dashbox { border: 0 !important; background: var(--i-bg2) !important; border-radius: 16px !important; }

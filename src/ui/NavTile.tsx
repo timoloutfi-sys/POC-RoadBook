@@ -47,13 +47,14 @@ function PreviewMap() {
   )
 }
 
-const Map = ({ nav, small, pitch, side }: { nav: NavView; small: boolean; pitch: number; side: number }) =>
-  nav.preview ? <PreviewMap /> : <Suspense fallback={null}><NavMap nav={nav} small={small} pitch={pitch} side={side} /></Suspense>
+const Map = ({ nav, small, pitch, side, overview }: { nav: NavView; small: boolean; pitch: number; side: number; overview: boolean }) =>
+  nav.preview ? <PreviewMap /> : <Suspense fallback={null}><NavMap nav={nav} small={small} pitch={pitch} side={side} overview={overview} /></Suspense>
 
 const big = (px: number): CSSProperties => ({ fontFamily: 'var(--num)', fontWeight: 650, fontSize: px, lineHeight: 1, letterSpacing: '-.03em' })
 
 /** Widget Navigation : prochain virage sur un mini fond de carte en petit, carte en perspective en grand ; hors parcours, plaque ocre. */
-export function NavW({ nav, w, h }: { nav: NavView | null; w: number; h: number }) {
+/** `overview` : vue d'ensemble (carte vue de haut, dézoomée), après un toucher pendant la sortie. */
+export function NavW({ nav, w, h, overview = false }: { nav: NavView | null; w: number; h: number; overview?: boolean }) {
   if (!nav) return <><div className="lab">Navigation</div><div className="val dim">--</div><div className="sub dim">Parcours requis</div></>
   const off = nav.off, small = h === 1
   const plate: CSSProperties = { background: off ? OFF : NAV, color: off ? OFF_INK : '#fff' }
@@ -63,7 +64,7 @@ export function NavW({ nav, w, h }: { nav: NavView | null; w: number; h: number 
   const icon = (px: number) => off ? <OffArrow rel={off.rel} size={px} /> : <TurnArrow turn={t} size={px} color="#fff" />
   return (
     <div className={`nav-w${small ? ' sm' : ''}`} aria-label={`${label}${dist ? `, ${dist}` : ''}${off ? `, tracé ${off.side}` : ''}`}>
-      <Map nav={nav} small={small} pitch={small ? 0 : 50} side={small && w > 1 ? 0.55 : 0} />
+      <Map nav={nav} small={small} pitch={small ? 0 : 50} side={small && w > 1 ? 0.55 : 0} overview={overview} />
       {small ? (
         <div className={`nav-plate${w === 1 ? ' one' : ''}`} style={plate}>
           {icon(w === 1 ? 32 : 44)}

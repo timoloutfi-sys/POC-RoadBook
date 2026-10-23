@@ -167,3 +167,13 @@ describe('puissance moyenne 3/10/30 s', () => {
     expect(o('avg')!.def).toBe(10)
   })
 })
+
+describe('toucher un widget pendant la sortie', () => {
+  it('passe au réglage suivant en boucle : profil 5 → 15 km, puissance 10 s (défaut) → 30 s → 3 s', async () => {
+    const { nextOption } = await import('./catalog')
+    expect(nextOption('profile', 'range', 5)?.v).toBe(15)
+    expect(nextOption('effort', 'avg', undefined)?.v).toBe(30)
+    expect(nextOption('effort', 'avg', 30)?.v).toBe(3)
+    expect(nextOption('hr', 'avg', 3)).toBeNull()
+  })
+})

@@ -99,6 +99,23 @@ export const OPTIONS: Partial<Record<WidgetKind, OptionDef[]>> = {
   profile: [{ key: 'range', label: 'À venir', choices: [{ v: 5, l: '5 km' }, { v: 15, l: '15 km' }, { v: 25, l: '25 km' }, { v: 'rest', l: 'Jusqu’à l’arrivée' }, { v: 'all', l: 'Parcours complet' }] }],
 }
 
+/**
+ * Toucher un widget pendant la sortie : son action s'il en a une, sinon il s'affiche en grand quelques secondes (loupe).
+ * `cycle` passe au réglage suivant du widget (le réglage de l'écran n'est pas modifié, seulement la sortie en cours).
+ */
+export type TapAction = { kind: 'lap' } | { kind: 'done' } | { kind: 'overview' } | { kind: 'cycle'; key: string; label: string }
+export const TAP: Partial<Record<WidgetKind, TapAction>> = {
+  lap: { kind: 'lap' }, fuel: { kind: 'done' }, nav: { kind: 'overview' },
+  profile: { kind: 'cycle', key: 'range', label: 'Profil' }, effort: { kind: 'cycle', key: 'avg', label: 'Puissance moyenne' },
+}
+/** Valeur suivante d'un réglage (en boucle), à partir de la valeur en cours ou de celle par défaut. */
+export function nextOption(k: WidgetKind, key: string, cur: string | number | boolean | undefined) {
+  const d = OPTIONS[k]?.find(o => o.key === key)
+  if (!d) return null
+  const v = cur ?? d.def ?? d.choices[0].v, i = d.choices.findIndex(c => c.v === v)
+  return d.choices[(i + 1) % d.choices.length]
+}
+
 /** Une variante d'une famille : un widget du catalogue (et ses réglages) qu'on choisit dans la famille. */
 export interface Variant { k: WidgetKind; label: string; o?: Record<string, string | number | boolean> }
 /** Famille : ce que l'utilisateur voit dans le catalogue. Plusieurs widgets proches y sont des variantes. */

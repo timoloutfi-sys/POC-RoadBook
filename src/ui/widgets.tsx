@@ -184,7 +184,7 @@ export function Widget({ it, d }: { it: WidgetItem; d: WidgetData }) {
     case 'profile': return <ProfileW d={d} sz={sz} range={o.range} />
     case 'fuel': return <FuelW d={d} sz={sz} />
     case 'gap': return <GapW d={d} w={it.w} h={it.h} />
-    case 'nav': return <NavW nav={d.nav} w={it.w} h={it.h} />
+    case 'nav': return <NavW nav={d.nav} w={it.w} h={it.h} overview={typeof o.overview === 'number' && o.overview > Date.now()} />
     default: return null
   }
 }

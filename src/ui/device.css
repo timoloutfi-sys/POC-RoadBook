@@ -77,8 +77,6 @@
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   /* Rayon des coins de l'écran du téléphone (Android : 30 à 50 px) : les widgets des coins le suivent. */
   --scr-r: 40px; }
-/* Bande des gestes (Fait, écran suivant) posée sur le bord, au-dessus des widgets : elle ne prend plus de place. */
-.ride .strip { position: absolute; z-index: 5; top: 0; bottom: 0; right: 0; width: 24px; }
 .ride-bar { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px; right: 12px; margin: 0 auto; max-width: 520px; z-index: 8; display: flex; gap: 8px; }
 .ride-bar button { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 6px; border-radius: 99px; border: 1px solid var(--d-mut); background: rgba(0, 0, 0, .8); color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
 .ride-bar button svg { flex: none; }
@@ -131,7 +129,6 @@
 .cell-empty { position: absolute; display: grid; place-items: center; border: 1px dashed color-mix(in srgb, var(--d-mut) 55%, transparent); border-radius: 8px; margin: 2px; box-sizing: border-box; background: transparent; color: var(--d-mut); font-size: 28px; cursor: pointer; z-index: 1; }
 .wg.sel .wi { border: 2px solid var(--d-acc); border-style: solid; box-shadow: 0 0 0 3px color-mix(in srgb, var(--d-acc) 35%, transparent); }
 .wg.sel { z-index: 2; }
-.ride.port .strip { top: auto; left: 0; width: auto; height: 24px; }
 .ride.port .dots { right: auto; left: 50%; top: auto; bottom: 34px; transform: translateX(-50%); flex-direction: row; }
 .dev.portrait.full { aspect-ratio: auto; }
 .dev.thumb.portrait, .dev.editing.portrait { aspect-ratio: 1 / 2; }
@@ -274,3 +271,12 @@
 .ride .wg.c-tl .nav-band { padding-left: 20px; }
 .ride .wg.c-bl .nav-plate, .ride .wg.c-tl .nav-plate { left: 12px; }
 .ride .wg.c-br .nav-attr { right: 20px; }
+
+/* Loupe : un widget touché s'affiche en grand quelques secondes, à sa plus grande taille (plus de détails). */
+.ride-loupe { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: color-mix(in srgb, var(--d-bg) 70%, transparent); }
+.ride-loupe-box { width: 94%; height: 88%; position: relative; }
+.ride-loupe-box .dev { background: transparent; }
+.ride-loupe-box .wi { box-shadow: 0 10px 40px rgba(0, 0, 0, .3); }
+/* Aide et retour d'un toucher (« Fait », « Profil : 15 km ») : une pastille en haut, qui ne bloque rien. */
+.ride-hint { position: absolute; left: 50%; top: max(10px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 6; padding: 8px 16px; border-radius: 99px; background: rgba(0, 0, 0, .78); color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; pointer-events: none; }
+.ride .dev-ban .banner { pointer-events: auto; }
