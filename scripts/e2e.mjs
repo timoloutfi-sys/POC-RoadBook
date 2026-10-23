@@ -168,6 +168,21 @@ test('repère et point : choisis sur le profil, sans taper le km', async (p, url
   ok(km > 60 && km < 90, `point non posé au milieu : ${km}`)
 })
 
+test('tour : toucher le widget Tour termine le tour et en démarre un nouveau, sans ouvrir la barre', async (p, url) => {
+  await open(p, url); await tab(p, 'Road books')
+  await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200)
+  await p.getByRole('button', { name: 'Créer' }).tap(); await p.waitForTimeout(1200)
+  await tab(p, 'Accueil'); await p.getByRole('button', { name: 'Sortie libre', exact: true }).tap(); await p.waitForTimeout(500)
+  await p.getByRole('button', { name: 'Démarrer la sortie' }).tap(); await p.waitForTimeout(800)
+  const lap = p.locator('.wg[aria-label="Tour"]')
+  ok(await lap.count() === 1, 'pas de widget Tour sur l’écran Sortie libre')
+  ok((await lap.textContent()).includes('Tour 1'), 'le premier tour n’est pas « Tour 1 »')
+  await lap.tap(); await p.waitForTimeout(600)
+  ok((await lap.textContent()).includes('Tour 2'), 'toucher le widget Tour ne démarre pas de nouveau tour')
+  ok(await p.getByRole('button', { name: 'Capteurs' }).count() === 0, 'toucher le widget Tour ouvre la barre')
+  ok(await p.locator('.banner', { hasText: 'Tour 1' }).count() === 1, 'pas de bandeau avec les moyennes du tour terminé')
+})
+
 test('sortie libre : bouton visible, barre Capteurs / Quitter au toucher, fin confirmée', async (p, url) => {
   await open(p, url); await tab(p, 'Road books')
   await p.getByText('Essayer avec la boucle démo').tap(); await p.waitForTimeout(200)

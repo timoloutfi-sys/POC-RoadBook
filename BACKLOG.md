@@ -4,6 +4,8 @@ Une ligne par point, du plus important au moins important. Capture si besoin (gl
 Format : `- [ ] Écran › élément : ce qui ne va pas → ce que je veux`. Claude coche `[x]` et ajoute le commit.
 
 ## À faire
+- [x] Navigation › le fond de carte apparaît et disparaît : tuiles annulées rendues vides (la carte bougeait 4 fois par seconde) → annulation propagée, carte déplacée une fois par seconde au plus, rendu isolé. Test unitaire ; à confirmer sur le téléphone.
+- [x] Tour › aucun moyen de terminer le tour : toucher le widget Tour termine le tour (moyennes en bandeau) et en démarre un nouveau ; test au doigt.
 - [x] Appli › couleur d'accent : le bleu ne plaisait pas → « Carmin » (combinaison n° 221 de Wada, accordée au Lin).
 - [x] Appli › « uniquement en mode sombre ? » : suivait déjà le téléphone ; ajout d'un réglage Apparence (Auto / Clair / Sombre).
 - [x] Road books › cartes collées en un seul bloc avec un trait → cartes séparées (test au doigt).

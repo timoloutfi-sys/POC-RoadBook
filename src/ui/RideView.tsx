@@ -70,12 +70,18 @@ export function RideView({ onExit, onAway }: { onExit: () => void; onAway: () =>
     }
   }
 
+  // Toucher le widget Tour : termine le tour en cours (ses moyennes s'affichent en bandeau) et en démarre un nouveau.
+  const tapWidget = (it: { k: string }) => {
+    if (it.k !== 'lap') return false
+    ride.newLap(); navigator.vibrate?.(40)
+    return true
+  }
   const style = { '--n': tone } as CSSProperties
   const items = itemsFor(screen, portrait)
   const act = <div className={`strip ${portrait ? 'bottom' : 'right'}`} onPointerDown={rDown} onPointerMove={rMove} onPointerUp={rUp} onPointerCancel={rUp} aria-label="Appui long : fait. Double appui : tour. Glisser : écran suivant" />
   return (
     <div className={`ride dev${portrait ? ' port' : ''}`} style={style} onClick={e => { if (!(e.target as HTMLElement).closest('.strip, .ride-bar, .sheet, .sheet-back')) setBarUntil(Date.now() < barUntil ? 0 : Date.now() + BAR_MS) }}>
-      <Device items={items} data={data} tone={tone} grid={portrait ? PORTRAIT : LANDSCAPE} className="full" />
+      <Device items={items} data={data} tone={tone} grid={portrait ? PORTRAIT : LANDSCAPE} className="full" onTap={tapWidget} />
       {act}
       {Date.now() < dotsUntil && screens.length > 1 && (
         <div className="dots" aria-hidden="true">{screens.map(s => <i key={s.id} className={s.id === screen.id ? 'on' : ''} />)}</div>

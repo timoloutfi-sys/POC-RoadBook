@@ -65,3 +65,5 @@ Critère final : **une personne qui sait utiliser un iPhone sait utiliser l'appl
 - Navigation : un widget comme les autres, jamais de recalcul d'itinéraire. Tracé et consignes en carmin, chevron encre, ce qui est fait en gris ; « Hors parcours » en ocre avec la direction du tracé en mots (derrière à droite…) et une ligne pointillée vers lui. Carte calme : routes, eau, verdure, noms de rues, rien d'autre.
 - Navigation dans l'éditeur et les vignettes : un aperçu dessiné, jamais une vraie carte (pas de réseau ni de WebGL pour un aperçu).
 - La carte hors ligne se télécharge depuis le road book (Réglages) ; « Avant de partir » ne la mentionne que si l'écran de la sortie a un widget Navigation.
+- Une action liée à un widget se fait en le touchant, et le widget dit le geste quand il a la place (Tour : « Toucher : nouveau tour », les moyennes du tour fini passent en bandeau). Ce toucher n'ouvre pas la barre de la sortie.
+- La carte de navigation ne bouge qu'une fois par seconde, et seulement si on a avancé ou tourné ; une tuile annulée n'est jamais rendue vide (sinon le fond clignote).

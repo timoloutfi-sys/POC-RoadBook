@@ -34,10 +34,12 @@ interface Props {
   /** Vignette : textes minuscules, aucune interaction. */
   thumb?: boolean
   className?: string
+  /** Vue de course : toucher un widget (ex. Tour → nouveau tour) ; vrai si le toucher est pris, la barre ne s'affiche pas. */
+  onTap?: (it: WidgetItem) => boolean
 }
 
 /** La grille 6 × 3 d'un écran de course, avec la lueur d'alerte sur les bords et le bandeau d'annonce. */
-export function Device({ items, data, tone, editable, onChange, thumb, className, grid = LANDSCAPE, selected, onSelect, onEmpty, hint }: Props) {
+export function Device({ items, data, tone, editable, onChange, thumb, className, grid = LANDSCAPE, selected, onSelect, onEmpty, hint, onTap }: Props) {
   const COLS = grid.cols, ROWS = grid.rows
   const root = useRef<HTMLDivElement>(null)
   // Glisser : le widget suit le doigt au pixel près, les autres glissent vers leur nouvelle place (transitions CSS),
@@ -105,7 +107,7 @@ export function Device({ items, data, tone, editable, onChange, thumb, className
           ...(sev && (it.k === 'effort' || it.k === 'hr' || it.k === 'cad' || it.k === 'speed') ? { '--valc': sevColor(sev.k, 1, sev.dir), '--wbg': sevColor(sev.k, 0.06 + 0.14 * sev.k, sev.dir), '--wbd': sevColor(sev.k, 0.4 + 0.4 * sev.k, sev.dir) } : {}),
         } as CSSProperties
         return (
-          <div key={it.id} className={`wg s-${sizeOf(it)}${sev && it.k !== 'target' ? ' alert' : ''}${selected === it.id ? ' sel' : ''}${lifted ? ' lifted' : ''}${live ? ' anim' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} onClick={() => editable && onSelect?.(it.id)} aria-label={WIDGETS[it.k]}>
+          <div key={it.id} className={`wg s-${sizeOf(it)}${sev && it.k !== 'target' ? ' alert' : ''}${selected === it.id ? ' sel' : ''}${lifted ? ' lifted' : ''}${live ? ' anim' : ''}`} style={sty} onPointerDown={e => down(e, it, 'move')} onClick={e => { if (editable) onSelect?.(it.id); else if (onTap?.(it)) e.stopPropagation() }} aria-label={WIDGETS[it.k]}>
             <div className="wi"><Widget it={it} d={data} /></div>
             {editable && (
               <>

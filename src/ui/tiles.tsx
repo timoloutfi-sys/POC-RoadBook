@@ -84,7 +84,8 @@ export function tileOf(k: WidgetKind, d: WidgetData, o: Record<string, string | 
     case 'lap': {
       if (!m) return { lab: 'Tour', empty: '--' }
       const l = m.lap
-      return { lab: `Tour ${m.laps + 1}`, val: mmss(l.dur), sub: [l.p != null ? `${nf0(l.p)} W` : '', l.hr != null ? `${nf0(l.hr)} bpm` : '', `${nf1(l.v)} km/h`].filter(Boolean) }
+      // Dernière ligne (affichée s'il y a la place) : le geste, pour qu'il ne soit pas caché.
+      return { lab: `Tour ${m.laps + 1}`, val: mmss(l.dur), sub: [l.p != null ? `${nf0(l.p)} W` : '', l.hr != null ? `${nf0(l.hr)} bpm` : '', `${nf1(l.v)} km/h`, 'Toucher : nouveau tour'].filter(Boolean) }
     }
     case 'slope': {
       if (d.slope == null) return { lab: 'Pente', empty: '--' }
