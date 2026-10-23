@@ -240,7 +240,7 @@
 .wi:has(> .nav-w) { padding: 0; overflow: hidden; }
 .nav-w { position: absolute; inset: 0; --nav-land: color-mix(in srgb, #2c2c2e calc(var(--n) * 100%), #ece8df); --nav-road: color-mix(in srgb, #48484a calc(var(--n) * 100%), #fff); }
 .nav-map, .nav-prev { position: absolute; inset: 0; width: 100%; height: 100%; }
-.nav-map { background: var(--nav-land); transform: translateZ(0); contain: strict; }
+.nav-map { background: var(--nav-land); contain: strict; }
 .nav-map.tilt { height: 160%; }
 .nav-map .maplibregl-canvas { outline: none; }
 .nav-me { position: absolute; z-index: 1; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); pointer-events: none; }

@@ -86,6 +86,9 @@ export default function NavMap({ nav, small, pitch, side = 0 }: { nav: NavView; 
       const m = new maplibregl.Map({
         container: el.current, style: style as unknown as StyleSpecification, center: [n.lon, n.lat], zoom: small ? 15.6 : 15.4, bearing: n.heading, pitch,
         interactive: false, attributionControl: false, fadeDuration: 0, refreshExpiredTiles: false, maxTileCacheSize: 400,
+        // Chrome sur Android affichait par moments une image vide de la carte quand le reste de l'écran se redessinait
+        // (4 fois par seconde) : la carte garde sa dernière image.
+        canvasContextAttributes: { preserveDrawingBuffer: true, antialias: true },
       })
       // Toi en bas de la case : marge en haut pour la vue de dessus ; pour la vue inclinée, la carte déborde sous la case (`.tilt`),
       // car une marge avec inclinaison laisse le bas de la carte vide (tuiles non chargées).
