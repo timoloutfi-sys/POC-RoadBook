@@ -147,6 +147,12 @@ Pour 25 h, hypothèse de travail : consommation moyenne ~60 à 120 mA (carte ESP
 
 ## Questions ouvertes (restantes)
 
+**Question stratégique (2026-10-29)** : utiliser un appareil existant au lieu de fabriquer le boîtier ?
+- **Hammerhead Karoo 3** (Android, ~500 €) : installation d'applications Android autorisée (APK depuis GitHub, via l'application Companion) et SDK officiel `karoo-ext` (capteurs, état de la sortie) ; bibliothèque d'extensions sur l'appareil ; écran transflectif couleur tactile, 5 boutons, GPS, capteurs BLE/ANT+ ; autonomie annoncée ~15 h (mode économie annoncé jusqu'à ~30–35 h). Réutilisation possible de l'interface web du soft dans une application Android.
+- **Garmin Edge** (Connect IQ, langage Monkey C) : autonomie 26 h (840) à 35 h (1040) annoncée ; mémoire des champs de données ~128 Ko (forums) ; tout serait à réécrire, contraintes fortes pour un road book de 500 km.
+- **Téléphone e‑ink ou robuste** : l'appli actuelle tourne telle quelle ; GPS non confirmé sur les téléphones e‑ink trouvés.
+- Conséquence pour les testeurs : une application sur un compteur qu'ils possèdent déjà évite de fabriquer des boîtiers. Décision au porteur ; une cible Karoo ou Garmin relève du soft (`src/`), hors de ce chantier.
+
 0. Emplacement des capteurs sur le boîtier : fenêtre du capteur de lumière (orientée vers le ciel, pas masquée par le cintre ni la main), température éloignée de la carte, de la batterie et du soleil direct. À trancher avant de dessiner le boîtier 3D.
 1. Éclairage de nuit de l'écran : éclairage frontal ou lumière LED latérale ? (Après le prototype de table.)
 2. Boutons : combien, quelle disposition, étanchéité (gants, pluie).
@@ -156,6 +162,8 @@ Pour 25 h, hypothèse de travail : consommation moyenne ~60 à 120 mA (carte ESP
 6. Stockage : flash interne (4 Mo) ou microSD pour l'enregistrement de 25 h (~2 Mo + marge) ?
 
 ## Journal des décisions
+
+- **2026-10-29** : question ouverte « appareil existant (Karoo 3, Garmin Edge) au lieu d'un boîtier maison », à trancher par le porteur.
 
 - **2026-10-08 (étude écran)** : le porteur veut de la couleur et une forme adaptée au cintre ; l'écran est remis à trancher. Étude ci‑dessus : e‑paper, TFT classique et JDI couleur (fin de vie) écartés pour le produit ; finalistes Sharp 2,7" (A), Sharp 3,2" (B), TFT transflectif 3,5" couleur (C). Proposition : essai comparatif A/C. Format du paquet inchangé.
 
