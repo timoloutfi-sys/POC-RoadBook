@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MiraSmile</string>
+    <string name="smile">Souris&#160;! 😊</string>
+    <string name="no_face">Place ton visage dans l\'écran</string>
+    <string name="almost">Encore un peu… 😄</string>
+    <string name="saved">Photo enregistrée&#160;! 📸</string>
+    <string name="rearm">Reprends un air sérieux… puis souris encore</string>
+    <string name="save_error">La photo n\'a pas pu être enregistrée</string>
+    <string name="permission_needed">MiraSmile a besoin de l\'appareil photo pour te voir sourire.</string>
+    <string name="grant">Autoriser l\'appareil photo</string>
+    <string name="hint">La photo se prend toute seule quand tu souris</string>
+    <string name="last_photo">Dernière photo</string>
+    <string name="shutter">Prendre la photo</string>
+    <string name="count">%1$d photo(s)</string>
+</resources>
